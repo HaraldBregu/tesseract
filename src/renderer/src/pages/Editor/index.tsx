@@ -2,8 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEditor, Editor } from '@tiptap/react';
 import { rendererLogger } from '../../utils/logger';
-import ToolbarComponent from './components/toolbar';
-import EditorWrapper from './components/editorTextArea';
+import EditorWrapper from '../../components/editor-text-layout';
 import { defaultEditorConfig } from './utils/editorConfigs';
 import { useHistoryState } from './hooks';
 import BubbleToolbar from './components/bubbleToolbar';
@@ -12,14 +11,13 @@ import { addComment, addCategory, setCategoriesData } from '../Comments/store/co
 import { getAllCategories } from '../Comments/store/comments.selector';
 import { v4 as uuidv4 } from 'uuid';
 import { setSidebarOpen } from '../store/main.slice';
-import styles from './index.module.css';
 
 interface EditorComponentProps {
   open: boolean;
   toggleSidebar: () => void;
 }
 
-const EditorComponent: React.FC<EditorComponentProps> = ({ open, toggleSidebar }) => {
+const EditorComponent: React.FC<EditorComponentProps> = () => {
   const textColorInputRef = useRef<HTMLInputElement>(null);
   const highlightColorInputRef = useRef<HTMLInputElement>(null);
   const undoInputRef = useRef<HTMLInputElement>(null);
@@ -83,6 +81,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({ open, toggleSidebar }
       comments: categoriesRef.current || []
     };
     console.log("🚀 ~ updateHandler ~ editorContent:", editorContent)
+    console.log(JSON.stringify(textEditor.getJSON()))
     console.log("🚀 ~ updateHandler ~ textEditor", textEditor.getHTML())
 
     const taskId = rendererLogger.startTask("TextEditor", "Content update");
@@ -248,8 +247,8 @@ const EditorComponent: React.FC<EditorComponentProps> = ({ open, toggleSidebar }
       <div
         className='position-sticky top-0 z-1100 bg-background-paper'
       >
-        <ToolbarComponent
-          toggleSidebar={() => toggleSidebar()}
+        {/* <ToolbarTest /> */}
+        {/*  <ToolbarComponent
           open={open}
           activeEditor={activeEditor}
           textColorInputRef={textColorInputRef}
@@ -264,7 +263,7 @@ const EditorComponent: React.FC<EditorComponentProps> = ({ open, toggleSidebar }
           historyState={currentHistory.historyState}
           revertToAction={currentHistory.restoreHistoryAction}
           trackHistoryActions={currentHistory.trackHistoryActions}
-        />
+        /> */}
       </div>
       <div className="flex flex-col h-[calc(100% - 3rem)] grow min-h-0 overflow-auto">
         <div className="flex flex-row h-full w-full overflow-hidden">

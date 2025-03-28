@@ -21,7 +21,8 @@
       "@utils/*": ["src/renderer/src/utils/*"],
       "@pages/*": ["src/renderer/src/pages/*"],
       "@store/*": ["src/renderer/src/store/*"],
-      "@components/*": ["src/renderer/src/components/*"]
+      "@components/*": ["src/renderer/src/components/*"],
+      "@icons/*": ["src/src/renderer/src/assets/icons/*"]
     }
   }
 }

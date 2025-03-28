@@ -53,7 +53,7 @@ import { z } from "zod"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import Button from "@/components/ui/button"
 import {
   ChartConfig,
   ChartContainer,
@@ -125,7 +125,7 @@ function DragHandle({ id }: { id: number }): React.JSX.Element {
     <Button
       {...attributes}
       {...listeners}
-      variant="ghost"
+      variant="tonal"
       size="icon"
       className="size-7 text-muted-foreground hover:bg-transparent"
     >
@@ -292,7 +292,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="ghost"
+            variant="tonal"
             className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
             size="icon"
           >
@@ -450,7 +450,7 @@ export function DataTable({
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="small">
                 <ColumnsIcon />
                 <span className="hidden lg:inline">Customize Columns</span>
                 <span className="lg:hidden">Columns</span>
@@ -481,7 +481,7 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="small">
             <PlusIcon />
             <span className="hidden lg:inline">Add Section</span>
           </Button>
@@ -665,7 +665,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }): React.JSX.
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="link" className="w-fit px-0 text-left text-foreground">
+        <Button variant="outline" className="w-fit px-0 text-left text-foreground">
           {item.header}
         </Button>
       </SheetTrigger>

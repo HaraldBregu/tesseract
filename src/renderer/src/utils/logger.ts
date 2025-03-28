@@ -81,7 +81,7 @@ class RendererLogger {
         window.electron.ipcRenderer.send('log-entry', entry)
 
         if (process.env.NODE_ENV !== 'production') {
-            console.log(JSON.stringify(entry, null, 2));
+           // console.log(JSON.stringify(entry, null, 2));
         }
     }
 }

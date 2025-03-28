@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CriterionTextBox from '../../../../components/CriterionTextBox';
+import CriterionTextBox from '../../../../components/ui/textField';
 import { useDispatch } from 'react-redux';
 import {
     updateCategoryTitle,

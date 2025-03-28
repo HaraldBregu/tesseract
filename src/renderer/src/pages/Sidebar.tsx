@@ -3,10 +3,10 @@ import { useState } from 'react';
 import Comments from './Comments';
 import TabPanel from '@/components/TabPanel/TabPanel';
 import CustomTab from '@/components/CustomTab/CustomTab';
-import Bookmark from '@/components/Bookmarks';
+import Bookmark from '@/components/app-bookmarks';
 // import TableOfContents from '@/components/TableOfContents';
 
-export default function Sidebar(): JSX.Element {
+export default function Sidebar() {
     const [value, setValue] = useState(0);
 
     const clickHdlr = (newValue: number): void => {
@@ -33,9 +33,7 @@ export default function Sidebar(): JSX.Element {
         { title: 'chat', tab: <Comments /> },
         {
             title: 'bookmark', tab: <>
-                <Bookmark title="Bookmark 1" description="Bookmark 1 action" action={() => {
-                    console.log('Bookmark 1 action');
-                }} /></>
+                <Bookmark title="Bookmark 1" items={[]} /></>
         },
         {
             title: 'format_list_bulleted', tab: <> </>

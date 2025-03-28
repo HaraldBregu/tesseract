@@ -24,6 +24,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "transpile-electron": "tsc --project src/main/tsconfig.json",
+    "svgr": "node svgr-script.cjs",
     "old-dist-win": "npm run transpile-electron && npm run build && npx electron-builder --win --x64",
     "old-dist-mac": "npm run transpile-electron && npm run build && npx electron-builder --mac --arm64",
     "old-dist-linux": "npm run transpile-electron && npm run build && npx electron-builder --linux --x64",
@@ -131,6 +132,7 @@
     "react-i18next": "^15.4.0",
     "react-quill": "^2.0.0",
     "react-redux": "^9.2.0",
+    "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^7.1.1",
     "recharts": "^2.15.1",
     "redux": "^5.0.1",
@@ -149,6 +151,9 @@
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@eslint/js": "^9.17.0",
     "@shadcn/ui": "^0.0.4",
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@svgr/plugin-svgo": "^8.1.0",
     "@types/electron": "^1.4.38",
     "@types/node": "^22.13.1",
     "@types/react": "^18.3.18",
@@ -173,6 +178,7 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5",
+    "vite-plugin-svgr": "^4.3.0",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "engines": {

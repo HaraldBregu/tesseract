@@ -1,5 +1,5 @@
-import { call, put, takeLatest } from 'redux-saga/effects';
-import { fetchDataStart, fetchDataSuccess, fetchDataFailure } from './editor.slice';
+import { call, delay, put, takeLatest } from 'redux-saga/effects';
+import { fetchDataStart, fetchDataSuccess, fetchDataFailure, setComment, executeComment } from './editor.slice';
 
 function* fetchDataSaga() {
     try {
@@ -11,6 +11,13 @@ function* fetchDataSaga() {
     }
 }
 
+function* handleCommentSaga() {
+    yield put(setComment(true))
+    yield delay(100)
+    yield put(setComment(false))
+}
+
+
 function fetchDataFromAPI(): Promise<string[]> {
     return new Promise((resolve) =>
         setTimeout(() => resolve(['Item 1', 'Item 2', 'Item 3']), 1000)
@@ -19,4 +26,5 @@ function fetchDataFromAPI(): Promise<string[]> {
 
 export default function* editorSaga() {
     yield takeLatest(fetchDataStart.type, fetchDataSaga);
+    yield takeLatest(executeComment.type, handleCommentSaga);
 }

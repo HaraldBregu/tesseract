@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import './index.css'
 import '@material-symbols/font-400/outlined.css'
 import '@material-design-icons/font/index.css'
+// import ThemeContainer from './theming';
 
 const rootElement = document.getElementById('root');
 
@@ -17,6 +18,7 @@ createRoot(rootElement).render(
   <Provider store={store}>
     <StrictMode>
       <App />
+      {/* <ThemeContainer /> */}
     </StrictMode>
   </Provider>
 )

@@ -4,8 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 
-import { Node as ProseMirrorNode } from 'prosemirror-model';
-
 import HighlightColor from "./components/HighlightColor";
 import FormatTextColor from "./components/FormatTextColor";
 import SpacingModal from "./components/SpacingModal";
@@ -33,8 +31,23 @@ import { adjustCapitalization, adjustLetterSpacing, CapitalizationType, Characte
 import { HistoryState } from "../../hooks/types";
 
 import styles from '../../index.module.css';
-import { CriterionDivider } from "@/components/CriterionDivider";
-//import { ResolvedPos } from "@tiptap/pm/model";
+import Bold from "@/assets/reactIcons/Bold";
+import Italic from "@/assets/reactIcons/Italic";
+import Underline from "@/assets/reactIcons/Underline";
+import Restore from "@/assets/reactIcons/Restore";
+import HistoryEdu from "@/assets/reactIcons/HistoryEdu";
+import Siglum from "@/assets/reactIcons/Siglum";
+import CommentAdd from "@/assets/reactIcons/CommentAdd";
+import Bookmark from "@/assets/reactIcons/Bookmark";
+import LinkAdd from "@/assets/reactIcons/LinkAdd";
+import Divider from "@/components/ui/divider";
+import Button from "@/components/ui/button";
+import { on } from "events";
+import PlusSimple from "@/assets/reactIcons/PlusSimple";
+import MinusSimple from "@/assets/reactIcons/MinusSimple";
+import { Input } from "@/components/ui/input";
+import TextField from "@/components/ui/textField";
+import Citation from "@/assets/reactIcons/Citation";
 
 // Definire le costanti per i valori comuni
 const MIN_FONT_SIZE = 8;
@@ -53,15 +66,29 @@ interface ToolbarProps {
   lastFontSize: string | null;
   setLastFontSize: (size: string | null) => void;
   isHeading: boolean;
+  headingLevel: number;
+  onSelectHeading: (level: number) => void;
   setIsHeading: (isHeading: boolean) => void;
   historyState?: HistoryState;
   revertToAction?: (actionId: string) => void;
   trackHistoryActions?: (type: string, description: string) => void;
-  toggleSidebar: () => void;
+  isBold: boolean;
+  isItalic: boolean;
+  isUnderline: boolean;
+  onClickBold: () => void;
+  onClickItalic: () => void;
+  onClickUnderline: () => void;
+  onRedo: () => void;
+  fontFamily: string;
+  onSetFontFamily: (fontFamily: string) => void;
+  fontSize: number;
+  onSetFontSize: (fontSize: number) => void;
+  onIncreaseFontSize: () => void;
+  onDecreaseFontSize: () => void;
+  onClickAddComment: () => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
-  open,
   activeEditor,
   textColorInputRef,
   highlightColorInputRef,
@@ -72,10 +99,25 @@ const Toolbar: React.FC<ToolbarProps> = ({
   setLastFontSize,
   isHeading,
   setIsHeading,
+  headingLevel,
+  fontFamily,
+  onSelectHeading,
   historyState,
   revertToAction,
   trackHistoryActions,
-  toggleSidebar,
+  isBold,
+  isItalic,
+  isUnderline,
+  onClickBold,
+  onClickItalic,
+  onClickUnderline,
+  onRedo,
+  fontSize,
+  onSetFontFamily,
+  onSetFontSize,
+  onIncreaseFontSize,
+  onDecreaseFontSize,
+  onClickAddComment,
 }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -254,10 +296,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   });
 
   useEffect(() => {
-    /*const handleFontsReceived = (fonts: string[]) => {
-      setSystemFonts(fonts);
-    };*/
-    //const cleanup = window.electron.getSystemFonts(handleFontsReceived);
+    window.electron.ipcRenderer.send('request-system-fonts');
     const cleanup = window.electron.ipcRenderer.on('receive-system-fonts', (_: any, fonts: string[]) => {
       setSystemFonts(fonts);
     });
@@ -302,18 +341,26 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
   }, [activeEditor, formatting]);
 
+  /*
+  // OLD LOGIC
   const handleHeadingChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!activeEditor) return;
+    console.log("🚀 ~ handleHeadingChange ~ e:", e)
     const level = parseInt(e.target.value, 10);
+    console.log("🚀 ~ handleHeadingChange ~ level:", level)
+    // onSelectHeading(level);
+
+    // OLD LOGIC
+    if (!activeEditor) return;
+    //const level = parseInt(e.target.value, 10);
     try {
       if (level === 0) {
         activeEditor.chain().focus().setParagraph().run();
         if (lastFontSize) {
           setFontSize(activeEditor, lastFontSize);
         }
-        setIsHeading(false);
       } else {
         const currentFontSize = activeEditor.getAttributes("textStyle").fontSize;
+
         if (currentFontSize) {
           setLastFontSize(currentFontSize);
         }
@@ -324,21 +371,25 @@ const Toolbar: React.FC<ToolbarProps> = ({
       console.error("Errore in handleHeadingChange:", error);
     }
   }, [activeEditor, lastFontSize, setIsHeading, setLastFontSize]);
-
-  const handleFontFamilyChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!activeEditor) return;
-    const value = e.target.value;
-    try {
-      if (value === "default") {
-        unsetMark(activeEditor, "fontFamily");
-      } else {
-        setFontFamily(activeEditor, value);
+*/
+  /*
+    const handleFontFamilyChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+      console.log("🚀 ~ handleFontFamilyChange ~ e:", e)
+      onSetFontFamily(e.target.value)
+      return;
+      if (!activeEditor) return;
+      const value = e.target.value;
+      try {
+        if (value === "default") {
+          unsetMark(activeEditor, "fontFamily");
+        } else {
+          setFontFamily(activeEditor, value);
+        }
+      } catch (error) {
+        console.error("Errore in handleFontFamilyChange:", error);
       }
-    } catch (error) {
-      console.error("Errore in handleFontFamilyChange:", error);
-    }
-  }, [activeEditor]);
-
+    }, [activeEditor]);
+  */
   const handleFontSizeChange = useCallback((value: string) => {
     if (!activeEditor) return;
     try {
@@ -354,7 +405,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
   }, [activeEditor]);
 
+  /*
   const handleIncreaseFontSize = useCallback(() => {
+ 
     if (!activeEditor) return;
     const currentSize = activeEditor.getAttributes("textStyle").fontSize;
     if (!currentSize || currentSize === "default") {
@@ -369,21 +422,23 @@ const Toolbar: React.FC<ToolbarProps> = ({
       setFontSize(activeEditor, `${newSize}pt`);
     }
   }, [activeEditor]);
-
-  const handleDecreaseFontSize = useCallback(() => {
-    if (!activeEditor) return;
-    const currentSize = activeEditor.getAttributes("textStyle").fontSize;
-    if (!currentSize || currentSize === "default") {
-      setFontSize(activeEditor, "10pt");
-      return;
-    }
-
-    const numericSize = parseInt(currentSize);
-    if (numericSize > 6) {
-      const newSize = numericSize - 1;
-      setFontSize(activeEditor, `${newSize}pt`);
-    }
-  }, [activeEditor]);
+  */
+  /*
+    const handleDecreaseFontSize = useCallback(() => {
+      if (!activeEditor) return;
+      const currentSize = activeEditor.getAttributes("textStyle").fontSize;
+      if (!currentSize || currentSize === "default") {
+        setFontSize(activeEditor, "10pt");
+        return;
+      }
+  
+      const numericSize = parseInt(currentSize);
+      if (numericSize > 6) {
+        const newSize = numericSize - 1;
+        setFontSize(activeEditor, `${newSize}pt`);
+      }
+    }, [activeEditor]);
+  */
 
   const addCommentFromSelection = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!activeEditor) return;
@@ -473,20 +528,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
     setTextColor(color);
   }, [activeEditor, setTextColor]);
 
-
-  const handleToggleSidebar = () => {
-    toggleSidebar()
-    dispatch(setSidebarOpen(!open));
-  }
-
   return (
     <div className={styles["toolbar"]}>
-      <div className={styles["toolbar-item"]}>
-        <button onClick={() => handleToggleSidebar()} className={styles["active"]}>
-          <span className="material-symbols-outlined">dock_to_right</span>
-        </button>
-      </div>
-      <CriterionDivider />
+      <Divider />
+      {/* UNDO GROUP */}
       <UndoGroup
         activeEditor={activeEditor}
         UndoInputRef={undoInputRef}
@@ -494,37 +539,62 @@ const Toolbar: React.FC<ToolbarProps> = ({
         revertToAction={revertToAction}
         trackHistoryActions={trackHistoryActions}
       />
-      <button onClick={() => activeEditor?.chain().focus().redo().run()}>
-        <span className="material-symbols-outlined">redo</span>
-      </button>
-      <CriterionDivider />
-      <select className={styles["heading-select"]} value={formatting.headingLevel} onChange={handleHeadingChange}>
+      {/* REDO */}
+      <Button
+        intent="secondary"
+        variant="icon"
+        size="iconSm"
+        icon={<Restore intent='primary' variant='tonal' size='small' />}
+        onClick={onRedo}
+      />
+      {/* HEADING SELECT */}
+      <Divider />
+      <select
+        className={styles["heading-select"]}
+        value={headingLevel}
+        onChange={(e) => onSelectHeading(parseInt(e.target.value, 10))}>
         {sectionTypes.map((type, index) => (
-          <option className={styles["heading-option"]} value={type.value} key={`${type.value}-${index}`}>
+          <option
+            className={styles["heading-option"]}
+            value={type.value}
+            key={`${type.value}-${index}`}>
             {t(type.label)}
           </option>
         ))}
       </select>
-      <CriterionDivider />
-      <select className={styles["font-family-select"]} value={formatting.fontFamily} onChange={handleFontFamilyChange}>
+      <Divider />
+      {/* FONT FAMILY SELECT */}
+      <select
+        className={styles["font-family-select"]}
+        value={fontFamily}
+        onChange={(e) => onSetFontFamily(e.target.value)}>
         {systemFonts.map((font, index) => (
-          <option key={index} value={font} style={{ fontFamily: font }}>
+          <option
+            key={index}
+            value={font}
+            style={{ fontFamily: font }}>
             {font}
           </option>
         ))}
       </select>
-      <CriterionDivider />
+      <Divider />
+      {/* FONT SIZE CONTROLS */}
       <div className={styles["font-size-controls"]}>
-        <button onClick={handleIncreaseFontSize} title="Increase character size" className={styles["font-size-button"]}>
-          <span className="material-symbols-outlined">add</span>
-        </button>
+        <Button
+          intent="secondary"
+          variant="icon"
+          size="iconSm"
+          icon={<PlusSimple intent='primary' variant='tonal' size='small' />}
+          onClick={onIncreaseFontSize}
+        />
         <input
           type="text"
           className={styles["font-size-input"]}
-          value={inputFontSize}
+          value={fontSize}
           onChange={(e) => {
             if (/^\d*$/.test(e.target.value)) {
-              setInputFontSize(e.target.value);
+              //setInputFontSize(e.target.value);
+              onSetFontSize(parseInt(e.target.value));
             }
           }}
           onBlur={() => {
@@ -541,35 +611,48 @@ const Toolbar: React.FC<ToolbarProps> = ({
           }}
           size={3}
         />
-        <button onClick={handleDecreaseFontSize} title="Decrease character size" className={styles["font-size-button"]}>
-          <span className="material-symbols-outlined">remove</span>
-        </button>
+        <Button
+          intent="secondary"
+          variant="icon"
+          size="iconSm"
+          icon={<MinusSimple intent='primary' variant='tonal' size='small' />}
+          onClick={onDecreaseFontSize}
+        />
       </div>
-      <CriterionDivider />
-      <button
-        onClick={() => toggleBold(activeEditor)}
-        className={`toolbar-button ${formatting.bold ? "active" : ""}`}
-        aria-pressed={formatting.bold}
-      >
-        <span className={`material-symbols-outlined ${formatting.bold ? "filled" : ""}`}>format_bold</span>
-      </button>
-      <button
-        onClick={() => toggleItalic(activeEditor)}
-        className={`toolbar-button ${formatting.italic ? "active" : ""}`}
-        aria-pressed={formatting.italic}
-      >
-        <span className={`material-symbols-outlined ${formatting.italic ? "filled" : ""}`}>format_italic</span>
-      </button>
-      <button
-        onClick={() => toggleUnderline(activeEditor)}
-        className={`toolbar-button ${formatting.underline ? "active" : ""}`}
-        aria-pressed={formatting.underline}
-      >
-        <span className="material-symbols-outlined">format_underlined</span>
-      </button>
+      <Divider />
+      {/* BOLD CONTROL */}
+      <Button
+        intent="secondary"
+        variant={isBold ? "tonal" : "icon"}
+        size="iconSm"
+        icon={<Bold intent='primary' variant='tonal' size='small' />}
+        onClick={() => onClickBold()}
+        aria-pressed={isBold}
+      />
+      {/* ITALIC CONTROL */}
+      <Button
+        intent="secondary"
+        variant={isItalic ? "tonal" : "icon"}
+        size="iconSm"
+        icon={<Italic intent='primary' variant='tonal' size='small' />}
+        onClick={() => onClickItalic()}
+        aria-pressed={isItalic}
+      />
+      {/* UNDERLINE CONTROL */}
+      <Button
+        intent="secondary"
+        variant={isUnderline ? "tonal" : "icon"}
+        size="iconSm"
+        icon={<Underline intent='primary' variant='tonal' size='small' />}
+        onClick={() => onClickUnderline()}
+        aria-pressed={isUnderline}
+      />
+      <Divider />
+      {/* TEXT COLOR CONTROL */}
       <div className={styles["toolbar-item"]}>
         <FormatTextColor
           onSelect={(color) => {
+            console.log("🚀 ~ onSelect ~ color:", color)
             setTextColor(color);
             handleTextFormatColor(color);
           }}
@@ -587,58 +670,65 @@ const Toolbar: React.FC<ToolbarProps> = ({
           highlightColor={formatting.highlight}
         />
       </div>
-      <CriterionDivider />
-      <button onClick={() => activeEditor?.chain().focus().toggleBlockquote().run()} className={activeEditor?.isActive("blockquote") ? "active" : ""}>
-        <span className="material-symbols-outlined">history_edu</span>
-      </button>
-      <button disabled onClick={() => activeEditor?.chain().focus().toggleBlockquote().run()} className={activeEditor?.isActive("blockquote") ? "active" : ""}>
-        <span className="material-symbols-outlined">functions</span>
-      </button>
-      {/* <div className="toolbar-item alignment-button">
-        <button onClick={(e) => { e.stopPropagation(); setShowAlignmentMenu(!showAlignmentMenu); }}>
-          <span className="material-symbols-outlined">{getCurrentAlignmentIcon()}</span>
-        </button>
-      </div> */}
-      <button className={formatting.isBlockquote ? "active" : ""} onClick={() => activeEditor?.chain().focus().toggleBlockquote().run()}>
-        <span className="material-symbols-outlined">format_quote</span>
-      </button>
-      <CriterionDivider />
-      <button
-        onClick={(e) => addCommentFromSelection(e)}
-        className={selectedText ? "active" : ""}
-        disabled={!activeEditor || (activeEditor.state.selection.from === activeEditor.state.selection.to)}
-        title="Add comment to selected text"
-      >
-        <span className="material-symbols-outlined">add_comment</span>
-      </button>
-      <button disabled className={formatting.isOrderedList ? "active" : ""} onClick={() => activeEditor?.chain().focus().toggleOrderedList().run()}>
-        <span className="material-symbols-outlined">bookmark</span>
-      </button>
-      <button onClick={() => addIdentifiedText()} className={formatting.isBulletList ? "active" : ""}>
-        <span className="material-symbols-outlined" style={{ color: 'red' }}>add_link</span>
-      </button>
-      <button onClick={() => {
+      <Divider />
+      {/* REVIEW THIS PART */}
+      <Button
+        intent="secondary"
+        variant="icon"
+        size="iconSm"
+        icon={<HistoryEdu intent='primary' variant='tonal' size='small' />}
+        onClick={() => activeEditor?.chain().focus().toggleBlockquote().run()}
+      />
+      <Button
+        intent="secondary"
+        variant="icon"
+        size="iconSm"
+        icon={<Siglum intent='primary' variant='tonal' size='small' />}
+        onClick={() => activeEditor?.chain().focus().toggleBlockquote().run()}
+      />
+      <Button
+        intent="secondary"
+        variant="icon"
+        size="iconSm"
+        icon={<Citation intent='primary' variant='tonal' size='small' />}
+        onClick={() => activeEditor?.chain().focus().toggleBlockquote().run()}
+      />
+      <Divider />
+      {/* COMMENT ADD */}
+      <Button
+        intent="secondary"
+        variant="icon"
+        size="iconSm"
+        icon={<CommentAdd intent='primary' variant='tonal' size='small' />}
+        onClick={(e) => {
+          onClickAddComment()
+          //addCommentFromSelection(e)
+        }}
+      //disabled={!activeEditor || (activeEditor.state.selection.from === activeEditor.state.selection.to)}
+      />
+      <Button
+        intent="secondary"
+        variant="icon"
+        size="iconSm"
+        icon={<Bookmark intent='primary' variant='tonal' size='small' />}
+        onClick={() => activeEditor?.chain().focus().toggleOrderedList().run()}
+      //disabled=logica
+      />
+      <Button
+        intent="secondary"
+        variant="icon"
+        size="iconSm"
+        icon={<LinkAdd intent='primary' variant='tonal' size='small' />}
+        onClick={() => addIdentifiedText()}
+      />
+
+      {/*   <button onClick={() => {
         console.log('sto qui')
-
-        // let f = activeEditor?.state.doc.descendants((node) => node.type.name === "apparatusText"), null, 2)
-
-        //console.log(JSON.stringify(activeEditor?.state.doc.descendants((node) => node.type.name === "heading"), null, 2))
-        // console.log(JSON.stringify(activeEditor?.state.doc))
-
+        
         //@ts-ignore
         const $doc = activeEditor?.$doc
-
-        //activeEditor?.state.doc.
-        /*
-        activeEditor?.state.doc.forEach((node, offset) => {
-          if (node.attrs.id === 'cce391e7-77fa-43e9-af5d-f322137d61c3') {
-            activeEditor?.chain().setNodeSelection(offset).scrollIntoView().run();
-          }
-        })
-        */
-
+  
         //activeEditor?.chain().setNodeSelection(30).scrollIntoView().run();
-
 
         // Get all nodes of type 'heading' in the document
         //const $headings = activeEditor?.$nodes('heading')
@@ -647,35 +737,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
         //@ts-ignore
         const focusHeadingWithGivenUuid = (uuid: string) => {
           let posOfHeading = -1
-
           activeEditor?.state.doc.descendants((node, pos) => {
-
-
-            //console.log(node.type.name);
-            //console.log(node.attrs.id);
-
-            // if (node.type.name !== 'heading' || node.attrs.id !== uuid) return // edit `||` instead of `&&`
-
             if (node.type.name === 'text' && node.attrs.id === uuid)
               posOfHeading = pos // `pos + node.nodeSize - 1` if you wanna focus at the end of line, maybe you don't need that `- 1` idk, you can try it out
             else
               return
           })
-
-          //console.log(posOfHeading)
           if (posOfHeading !== -1) activeEditor?.commands.focus(posOfHeading)
-          // or you can also use `setTextSelection` instead of `focus`
-          // if (posOfHeading !== -1) editor.commands.setTextSelection(posOfHeading)
-        }
-
-        //const nodes = activeEditor?.$node('heading')
-        //const nodes = activeEditor?.$node('apparatusText')
-        // const nodes = activeEditor?.$node('doc')
-        //const nodes = activeEditor?.$node('text')
-        if ($headings) {
-          //activeEditor?.commands.setTextSelection($headings[2].pos);
-          //activeEditor?.commands.focus($headings[5].pos); // or 'start' or a position
-          //activeEditor?.commands.scrollIntoView();
         }
 
         //@ts-ignore
@@ -698,13 +766,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
               // console.log(node.marks)
             })
             return true;
-            /*
-            if (node.type.name === nodeTypeName && node.attrs[attrKey] === attrValue) {
-              foundPos = pos;
-              return false; // stop traversal
-            }
-            return true;
-            */
           });
 
           return foundPos;
@@ -720,54 +781,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
           }
         }
 
-
-
-
-
         //console.log(focusHeadingWithGivenUuid('cce391e7-77fa-43e9-af5d-f322137d61c3'))
-
-
-
-        /*
-        function findNodePositionByAttribute(editor: Editor, nodeTypeName: string, attrKey: string, attrValue: string): number | null {
-          let foundPos: number | null = null;
-         // activeEditor?.state.doc.descendants((node) => node.type.name === "apparatusText"), null, 2)
-
-          editor.state.doc.descendants((node: , pos: number) => {
-            if (node.type.name === nodeTypeName && node.attrs[attrKey] === attrValue) {
-              foundPos = pos;
-              return false; // stop traversal
-            }
-            return true;
-          });
-        
-          return foundPos;
-        }*/
-
-        /*
-        const pos = nodePos; // The position of the element you want to scroll to
-
-        activeEditor?.commands.setTextSelection(pos);
-*/
-
-        //activeEditor?.commands.focus('end'); // or 'start' or a position
-        //activeEditor?.commands.scrollIntoView();
-
-
-        //console.log(JSON.stringify(activeEditor?.state.doc.descendants((node) => node.type.name === "apparatusText"), null, 2))
-        /*let selection = activeEditor?.view.state.selection
-        if (selection) {
-          activeEditor?.view.state.doc.nodesBetween(selection.from, selection.to, node => {
-            if (node.type.name === 'apparatusText' && node.marks.length > 0) {
-              //console.log("apparatusText found");
-            }
-          })
-        }*/
-
-
       }}>
         <span>Scroll to identified text</span>
-      </button>
+      </button> */}
+
       {isSpacingModalOpen && (
         <SpacingModal
           initialLineSpacing={initialLineSpacing}

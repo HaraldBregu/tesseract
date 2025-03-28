@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import CategorySelectionDialog from '../toolbar/components/CategorySelectDialog';
 import { setSidebarOpen } from '../../../store/main.slice';
 import styles from '../../index.module.css';
-import { CriterionDivider } from '@/components/CriterionDivider';
+import { Divider } from '@/components/ui/divider';
 interface BubbleToolbarProps {
     editor: Editor;
     textColor: string;
@@ -116,7 +116,7 @@ const BubbleToolbar: React.FC<BubbleToolbarProps> = ({
                 >
                     <span className="material-symbols-outlined">history_edu</span>
                 </button>
-                <CriterionDivider />
+                <Divider />
                 <button
                     disabled
                     onClick={() => editor?.chain().focus().toggleBlockquote().run()}
@@ -130,7 +130,7 @@ const BubbleToolbar: React.FC<BubbleToolbarProps> = ({
                 >
                     <span className="material-symbols-outlined">format_quote</span>
                 </button>
-                <CriterionDivider />
+                <Divider />
                 <button
                     onClick={(e) => addCommentFromSelection(e)}
                     className={editor?.isActive("blockquote") ? "active" : ""}

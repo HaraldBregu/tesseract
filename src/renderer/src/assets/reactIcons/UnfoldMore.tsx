@@ -1,0 +1,14 @@
+
+import SvgIcon, { SvgIconProps } from '../../components/SvgIcon';
+
+type UnfoldMoreProps = Omit<SvgIconProps, 'children' | 'viewBox'>;
+
+const UnfoldMore = (props: UnfoldMoreProps) => {
+  return (
+    <SvgIcon viewBox="0 0 24 24" {...props}>
+      <path d="m12 20.037-3.723-3.723.91-.91L12 18.219l2.814-2.813.91.91zM9.187 8.562l-.91-.91L12 3.93l3.723 3.723-.91.91L12 5.748z" />
+    </SvgIcon>
+  );
+};
+
+export default UnfoldMore;

@@ -1,8 +1,8 @@
 import React from 'react'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
-import { ChevronRight } from 'lucide-react'
 import { cva } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import Right_1 from '@/assets/reactIcons/Right_1'
 
 const treeVariants = cva(
     'group hover:before:opacity-100 before:absolute before:rounded-lg before:left-0 px-2 before:w-full before:opacity-0 before:bg-accent/70 before:h-[2rem] before:-z-10'
@@ -112,7 +112,7 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
         }, [data, expandAll, initialSelectedItemId])
 
         return (
-            <div className={cn('overflow-hidden relative p-2', className)}>
+            <div className={cn('overflow-hidden relative', className)}>
                 <TreeItem
                     data={data}
                     ref={ref}
@@ -126,11 +126,10 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
                     draggedItem={draggedItem}
                     {...props}
                 />
-                <div
+                {/* <div
                     className='w-full h-[48px]'
                     onDrop={(e) => { handleDrop({ id: '', name: 'parent_div' }) }}>
-
-                </div>
+                </div> */}
             </div>
         )
     }
@@ -257,6 +256,15 @@ const TreeNode = ({
         handleDrop?.(item)
     }
 
+    // If the node has no children, return a TreeLeaf
+    if (item.children && item.children.length === 0) {
+        return (
+            <div>
+                <TreeLeaf item={item} selectedItemId={selectedItemId} handleSelectChange={handleSelectChange} defaultLeafIcon={defaultLeafIcon} handleDragStart={handleDragStart} handleDrop={handleDrop} draggedItem={draggedItem} />
+            </div>
+        )
+    }
+
     return (
         <AccordionPrimitive.Root
             type="multiple"
@@ -286,12 +294,12 @@ const TreeNode = ({
                         isOpen={value.includes(item.id)}
                         default={defaultNodeIcon}
                     />
-                    <span className="text-sm truncate">{item.name}</span>
+                    <span className="text-sm font-medium truncate">{item.name}</span>
                     <TreeActions isSelected={selectedItemId === item.id}>
                         {item.actions}
                     </TreeActions>
                 </AccordionTrigger>
-                <AccordionContent className="ml-4 pl-1 border-l">
+                <AccordionContent className="ml-4 pl-1">
                     <TreeItem
                         data={item.children ? item.children : item}
                         selectedItemId={selectedItemId}
@@ -412,7 +420,8 @@ const AccordionTrigger = React.forwardRef<
             )}
             {...props}
         >
-            <ChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200 text-accent-foreground/50 mr-1" />
+            <Right_1 variant="icon" intent="secondary" size={20} />
+            {/* <ChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200 text-accent-foreground/50 mr-1" /> */}
             {children}
         </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

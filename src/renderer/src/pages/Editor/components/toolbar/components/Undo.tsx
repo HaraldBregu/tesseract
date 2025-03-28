@@ -4,6 +4,8 @@ import { Editor } from "@tiptap/react";
 import { HistoryState } from "../../../hooks";
 import { RecentActionsPanel } from "../../recentAction";
 import styles from '../../../index.module.css';
+import Button from "@/components/ui/button";
+import Undo from "@/assets/reactIcons/Undo";
 
 interface UndoGroupProps {
     onSelect?: (color: string) => void;
@@ -22,10 +24,10 @@ const UndoGroup: React.FC<UndoGroupProps> = ({
 }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-    const recents =  historyState?.recentActions || [];
+    const recents = historyState?.recentActions || [];
 
     const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-        if(recents.length === 0) return;
+        if (recents.length === 0) return;
 
         setAnchorEl(event.currentTarget);
         UndoInputRef.current?.click();
@@ -43,15 +45,16 @@ const UndoGroup: React.FC<UndoGroupProps> = ({
     return (
         <div>
             <div className={styles["undo-group"]}>
-                <button
+                <Button
+                    intent="secondary"
+                    variant="icon"
+                    size="iconSm"
+                    icon={<Undo intent='primary' variant='tonal' size='small' />}
                     onClick={() => {
                         activeEditor?.chain().focus().undo().run();
                     }}
                     disabled={!activeEditor?.can().undo()}
-                    className={styles["undo-button"]}
-                >
-                    <span className="material-symbols-outlined">undo</span>
-                </button>
+                />
                 <button
                     className={styles["expand-button"]}
                     disabled={!activeEditor?.can().undo()}
