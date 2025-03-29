@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addCategory } from './store/comments.slice';
 import { getAllCategories } from './store/comments.selector';
 import { useEffect } from 'react';
-import Category from './components/Category';
+import Category from './category';
 import styles from './index.module.css';
 
 const Comments = (): JSX.Element => {

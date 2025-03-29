@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CriterionTextBox from '../../../../components/ui/textField';
+import CriterionTextBox from '../../components/ui/textField';
 import { useDispatch } from 'react-redux';
 import {
     updateCategoryTitle,
@@ -15,8 +15,8 @@ import {
     updateCommentContent,
     deleteComment,
     selectAnnotation
-} from '../../store/comments.slice';
-import Comment from '../singleComment';
+} from './store/comments.slice';
+import Comment from './comment';
 
 interface CategoryProps {
     id: string;

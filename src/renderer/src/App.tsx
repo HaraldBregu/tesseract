@@ -11,7 +11,7 @@ import "./i18n";
 import { ELayout } from "./pages/Editor/ELayout";
 
 const MainContainer = React.lazy(() => import('./pages/MainContainer'));
-const LanguageSelector = React.lazy(() => import('./pages/LanguageSelector'));
+const LanguageSelector = React.lazy(() => import('./pages/main/LanguageSelector'));
 interface ProtectedProps {
   child: JSX.Element;
 }

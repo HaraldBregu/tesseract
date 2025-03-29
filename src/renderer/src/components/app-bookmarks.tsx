@@ -15,9 +15,11 @@ interface BookmarkItem {
 }
 
 interface Subitem {
+    id: string;
     title: string;
-    citation: string;
-    description: string;
+    content: string;
+    createdAt: string;
+    author: string;
 }
 
 interface BookmarksProps {
@@ -27,7 +29,7 @@ interface BookmarksProps {
 
 export default function AppBookmarks({ title, items }: BookmarksProps) {
     const [expandedSections, setExpandedSections] = useState<{ [key: number]: boolean }>({});
-
+/*
     const newItems = [
         {
             title: "Manoscritti",
@@ -105,7 +107,7 @@ export default function AppBookmarks({ title, items }: BookmarksProps) {
             ],
         },
 
-    ]
+    ]*/
 
     const toggleSection = (index: number) => {
         setExpandedSections(prev => ({
@@ -115,12 +117,10 @@ export default function AppBookmarks({ title, items }: BookmarksProps) {
     };
 
     const handleEdit = (index: number) => {
-        // TODO: Implement edit functionality
         console.log('Edit section:', index);
     };
 
     const handleDelete = (index: number) => {
-        // TODO: Implement delete functionality
         console.log('Delete section:', index);
     };
 
@@ -154,7 +154,7 @@ export default function AppBookmarks({ title, items }: BookmarksProps) {
                 </DropdownMenu>
             </div>
             <div className="flex-1 overflow-y-auto pt-2">
-                {newItems.map((item, index) => (
+                {items.map((item, index) => (
                     <div key={index} className="mb-4">
                         <div
                             className="flex justify-between items-center px-2 bg-gray-50 cursor-pointer hover:bg-gray-100"
@@ -235,14 +235,14 @@ export default function AppBookmarks({ title, items }: BookmarksProps) {
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
-                                        <div className="mt-2 pl-4 border-l-4 border-blue-700">
+                                        <div className="mx-2 mt-2 pl-4 border-l-4 border-blue-700 cursor-pointer">
                                             <p className="text-sm italic text-gray-600">
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod...
+                                                {subitem.content}
                                             </p>
                                         </div>
                                         <div className="mt-2">
                                             <p className="text-sm text-gray-600">
-                                                Manoscritti di Andrea King
+                                                {subitem.author}
                                             </p>
                                         </div>
                                     </div>

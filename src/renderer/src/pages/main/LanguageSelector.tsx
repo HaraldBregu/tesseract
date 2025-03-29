@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import useTranslationLoader from "../utils/useTranslationLoader";
+import useTranslationLoader from "../../utils/useTranslationLoader";
 import { useNavigate } from "react-router-dom";
 import {
   Card,

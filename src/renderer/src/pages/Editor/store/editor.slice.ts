@@ -1,5 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+interface Bookmark {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: string;
+    author: string;
+}
+
 interface EditorState {
     data: string[];
     isLoading: boolean;
@@ -14,6 +22,8 @@ interface EditorState {
     textColor: string;
     highlightColor: string;
     comment: boolean;
+    bookmark: boolean;
+    bookmarks: Bookmark[];
 }
 
 const initialState: EditorState = {
@@ -30,6 +40,8 @@ const initialState: EditorState = {
     textColor: "inherit",
     highlightColor: "inherit",
     comment: false,
+    bookmark: false,
+    bookmarks: [],
 };
 
 const editorSlice = createSlice({
@@ -99,6 +111,17 @@ const editorSlice = createSlice({
         executeComment(state) { 
             console.log("executeComment:", state)
         },
+        setBookmark(state, action: PayloadAction<boolean>) {
+            state.bookmark = action.payload;
+        },
+        executeBookmark(state) {
+            console.log("executeBookmark:", state)
+        },
+        addBookmark(state, action: PayloadAction<Bookmark>) {
+            console.log("saveBookmark:", action.payload)
+            state.bookmarks.push(action.payload)
+        },
+
     },
 });
 
@@ -122,6 +145,9 @@ export const {
     setHighlightColor,
     setComment,
     executeComment,
+    setBookmark,
+    executeBookmark,
+    addBookmark,
 } = editorSlice.actions;
 
 export default editorSlice.reducer;

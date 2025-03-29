@@ -9,7 +9,7 @@ import { EHeader } from "./EHeader";
 import { EditorFooter } from "@/components/editor-footer";
 import { Editor, useEditor } from "@tiptap/react";
 import { defaultEditorConfig } from "./utils/editorConfigs";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const ELayout = () => {
     const [activeEditor, setActiveEditor] = useState<Editor | null>(null);
@@ -29,6 +29,7 @@ export const ELayout = () => {
         console.log(JSON.stringify(activeEditor?.getJSON()))
     }, [textEditor])
 
+    const childRef = useRef<any>();
 
     return (
         <SidebarProvider>
@@ -39,10 +40,16 @@ export const ELayout = () => {
                         <EHeader
                             editor={activeEditor}
                             setActiveEditor={setActiveEditor}
+                            onClickAddComment={() => {
+                                childRef.current?.addComment()
+                            }}
+                            onClickAddBookmark={() => {
+                                childRef.current?.addBookmark()
+                            }}
                         />
                     </EditorHeader>
                     <EditorContent>
-                        <EContent />
+                        <EContent ref={childRef} />
                     </EditorContent>
                     <EditorFooter>
                         <EFooter />

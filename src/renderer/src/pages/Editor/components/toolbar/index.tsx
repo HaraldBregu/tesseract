@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Editor } from "@tiptap/react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -48,6 +48,7 @@ import MinusSimple from "@/assets/reactIcons/MinusSimple";
 import { Input } from "@/components/ui/input";
 import TextField from "@/components/ui/textField";
 import Citation from "@/assets/reactIcons/Citation";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 // Definire le costanti per i valori comuni
 const MIN_FONT_SIZE = 8;
@@ -86,6 +87,7 @@ interface ToolbarProps {
   onIncreaseFontSize: () => void;
   onDecreaseFontSize: () => void;
   onClickAddComment: () => void;
+  onClickAddBookmark: () => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -118,6 +120,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onIncreaseFontSize,
   onDecreaseFontSize,
   onClickAddComment,
+  onClickAddBookmark,
 }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -530,6 +533,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <div className={styles["toolbar"]}>
+      <SidebarTrigger />
       <Divider />
       {/* UNDO GROUP */}
       <UndoGroup
@@ -700,19 +704,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
         variant="icon"
         size="iconSm"
         icon={<CommentAdd intent='primary' variant='tonal' size='small' />}
-        onClick={(e) => {
-          onClickAddComment()
-          //addCommentFromSelection(e)
-        }}
-      //disabled={!activeEditor || (activeEditor.state.selection.from === activeEditor.state.selection.to)}
+        onClick={(_) => onClickAddComment()}
       />
       <Button
         intent="secondary"
         variant="icon"
         size="iconSm"
         icon={<Bookmark intent='primary' variant='tonal' size='small' />}
-        onClick={() => activeEditor?.chain().focus().toggleOrderedList().run()}
-      //disabled=logica
+        onClick={(_) => onClickAddBookmark()}
       />
       <Button
         intent="secondary"

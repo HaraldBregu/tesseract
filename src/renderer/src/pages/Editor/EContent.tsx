@@ -1,7 +1,7 @@
 import EditorTextArea from "@/components/editor-text-layout"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { Editor, useEditor } from "@tiptap/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { addCategory, addComment, setCategoriesData } from "../Comments/store/comments.slice";
 import { rendererLogger } from "@/utils/logger";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,19 +10,78 @@ import { setSidebarOpen } from "../store/main.slice";
 import { useHistoryState } from "./hooks";
 import { defaultEditorConfig } from "./utils/editorConfigs";
 import { v4 as uuidv4 } from 'uuid';
-import { selectComment, selectFontFamily, selectFontSize, selectHeadingLevel, selectIsBold, selectIsHeading, selectIsItalic, selectIsUnderline, selectRedo } from "./store/editor.selector";
-import { setBold, setHeadingLevel, setItalic, setUnderline } from "./store/editor.slice";
-import { setFontFamily, unsetMark } from "./utils/editorCommands";
-import store from "@/store/store";
+import { selectBookmark, selectComment, selectFontFamily, selectFontSize, selectHeadingLevel, selectIsBold, selectIsHeading, selectIsItalic, selectIsUnderline } from "./store/editor.selector";
+import { addBookmark, setBold, setHeadingLevel, setItalic, setUnderline } from "./store/editor.slice";
+import BubbleToolbar from "./components/bubble-toolbar";
 
-interface EContentProps {
-}
+interface EContentProps { }
 
-export const EContent = ({ }: EContentProps) => {
-    const textColorInputRef = useRef<HTMLInputElement>(null);
+export const EContent = forwardRef(({ }: EContentProps, ref: ForwardedRef<unknown>) => {
+    useImperativeHandle(ref, () => {
+        return {
+            addBookmark: () => {
+                console.log("addBookmark")
+                if (!activeEditor) return;
+                const { from, to } = activeEditor.state.selection;
+                const selectedContent = activeEditor.state.doc.textBetween(from, to, ' ');
+                console.log("selectedContent:", selectedContent)
+                dispatch(addBookmark({
+                    id: uuidv4(),
+                    content: selectedContent,
+                    title: "New Bookmark",
+                    createdAt: new Date().toISOString(),
+                    author: "Anonymous"
+                }));
+            },
+            addComment: () => {
+                console.log("addComment")
+                if (!activeEditor) return;
+                const { from, to } = activeEditor.state.selection;
+                const selectedContent = activeEditor.state.doc.textBetween(from, to, ' ');
+
+                if (categories.length === 0) {
+                    const categoryId = uuidv4();
+                    const index = categories.length + 1;
+                    dispatch(addCategory({
+                        id: categoryId,
+                        name: "Category " + index
+                    }));
+
+                    dispatch(addComment({
+                        categoryId: categoryId,
+                        comment: {
+                            title: "New Comment",
+                            selectedText: selectedContent,
+                            comment: ""
+                        }
+                    }));
+                } else if (categories.length === 1) {
+                    dispatch(addComment({
+                        categoryId: categories[0].id,
+                        comment: {
+                            title: "New Comment",
+                            selectedText: selectedContent,
+                            comment: ""
+                        }
+                    }));
+                } else {
+                    dispatch(addComment({
+                        categoryId: categories[categories.length - 1].id,
+                        comment: {
+                            title: "New Comment",
+                            selectedText: selectedContent,
+                            comment: ""
+                        }
+                    }));
+                }
+            }
+        }
+    })
+
+/*     const textColorInputRef = useRef<HTMLInputElement>(null);
     const highlightColorInputRef = useRef<HTMLInputElement>(null);
     const undoInputRef = useRef<HTMLInputElement>(null);
-
+ */
     const [activeEditor, setActiveEditor] = useState<Editor | null>(null);
     const [textColor, setTextColor] = useState<string>('inherit');
     const [highlightColor, setHighlightColor] = useState<string>('inherit');
@@ -362,18 +421,132 @@ export const EContent = ({ }: EContentProps) => {
 
 
     const comment = useSelector(selectComment);
-
     useEffect(() => {
-        //console.log("🚀 ~ useEffect ~ categories:", comment)
+        if (!activeEditor) return;
         if (comment) {
-            console.log("🚀 ~ useEffect ~ comment is true:", comment)
+            const { from, to } = activeEditor.state.selection;
+            const selectedContent = activeEditor.state.doc.textBetween(from, to, ' ');
+
+            if (categories.length === 0) {
+                const categoryId = uuidv4();
+                const index = categories.length + 1;
+                dispatch(addCategory({
+                    id: categoryId,
+                    name: "Category " + index
+                }));
+
+                dispatch(addComment({
+                    categoryId: categoryId,
+                    comment: {
+                        title: "New Comment",
+                        selectedText: selectedContent,
+                        comment: ""
+                    }
+                }));
+            } else if (categories.length === 1) {
+                dispatch(addComment({
+                    categoryId: categories[0].id,
+                    comment: {
+                        title: "New Comment",
+                        selectedText: selectedContent,
+                        comment: ""
+                    }
+                }));
+            } else {
+                dispatch(addComment({
+                    categoryId: categories[categories.length - 1].id,
+                    comment: {
+                        title: "New Comment",
+                        selectedText: selectedContent,
+                        comment: ""
+                    }
+                }));
+            }
         }
     }, [textEditor, comment])
+
+    const bookmark = useSelector(selectBookmark);
+    useEffect(() => {
+        if (!activeEditor) return;
+        if (bookmark) {
+            console.log("bookmark:", bookmark)
+            const { from, to } = activeEditor.state.selection;
+            const selectedContent = activeEditor.state.doc.textBetween(from, to, ' ');
+            console.log("selectedContent:", selectedContent)
+            const id = uuidv4();
+            /* 
+            const didSave = activeEditor.chain()
+                .focus()
+                .setMark('apparatusText', { id })
+                .run(); 
+                */
+
+
+            if (activeEditor.chain()
+                .focus()
+                .setMark('apparatusText', { id })
+                .run()) {
+            }
+
+            // Save Mark id "c9606587-b9a9-46bb-ba2d-b4a599de806d"
+            // Save the selectedContent
+
+            //dispatch(addBookmark(selectedContent));
+        }
+    }, [textEditor, bookmark])
+
+
+    /* useEffect(() => {
+        console.log("setbookmark:", setbookmark)
+    }, [setbookmark]) */
+
+    /*
+                function findNodePositionByAttribute(editor: Editor, nodeTypeName: string, attrKey: string, attrValue: string): number | null {
+              let foundPos: number | null = null;
+    
+              editor.state.doc.descendants((node: ProseMirrorNode, pos: number) => {
+                // console.log(node.content)
+                node.content.forEach((node) => {
+                  // console.log(node)
+                  //@ts-ignore
+                  node.marks.forEach((mark) => {
+                    //console.log(mark)
+                    console.log(mark.attrs)
+                    if (mark.attrs.id === attrValue) {
+                      foundPos = pos;
+                      return false; // stop traversal
+                    }
+                  })
+                  // console.log(node.marks)
+                })
+                return true;
+              });
+    
+              return foundPos;
+            }
+    
+            if (activeEditor) {
+              const pos = findNodePositionByAttribute(activeEditor, 'apparatusText', 'id', 'cce391e7-77fa-43e9');
+              console.log(pos)
+              if (pos) {
+                activeEditor?.commands.setTextSelection(pos);
+                activeEditor?.commands.focus(pos);
+                activeEditor?.commands.scrollIntoView();
+              }
+            }
+    */
 
 
     return (
         <ResizablePanelGroup direction="horizontal">
             <ResizablePanel>
+                {activeEditor && <BubbleToolbar
+                    editor={activeEditor}
+                    textColor={textColor}
+                    highlightColor={highlightColor}
+                    setTextColor={setTextColor}
+                    setHighlightColor={setHighlightColor}
+                />}
                 <EditorTextArea
                     title="Text"
                     editor={textEditor}
@@ -382,8 +555,7 @@ export const EContent = ({ }: EContentProps) => {
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel>
-                {/*                 <EditorTextArea title="Text" editor={editor} setActiveEditor={setActiveEditor} />
- */}            </ResizablePanel>
+            </ResizablePanel>
         </ResizablePanelGroup>
     )
-}
+})

@@ -1,6 +1,4 @@
-import React from 'react';
 import {
-    // DialogTitle,
     DialogContent,
     List,
     ListItem,
@@ -17,7 +15,7 @@ interface CategorySelectionDialogProps {
     onCategorySelect: (categoryId: string) => void;
 }
 
-const CategorySelectionDialog: React.FC<CategorySelectionDialogProps> = ({
+const CategorySelectionDialog = ({
     open,
     anchorEl,
     categories,

@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BubbleMenu, Editor } from '@tiptap/react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addComment, addCategory } from '../../../Comments/store/comments.slice';
-import { getAllCategories } from '../../../Comments/store/comments.selector';
+import { addComment, addCategory } from '../../Comments/store/comments.slice';
+import { getAllCategories } from '../../Comments/store/comments.selector';
 import { v4 as uuidv4 } from 'uuid';
-import CategorySelectionDialog from '../toolbar/components/CategorySelectDialog';
-import { setSidebarOpen } from '../../../store/main.slice';
-import styles from '../../index.module.css';
-import { Divider } from '@/components/ui/divider';
+import CategorySelectionDialog from './toolbar/components/CategorySelectDialog';
+import { setSidebarOpen } from '../../store/main.slice';
+import styles from '../index.module.css';
+import Divider from '@/components/ui/divider';
+
 interface BubbleToolbarProps {
     editor: Editor;
     textColor: string;
@@ -16,18 +17,15 @@ interface BubbleToolbarProps {
     setHighlightColor: (color: string) => void;
 }
 
-const BubbleToolbar: React.FC<BubbleToolbarProps> = ({
-    editor
-}) => {
+const BubbleToolbar = ({ editor }: BubbleToolbarProps) => {
     const dispatch = useDispatch();
+
     const [openCategoryModal, setOpenCategoryModal] = useState(false);
     const [selectedText, setSelectedText] = useState('');
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const categories = useSelector(getAllCategories);
 
-    const addCommentFromSelection = (
-        event: React.MouseEvent<HTMLButtonElement>
-    ) => {
+    const addCommentFromSelection = (event: React.MouseEvent<HTMLButtonElement>) => {
         if (!editor) return;
 
         const { from, to } = editor.state.selection;

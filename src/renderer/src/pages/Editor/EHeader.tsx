@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { addCategory, addComment, setCategoriesData } from "../Comments/store/comments.slice";
 import { setSidebarOpen } from "../store/main.slice";
 import { rendererLogger } from "@/utils/logger";
@@ -11,26 +11,26 @@ import { getAllCategories } from "../Comments/store/comments.selector";
 import { useHistoryState } from "./hooks";
 import { defaultEditorConfig } from "./utils/editorConfigs";
 import { v4 as uuidv4 } from 'uuid';
-import { toggleBold, setHeadingLevel, redo, setFontFamily, setFontSize, increaseFontSize, decreaseFontSize, toggleItalic, toggleUnderline, setComment, executeComment } from "./store/editor.slice";
+import { toggleBold, setHeadingLevel, redo, setFontFamily, setFontSize, increaseFontSize, decreaseFontSize, toggleItalic, toggleUnderline, setComment, executeComment, executeBookmark } from "./store/editor.slice";
 import { selectFontFamily, selectFontSize, selectHeadingLevel, selectIsBold, selectIsHeading, selectIsItalic, selectIsUnderline } from "./store/editor.selector";
-import React from "react";
 import Toolbar from "./components/toolbar";
 
 interface EHeaderProps {
     editor: Editor | null;
     setActiveEditor: (editor: Editor) => void;
+    onClickAddComment: () => void;
+    onClickAddBookmark: () => void;
 }
 
-
-export const CustomContext = React.createContext<boolean | null>(null)
-
-
-export const EHeader = ({ editor, setActiveEditor }: EHeaderProps) => {
+export const EHeader = ({
+    editor,
+    setActiveEditor,
+    onClickAddComment,
+    onClickAddBookmark
+}: EHeaderProps) => {
     const textColorInputRef = useRef<HTMLInputElement>(null);
     const highlightColorInputRef = useRef<HTMLInputElement>(null);
     const undoInputRef = useRef<HTMLInputElement>(null);
-
-    //const [activeEditor, setActiveEditor] = useState<Editor | null>(null);
     const [textColor, setTextColor] = useState<string>('inherit');
     const [highlightColor, setHighlightColor] = useState<string>('inherit');
     const [editorState, setEditorState] = useState<{
@@ -252,51 +252,47 @@ export const EHeader = ({ editor, setActiveEditor }: EHeaderProps) => {
     const currentEditorState = editorState[currentEditorKey];
     const currentHistory = editor === textEditor ? textHistory : apparatusHistory;
 
-
     return (
-        <>
-            <SidebarTrigger />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Toolbar
-                isBold={useSelector(selectIsBold)}
-                onClickBold={() => dispatch(toggleBold())}
-                isItalic={useSelector(selectIsItalic)}
-                onClickItalic={() => dispatch(toggleItalic())}
-                isUnderline={useSelector(selectIsUnderline)}
-                onClickUnderline={() => dispatch(toggleUnderline())}
-                isHeading={useSelector(selectIsHeading)}
-                headingLevel={useSelector(selectHeadingLevel)}
-                onSelectHeading={(level: number) => dispatch(setHeadingLevel(level))}
-                onRedo={() => {
-                    dispatch(redo(true))
-                    setTimeout(() => {
-                        dispatch(redo(false))
-                    }, 100);
-                }}
-                fontFamily={useSelector(selectFontFamily)}
-                onSetFontFamily={(fontFamily: string) => dispatch(setFontFamily(fontFamily))}
-                fontSize={useSelector(selectFontSize)}
-                onSetFontSize={(fontSize: number) => dispatch(setFontSize(fontSize))}
-                onIncreaseFontSize={() => dispatch(increaseFontSize())}
-                onDecreaseFontSize={() => dispatch(decreaseFontSize())}
-                onClickAddComment={() => {
-                    //dispatch(setComment(true))
-                    dispatch(executeComment())
-                }}
-                open={true}
-                activeEditor={editor}
-                textColorInputRef={textColorInputRef}
-                highlightColorInputRef={highlightColorInputRef}
-                setTextColor={setTextColor}
-                setHighlightColor={setHighlightColor}
-                lastFontSize={currentEditorState.lastFontSize}
-                setLastFontSize={(size) => handleIsHeadingChange(false, size)}
-                setIsHeading={(heading) => handleIsHeadingChange(heading)}
-                undoInputRef={undoInputRef}
-                historyState={currentHistory.historyState}
-                revertToAction={currentHistory.restoreHistoryAction}
-                trackHistoryActions={currentHistory.trackHistoryActions}
-            />
-        </>
+        <Toolbar
+            isBold={useSelector(selectIsBold)}
+            onClickBold={() => dispatch(toggleBold())}
+            isItalic={useSelector(selectIsItalic)}
+            onClickItalic={() => dispatch(toggleItalic())}
+            isUnderline={useSelector(selectIsUnderline)}
+            onClickUnderline={() => dispatch(toggleUnderline())}
+            isHeading={useSelector(selectIsHeading)}
+            headingLevel={useSelector(selectHeadingLevel)}
+            onSelectHeading={(level: number) => dispatch(setHeadingLevel(level))}
+            onRedo={() => {
+                dispatch(redo(true))
+                setTimeout(() => {
+                    dispatch(redo(false))
+                }, 100);
+            }}
+            fontFamily={useSelector(selectFontFamily)}
+            onSetFontFamily={(fontFamily: string) => dispatch(setFontFamily(fontFamily))}
+            fontSize={useSelector(selectFontSize)}
+            onSetFontSize={(fontSize: number) => dispatch(setFontSize(fontSize))}
+            onIncreaseFontSize={() => dispatch(increaseFontSize())}
+            onDecreaseFontSize={() => dispatch(decreaseFontSize())}
+            onClickAddComment={() => {
+                //dispatch(executeComment())
+                onClickAddComment()
+            }}
+            onClickAddBookmark={() => onClickAddBookmark()}
+            open={true}
+            activeEditor={editor}
+            textColorInputRef={textColorInputRef}
+            highlightColorInputRef={highlightColorInputRef}
+            setTextColor={setTextColor}
+            setHighlightColor={setHighlightColor}
+            lastFontSize={currentEditorState.lastFontSize}
+            setLastFontSize={(size) => handleIsHeadingChange(false, size)}
+            setIsHeading={(heading) => handleIsHeadingChange(heading)}
+            undoInputRef={undoInputRef}
+            historyState={currentHistory.historyState}
+            revertToAction={currentHistory.restoreHistoryAction}
+            trackHistoryActions={currentHistory.trackHistoryActions}
+        />
     )
 }

@@ -3,7 +3,6 @@ import editorReducer from '../pages/Editor/store/editor.slice';
 import commentsReducer from '../pages/Comments/store/comments.slice';
 import mainReducer from '../pages/store/main.slice';
 
-
 const rootReducer = combineReducers({
   main: mainReducer,
   editor: editorReducer,

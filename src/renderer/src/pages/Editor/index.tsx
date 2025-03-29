@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useEditor, Editor } from '@tiptap/react';
 import { rendererLogger } from '../../utils/logger';
 import EditorWrapper from '../../components/editor-text-layout';
 import { defaultEditorConfig } from './utils/editorConfigs';
 import { useHistoryState } from './hooks';
-import BubbleToolbar from './components/bubbleToolbar';
+import BubbleToolbar from './components/bubble-toolbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { addComment, addCategory, setCategoriesData } from '../Comments/store/comments.slice';
 import { getAllCategories } from '../Comments/store/comments.selector';

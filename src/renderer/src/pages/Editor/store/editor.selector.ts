@@ -57,3 +57,12 @@ export const selectComment = (state: RootState) => {
   return state.editor.comment;
 };
 
+export const selectBookmark = (state: RootState) => {
+  if (!state.editor) return false;
+  return state.editor.bookmark;
+};
+
+export const selectBookmarks = (state: RootState) => {    
+  if (!state.editor) return [];
+  return state.editor.bookmarks;
+};

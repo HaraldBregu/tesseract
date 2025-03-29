@@ -1,6 +1,6 @@
 import React from 'react';
-import { HistoryAction } from '../../hooks/types';
-import styles from '../../index.module.css';
+import { HistoryAction } from '../hooks/types';
+import styles from '../index.module.css';
 
 interface RecentActionsPanelProps {
     recentActions: HistoryAction[];

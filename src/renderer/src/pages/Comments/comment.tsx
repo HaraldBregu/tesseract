@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Typography, IconButton, Menu, MenuItem } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import CriterionTextBox from '../../../../components/ui/textField';
-
+import CriterionTextBox from '../../components/ui/textField';
 interface CommentProps {
     id?: string;
     initialTitle: string;

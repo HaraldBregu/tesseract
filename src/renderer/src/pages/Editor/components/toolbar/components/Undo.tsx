@@ -2,7 +2,7 @@ import React, { useState, MouseEvent, useCallback } from "react";
 import { Popover } from "@mui/material";
 import { Editor } from "@tiptap/react";
 import { HistoryState } from "../../../hooks";
-import { RecentActionsPanel } from "../../recentAction";
+import { RecentActionsPanel } from "../../recent-actions-panel";
 import styles from '../../../index.module.css';
 import Button from "@/components/ui/button";
 import Undo from "@/assets/reactIcons/Undo";
