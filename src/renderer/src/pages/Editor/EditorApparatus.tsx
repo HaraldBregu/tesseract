@@ -41,7 +41,6 @@ import { Input } from "@/components/ui/input";
 import { rendererLogger } from "@/utils/logger";
 import { useIpcRenderer } from "@/hooks/use-ipc-renderer";
 
-
 MotionGlobalConfig.skipAnimations = true;
 
 const EditorApparatusLayout = ({
@@ -204,8 +203,8 @@ export const EditorApparatus = forwardRef((
                             }}
                             className={cn(
                                 'bg-white',
-                                item !== apparatuses[0] && 'border-t border-grey-70',
-                                !expandedApparatuses.includes(item) && item === apparatuses[apparatuses.length - 1] && 'border-b border-grey-70',
+                                item !== visibleApparatuses[0] && 'border-t border-grey-70',
+                                !expandedApparatuses.includes(item) && item === visibleApparatuses[visibleApparatuses.length - 1] && expandedApparatuses.length === 0 && 'border-b border-grey-70',
                                 'relative flex items-center overflow-hidden select-none',
                                 "w-full",
                                 expandedApparatuses.includes(item) ? "flex-1" : "flex-none"
