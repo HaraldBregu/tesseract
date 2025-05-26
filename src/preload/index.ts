@@ -1,12 +1,38 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { ipcRenderer } from 'electron'
+import { IApplicationAPI, IDocumentAPI, IMenuAPI, ISystemAPI } from './index.d'
+
+const tabsAPI = {
+    new: (): Promise<number> => ipcRenderer.invoke('tabs:new'),
+    close: (id: number): Promise<void> => ipcRenderer.invoke('tabs:close', id),
+    select: (id: number): Promise<void> => ipcRenderer.invoke('tabs:select', id),
+    reorder: (tabIds: number[]): Promise<void> => ipcRenderer.invoke('tabs:reorder', tabIds),
+    getAllContentViewsIds: (): Promise<number[]> => ipcRenderer.invoke('tabs:getAllContentViewsIds'),
+    getSelectedTabId: (): Promise<number> => ipcRenderer.invoke('tabs:getSelectedTabId'),
+}
+
+const menuAPI: IMenuAPI = {
+    disableReferencesMenuItems: (items: string[]): Promise<void> => ipcRenderer.invoke('menu:disableReferencesMenuItems', items),
+    updateViewApparatusesMenuItems: (items: { id: string, title: string, visible: boolean }[]): Promise<void> => ipcRenderer.invoke('menu:updateViewApparatusesMenuItems', items),
+}
 
 const api = {}
 
-const store = {
-    // @ts-ignore (define in dts)
-    get: (_: string) => { },
-    set: (_: string, __: any) => { }
+const store = {}
+
+const systemAPI: ISystemAPI = {
+    getUserInfo: (): Promise<void> => ipcRenderer.invoke('system:getUserInfo'),
+}
+
+const applicationAPI: IApplicationAPI = {
+    toolbarIsVisible: (): Promise<boolean> => ipcRenderer.invoke('application:toolbarIsVisible')
+}
+
+const documentAPI: IDocumentAPI = {
+    getTemplatesFilenames: (): Promise<string[]> => ipcRenderer.invoke('document:getTemplatesFilenames'),
+    getApparatuses: (): Promise<unknown[]> => ipcRenderer.invoke('document:getApparatuses'),
+    setApparatuses: (apparatuses: unknown[]): Promise<void> => ipcRenderer.invoke('document:setApparatuses', apparatuses)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -17,6 +43,11 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('electron', electronAPI)
         contextBridge.exposeInMainWorld('api', api)
         contextBridge.exposeInMainWorld('store', store)
+        contextBridge.exposeInMainWorld('tabs', tabsAPI)
+        contextBridge.exposeInMainWorld('menu', menuAPI)
+        contextBridge.exposeInMainWorld('system', systemAPI)
+        contextBridge.exposeInMainWorld('application', applicationAPI)
+        contextBridge.exposeInMainWorld('doc', documentAPI)
     } catch (error) {
         console.error(error)
     }
@@ -27,4 +58,14 @@ if (process.contextIsolated) {
     window.api = api
     // @ts-ignore (define in dts)
     window.store = store
+    // @ts-ignore (define in dts)
+    window.tabs = tabsAPI
+    // @ts-ignore (define in dts)
+    window.system = systemAPI
+    // @ts-ignore (define in dts)
+    window.application = applicationAPI
+    // @ts-ignore (define in dts)
+    window.doc = documentAPI
+    // @ts-ignore (define in dts)
+    window.menu = menuAPI
 }

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface MainState {
+export interface MainState {
     sidebarOpen: boolean;
 }
 
@@ -21,6 +21,9 @@ const mainSlice = createSlice({
     },
 });
 
-export const { setSidebarOpen, toggleSidebar } = mainSlice.actions;
+export const {
+    setSidebarOpen,
+    toggleSidebar,
+} = mainSlice.actions;
 
 export default mainSlice.reducer;

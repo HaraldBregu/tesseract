@@ -1,6 +1,6 @@
 import { useState } from "react";
 import TextField from "../ui/textField";
-import Account from "@/assets/reactIcons/Account";
+import Account from "@/components/icons/Account";
 
 const TextFieldStyling = () => {
     // Stati per gestire i valori dei campi

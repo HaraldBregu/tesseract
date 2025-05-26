@@ -1,7 +1,14 @@
 import { app, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import { LogLevel } from '../components/logEnum.js';
+
+const ENABLE_LOG = false;
+
+enum LogLevel {
+    DEBUG = 'DEBUG',
+    ERROR = 'ERROR',
+    INFO = 'INFO'
+}
 
 // MainLogger manages logging, using a singleton pattern.
 class MainLogger {
@@ -81,6 +88,11 @@ class MainLogger {
         this.log(LogLevel.ERROR, category, message, errorDetails);
     }
 
+    // info: Helper method to log informational messages.
+    public info(category: string, message: string, details?: PerformanceDetails): void {
+        this.log(LogLevel.INFO, category, message, details);
+    }
+
     // log: Formats the log entry with timestamp, level, and additional details, then persists it.
     private log(
         level: LogLevel,
@@ -104,7 +116,7 @@ class MainLogger {
     persistLog(entry: LogEntry): void {
         fs.appendFileSync(this.logFile, JSON.stringify(entry) + '\n');
 
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production' && ENABLE_LOG) {
             console.log(JSON.stringify(entry, null, 2));
         }
     }

@@ -6,11 +6,12 @@ import Button from "@components/ui/button";
 interface ButtonPopoverProps {
     btnFace: ReactNode;
     children: ReactNode;
+    tooltip?: string;
     closeHdlr: () => void;
     clickHdlr: (e: MouseEvent<HTMLButtonElement>) => void;
 }
 
-const ButtonPopover: FC<ButtonPopoverProps> = ({ btnFace, children, closeHdlr: closeHdlr, clickHdlr }) => {
+const ButtonPopover: FC<ButtonPopoverProps> = ({ btnFace, children, closeHdlr: closeHdlr, clickHdlr, tooltip }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     const handleClose = (): void => {
@@ -39,9 +40,10 @@ const ButtonPopover: FC<ButtonPopoverProps> = ({ btnFace, children, closeHdlr: c
             <Button
                 onClick={handleClick}
                 className={btnClass}
+                tooltip={tooltip}
                 variant="icon"
-                size={"iconSm"}
-                intent={"secondary"}
+                size="iconSm"
+                intent="secondary"
             >
                 {btnFace}
             </Button>

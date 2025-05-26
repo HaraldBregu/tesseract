@@ -2,13 +2,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ReactNode, useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import Invisible from "@/assets/reactIcons/Invisible"
-import Visible from "@/assets/reactIcons/Visible"
-import Calendar from "@/assets/reactIcons/Calendar"
+import Invisible from "@/components/icons/Invisible"
+import Visible from "@/components/icons/Visible"
+import Calendar from "@/components/icons/Calendar"
+import Up_1 from "../icons/Up_1"
+import Button from "./button"
 
 interface TextFieldProps {
     id: string
     label?: string
+    ref?: React.Ref<HTMLInputElement>
     type?: "text" | "email" | "number" | "date" | "password"
     placeholder?: string
     helperText?: string
@@ -19,15 +22,24 @@ interface TextFieldProps {
     className?: string
     required?: boolean
     disabled?: boolean
+    autoFocus?: boolean
     value?: string | number
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+    onClick?: (e: React.MouseEvent<HTMLInputElement>) => void
     dateFormat?: "dd-mm-yyyy" | "mm-dd-yyyy" | "yyyy-mm-dd"
     dateValueFormat?: "dd-mm-yyyy" | "mm-dd-yyyy" | "yyyy-mm-dd"
+    min?: number | string
+    max?: number | string
+    decimals?: number
+    unitMesure?: string
 }
 
 export default function TextField({
     id,
     label,
+    ref,
     type = "text",
     placeholder,
     helperText,
@@ -38,10 +50,18 @@ export default function TextField({
     className,
     required = false,
     disabled = false,
+    autoFocus = false,
     value,
     onChange,
+    onBlur,
+    onKeyDown,
+    onClick,
     dateFormat = "dd-mm-yyyy",
     dateValueFormat = "yyyy-mm-dd",
+    min,
+    max,
+    decimals = 0,
+    unitMesure,
     ...props
 }: TextFieldProps) {
     const [showPassword, setShowPassword] = useState(false);
@@ -190,13 +210,27 @@ export default function TextField({
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let inputValue = e.target.value;
+        console.log("🚀 ~ handleNumberChange ~ inputValue:", typeof inputValue, inputValue)
         inputValue = inputValue.replace(/,/g, '.');
 
         const numericRegex = /^-?\d*\.?\d*$/;
         const isValidInput = inputValue === '' || numericRegex.test(inputValue);
 
+
+
         if (isValidInput) {
-            const validValue = inputValue === '-' || inputValue === '' ? inputValue : inputValue;
+            let validValue = inputValue === '-' || inputValue === '' ? inputValue : inputValue;
+            if (validValue !== '' && validValue !== '-') {
+                const numValue = parseFloat(validValue);
+
+                if (min !== undefined && !isNaN(numValue) && numValue < parseFloat(min.toString())) {
+                    validValue = min.toString();
+                }
+
+                if (max !== undefined && !isNaN(numValue) && numValue > parseFloat(max.toString())) {
+                    validValue = max.toString();
+                }
+            }
 
             if (onChange) {
                 const syntheticEvent = {
@@ -217,6 +251,58 @@ export default function TextField({
             }
         }
     }
+
+    const incrementValue = () => {
+        if (!value && value !== 0) return;
+
+        let currentValue = typeof value === 'string' ? parseFloat(value) : value as number;
+        if (isNaN(currentValue)) currentValue = 0;
+
+        let newValue = parseFloat((currentValue + 1 * Math.pow(10, -decimals)).toFixed(decimals));
+
+        // Controllo del limite massimo
+        if (max !== undefined && newValue > parseFloat(max.toString())) {
+            newValue = parseFloat(max.toString());
+        }
+
+        if (onChange) {
+            const syntheticEvent = {
+                target: {
+                    id,
+                    name: id,
+                    value: newValue.toString()
+                }
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+            onChange(syntheticEvent);
+        }
+    };
+
+    const decrementValue = () => {
+        if (!value && value !== 0) return;
+
+        let currentValue = typeof value === 'string' ? parseFloat(value) : value as number;
+        if (isNaN(currentValue)) currentValue = 0;
+
+        let newValue = parseFloat((currentValue - 1 * Math.pow(10, -decimals)).toFixed(decimals));
+
+        // Controllo del limite minimo
+        if (min !== undefined && newValue < parseFloat(min.toString())) {
+            newValue = parseFloat(min.toString());
+        }
+
+        if (onChange) {
+            const syntheticEvent = {
+                target: {
+                    id,
+                    name: id,
+                    value: newValue.toString()
+                }
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+            onChange(syntheticEvent);
+        }
+    };
 
     const PasswordToggleIcon = type === "password" ? (
         <button
@@ -254,8 +340,8 @@ export default function TextField({
     return (
         <div className={cn("grid w-full items-center gap-1.5", className)}>
             {label && (
-                <Label htmlFor={id} className={cn(error && "text-destructive")}>
-                    {label} {required && <span className="text-destructive">*</span>}
+                <Label htmlFor={id} className={cn(error && "text-destructive", "font-semibold text-[12px] pl-2")}>
+                    {label} {required && <span className="text-primary">*</span>}
                 </Label>
             )}
 
@@ -273,20 +359,32 @@ export default function TextField({
                     className={cn(
                         leftIcon && "pl-10",
                         (rightIcon || type === "password" || type === "date") && "pr-10",
-                        error && "border-destructive focus-visible:ring-destructive"
+                        type === "number" && "pr-8 show-number-arrows",
+                        error && "border-destructive focus-visible:ring-destructive",
+                        "bg-grey-95"
                     )}
                     disabled={disabled}
-
+                    autoFocus={autoFocus}
                     value={type === "date" ? formatDateDisplay(value) : value}
                     onChange={type === "date" ? undefined : (type === "number" ? handleNumberChange : onChange)}
+                    onBlur={onBlur}
+                    onKeyDown={onKeyDown}
+                    onClick={onClick}
                     onFocus={() => {
                         if (type === "date" && dateInputRef.current) {
                             handleDateIconClick();
                         }
                     }}
                     readOnly={type === "date"}
+                    min={type === "number" ? min : undefined}
+                    max={type === "number" ? max : undefined}
+
+                    step={type === "number" ? (Math.pow(10, -decimals)).toFixed(2) : undefined}
                     {...props}
                 />
+                {unitMesure && typeof value === 'number' && <span className={`absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none`}>
+                    {unitMesure}
+                </span>}
                 {type === "date" && (
                     <input
                         ref={dateInputRef}
@@ -298,7 +396,35 @@ export default function TextField({
                         value={internalDateValue}
                     />
                 )}
-
+                {type === "number" && (
+                    <div className="absolute right-[4px] top-0 bottom-0 flex flex-col justify-center w-4.5" >
+                        <Button
+                            variant="icon"
+                            intent="secondary"
+                            className="rotate-0"
+                            icon={<Up_1
+                                variant="icon"
+                                size="small" />}
+                            onClick={incrementValue}
+                            tabIndex={-1}
+                            size={"iconMini"}
+                            disabled={disabled}
+                        />
+                        <Button
+                            variant="icon"
+                            intent="secondary"
+                            className="rotate-0"
+                            icon={<Up_1
+                                variant="icon"
+                                className="rotate-180"
+                                size="small" />}
+                            onClick={decrementValue}
+                            tabIndex={-1}
+                            size={"iconMini"}
+                            disabled={disabled}
+                        />
+                    </div>
+                )}
                 {(rightIcon || type === "password" || type === "date") && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                         {displayRightIcon()}

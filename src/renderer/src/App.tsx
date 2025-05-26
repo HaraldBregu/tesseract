@@ -1,73 +1,60 @@
-import React, { Suspense, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
-  MemoryRouter as Router,
-  Routes,
-  Route,
-  Navigate,
+  RouterProvider,
+  Outlet,
+  createHashRouter,
 } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FallbackLoader, LazyLoader } from "./components/LazyLoader";
 import "./i18n";
-import { ELayout } from "./pages/Editor/ELayout";
+import { ELayout } from "./pages/editor/ELayout";
+import AppTabs from "./AppTabs";
+import About from "./pages/about";
 
-const MainContainer = React.lazy(() => import('./pages/MainContainer'));
-const LanguageSelector = React.lazy(() => import('./pages/main/LanguageSelector'));
-interface ProtectedProps {
-  child: JSX.Element;
-}
-
-const ProtectedComponent: React.FC<ProtectedProps> = ({ child }) => {
-  const savedLanguage = localStorage.getItem("appLanguage");
-  return savedLanguage ? <LazyLoader child={child} /> : <Navigate to="/select-language" replace />;
+const ProtectedRoutes = () => {
+  return <Outlet />
 };
 
-const AppRoutes: React.FC = () => {
-  return (
-    <Routes>
-      <Route path="/select-language" element={<LazyLoader child={<LanguageSelector />} />} />
-      <Route
-        path="/editor"
-        element={<ProtectedComponent child={<MainContainer />} />}
-      />
-      <Route
-        path="/editor-layout"
-        element={<ProtectedComponent child={<ELayout />} />}
-      />
-      <Route
-        path="*"
-        element={
-          localStorage.getItem("appLanguage") ? (
-            <Navigate replace to="/editor-layout" />
-          ) : (
-            <Navigate replace to="/select-language" />
-          )
-        }
-      />
-    </Routes>
-  );
-};
+const router = createHashRouter([
+  {
+    element: <AppTabs />,
+    path: "/browser-tab-bar",
+  },
+  {
+    element: <ProtectedRoutes />,
+    children: [
+      {
+        element: <ELayout />,
+        path: "/",
+      },
+    ]
+  },
+]);
 
 const App: React.FC = () => {
+  const [showAbout, setShowAbout] = React.useState(false);
   const { i18n } = useTranslation();
 
   useEffect(() => {
-    /*
-    const handleLanguageChange = (lang: string) => {
-      i18n.changeLanguage(lang);
-      localStorage.setItem("appLanguage", lang);
-    };
-*/
-    // const unsubscribe = window.electron.onLanguageChanged(handleLanguageChange);
+    if (!window.electron) return;
 
-    const unsubscribe = window.electron.ipcRenderer.on('language-changed', (_: unknown, lang: string) => {
-      i18n.changeLanguage(lang);
-      localStorage.setItem("appLanguage", lang);
-      console.log('setting lang', lang)
+    const showAboutCleanup = window.electron.ipcRenderer.on('show-about', () => {
+      setShowAbout(true);
     });
 
-    //window.electron.ipcRenderer.removeAllListeners('language-changed');
+    return () => {
+      showAboutCleanup();
+    }
+  }, [window.electron]);
+
+  useEffect(() => {
+    const unsubscribe = window.electron.ipcRenderer.on('language-changed', (_: unknown, lang: string) => {
+      console.log("Language changed to: ", lang);
+      i18n.changeLanguage(lang);
+      localStorage.setItem("appLanguage", lang);
+    });
 
     const savedLanguage = localStorage.getItem("appLanguage");
+
     if (savedLanguage) {
       i18n.changeLanguage(savedLanguage);
     }
@@ -76,11 +63,10 @@ const App: React.FC = () => {
   }, [i18n]);
 
   return (
-    <Router>
-      <Suspense fallback={<FallbackLoader />}>
-        <AppRoutes />
-      </Suspense>
-    </Router>
+    <>
+      <RouterProvider router={router} />
+      <About isOpen={showAbout} onClose={() => setShowAbout(false)} />
+    </>
   );
 };
 

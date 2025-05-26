@@ -1,216 +1,308 @@
+import { TreeItem } from '@/lib/tocTreeMapper';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import colors from "tailwindColors.json"
+import { HistoryState } from '../hooks';
+import { v4 as uuidv4 } from 'uuid';
 
-interface EditorState {
+
+export interface TocSettings {
+    show: boolean;
+    levels: number;
+    indentLevels: boolean;
+    title: string;
+    tabLeaderFormat: string;
+    showHeadingNumbers: boolean;
+    numberSeparator: string;
+    level1Format?: string;
+    level2Format?: string;
+    level3Format?: string;
+    level4Format?: string;
+    level5Format?: string;
+    level6Format?: string;
+}
+
+export const initialTocSettings: TocSettings = {
+    show: true,
+    levels: 3,
+    indentLevels: true,
+    title: "Table of Contents",
+    tabLeaderFormat: "1",
+    showHeadingNumbers: true,
+    numberSeparator: "2",
+    level1Format: "1",
+    level2Format: "1",
+    level3Format: "1",
+    level4Format: "1",
+    level5Format: "1",
+    level6Format: "1",
+}
+
+const initialEmphasisState: EmphasisState = {
+    bold: false,
+    italic: false,
+    underline: false,
+    strikethrough: false,
+    alignment: 'left',
+    fontFamily: "Times New Roman",
+    fontSize: 12,
+    headingLevel: 0,
+    blockquote: false,
+    isCodeBlock: false,
+    bulletStyle: {
+        type: '',
+        style: '',
+        previousType: '',
+    },
+    highlight: "#ffffff",
+    textColor: colors.primary[20],
+    superscript: false,
+    subscript: false,
+    spacing: {
+        before: null,
+        after: null,
+        line: 1,
+    },
+    showNonPrintingCharacters: false
+}
+
+export interface EditorState {
     data: string[];
-    isLoading: boolean;
-    isBold: boolean;
-    isItalic: boolean;
-    isUnderline: boolean;
-    isHeading: boolean;
-    headingLevel: number;
-    redo: boolean;
-    fontFamily: string;
-    fontSize: number;
-    textColor: string;
-    highlightColor: string;
-    comment: boolean;
-    bookmark: boolean;
-    bookmarks: Bookmark[];
-    bookmarkCategories: string[];
+    toolbarEmphasisState: EmphasisState;
+    editorEmphasisState: EmphasisState;
+    emphasisState: EmphasisState;
+    editorMode: 'editing' | 'review';
+    canEdit: boolean;
+    canUndo: boolean;
+    canRedo: boolean;
+    headingEnabled: boolean;
+    isBlockquote: boolean;
+    alignment: string;
+    mode: string;
+    isNonPrintingCharacter: boolean;
+    canAddBookmark: boolean;
+    canAddComment: boolean;
+    tocSettings: TocSettings;
+    history?: HistoryState;
+    selectedSidebarTabIndex: number;
+    changeIndent: 'increase' | 'decrease' | null;
+    bookmarkActive: boolean;
+    commentActive: boolean;
+    tocStructure: TreeItem[];
+    bookmarkHighlighted: boolean;
+    commentHighlighted: boolean;
+    apparatuses: Apparatus[];
+    characters: number;
+    words: number;
 }
 
 const initialState: EditorState = {
     data: [],
-    isLoading: false,
-    isBold: false,
-    isItalic: false,
-    isUnderline: false,
-    isHeading: false,
-    headingLevel: 0,
-    redo: false,
-    fontFamily: "Default",
-    fontSize: 12,
-    textColor: colors.primary[20],
-    highlightColor: colors.primary[20],
-    comment: false,
-    bookmark: false,
-    bookmarks: [],
-    bookmarkCategories: [],
+    toolbarEmphasisState: initialEmphasisState,
+    editorEmphasisState: initialEmphasisState,
+    emphasisState: initialEmphasisState,
+    editorMode: 'editing',
+    canEdit: true,
+    headingEnabled: true,
+    canUndo: false,
+    canRedo: false,
+    isBlockquote: false,
+    alignment: 'left',
+    mode: 'editing',
+    isNonPrintingCharacter: false,
+    canAddBookmark: true,
+    canAddComment: true,
+    tocSettings: initialTocSettings,
+    selectedSidebarTabIndex: 0,
+    changeIndent: null,
+    bookmarkActive: false,
+    commentActive: false,
+    tocStructure: [],
+    bookmarkHighlighted: true,
+    commentHighlighted: true,
+    apparatuses: [
+        {
+            id: uuidv4(),
+            title: "Apparatus 1",
+            type: "CRITICAL",
+            visible: true
+        },
+    ],
+    characters: 0,
+    words: 0,
 };
 
 const editorSlice = createSlice({
     name: 'editor',
     initialState,
     reducers: {
-        fetchDataStart(state) {
-            state.isLoading = true;
+        setEmphasisState(state, action: PayloadAction<EmphasisState>) {
+            const emphasisState = action.payload;
+            state.toolbarEmphasisState = {
+                ...emphasisState,
+            };
+            state.emphasisState = emphasisState;
         },
-        fetchDataSuccess(state, action: PayloadAction<string[]>) {
-            state.data = action.payload;
-            state.isLoading = false;
+        setCanUndo(state, action: PayloadAction<boolean>) {
+            state.canUndo = action.payload;
         },
-        fetchDataFailure(state) {
-            state.isLoading = false;
+        setCanRedo(state, action: PayloadAction<boolean>) {
+            state.canRedo = action.payload;
         },
-        setBold(state, action: PayloadAction<boolean>) {
-            state.isBold = action.payload;
+        setEditorMode(state, action: PayloadAction<'editing' | 'review'>) {
+            state.editorMode = action.payload;
+            state.canEdit = action.payload === 'editing';
         },
-        toggleBold(state) {
-            state.isBold = !state.isBold;
+
+        updateTocSettings(state, action: PayloadAction<TocSettings>) {
+            state.tocSettings = { ...state.tocSettings, ...action.payload };
         },
-        setItalic(state, action: PayloadAction<boolean>) {
-            state.isItalic = action.payload;
+        clearTocSettings(state) {
+            state.tocSettings = initialTocSettings;
         },
-        toggleItalic(state) {
-            state.isItalic = !state.isItalic;
+        setHistory(state, action: PayloadAction<HistoryState>) {
+            state.history = action.payload;
         },
-        setUnderline(state, action: PayloadAction<boolean>) {
-            state.isUnderline = action.payload;
+        setCanAddBookmark(state, action: PayloadAction<boolean>) {
+            state.canAddBookmark = action.payload;
         },
-        toggleUnderline(state) {
-            state.isUnderline = !state.isUnderline;
+        setCanAddComment(state, action: PayloadAction<boolean>) {
+            state.canAddComment = action.payload;
         },
-        setHeadingLevel(state, action: PayloadAction<number>) {
-            state.headingLevel = action.payload;
-            state.isHeading = action.payload > 0;
+        setSelectedSidebarTabIndex(state, action: PayloadAction<number>) {
+            state.selectedSidebarTabIndex = action.payload;
         },
-        redo(state, action: PayloadAction<boolean>) {
-            state.redo = action.payload;
-        },
-        setFontFamily(state, action: PayloadAction<string>) {
-            state.fontFamily = action.payload;
-        },
-        setFontSize(state, action: PayloadAction<number>) {
-            state.fontSize = action.payload;
-        },
-        increaseFontSize(state) {
-            const size = state.fontSize;
-            if (size > 95) return
-            state.fontSize = size + 1;
-        },
-        decreaseFontSize(state) {
-            const size = state.fontSize;
-            if (size < 7) return
-            state.fontSize = size - 1;
-        },
-        setTextColor(state, action: PayloadAction<string>) {
-            state.textColor = action.payload;
-        },
-        setHighlightColor(state, action: PayloadAction<string>) {
-            state.highlightColor = action.payload;
-        },
-        setComment(state, action: PayloadAction<boolean>) {
-            state.comment = action.payload;
-        },
-        executeComment(state) {
-            console.log("executeComment:", state)
+        changeIndentention(state, action: PayloadAction<'increase' | 'decrease' | null>) {
+            state.changeIndent = action.payload;
         },
         setBookmark(state, action: PayloadAction<boolean>) {
-            state.bookmark = action.payload;
+            state.bookmarkActive = action.payload;
         },
-        executeBookmark(state) {
-            console.log("executeBookmark:", state)
+        setComment(state, action: PayloadAction<boolean>) {
+            state.commentActive = action.payload;
         },
-        addBookmark(state, action: PayloadAction<{ id: string, content: string, category?: string }>) {
-            console.log("addBookmark:", state)
-
-            const bookmarkPattern = /^Bookmark (\d+)$/;
-            const matchingBookmarks = state.bookmarks.filter(bookmark =>
-                bookmarkPattern.test(bookmark.title)
-            );
-
-            const sortedBookmarks = matchingBookmarks.sort((a, b) => {
-                const aMatch = a.title.match(bookmarkPattern);
-                const bMatch = b.title.match(bookmarkPattern);
-                const aNum = aMatch ? parseInt(aMatch[1]) : 0;
-                const bNum = bMatch ? parseInt(bMatch[1]) : 0;
-                return aNum - bNum;
+        toggleBookmark(state) {
+            state.bookmarkActive = !state.bookmarkActive;
+        },
+        setTocStructure(state, action: PayloadAction<TreeItem[]>) {
+            state.tocStructure = action.payload;
+        },
+        setHeadingEnabled(state, action: PayloadAction<boolean>) {
+            state.headingEnabled = action.payload;
+        },
+        setBookmarkHighlighted(state, action: PayloadAction<boolean>) {
+            state.bookmarkHighlighted = action.payload;
+        },
+        toggleBookmarkHighlighted(state) {
+            state.bookmarkHighlighted = !state.bookmarkHighlighted;
+        },
+        setCommentHighlighted(state, action: PayloadAction<boolean>) {
+            state.commentHighlighted = action.payload;
+        },
+        toggleCommentHighlighted(state) {
+            state.commentHighlighted = !state.commentHighlighted;
+        },
+        updateApparatuses(state, action: PayloadAction<Apparatus[]>) {
+            state.apparatuses = action.payload;
+        },
+        addApparatus(state, action: PayloadAction<"CRITICAL" | "PAGE_NOTES" | "SECTION_NOTES" | "INNER_MARGIN" | "OUTER_MARGIN">) {
+            state.apparatuses.push({
+                id: uuidv4(),
+                title: "Apparatus " + (state.apparatuses.length + 1),
+                type: action.payload,
+                visible: true
             });
-
-            var lastSortedNumber = 1;
-            if (sortedBookmarks && sortedBookmarks.length > 0) {
-                const lastBookmark = sortedBookmarks[sortedBookmarks.length - 1];
-                const number = parseInt(lastBookmark.title.match(/\d+/)?.[0] || '0');
-                lastSortedNumber = number + 1;
-            }
-
-            const newBookmark: Bookmark = {
-                id: action.payload.id,
-                content: action.payload.content,
-                title: `Bookmark ${lastSortedNumber}`,
-                description: "New Bookmark",
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                author: "Anonymous Author",
-            }
-
-            if (action.payload.category)
-                newBookmark.category = action.payload.category
-
-            state.bookmarks.push(newBookmark)
         },
-        deleteBookmark(state, action: PayloadAction<string>) {
-            state.bookmarks = state.bookmarks.filter(bookmark => bookmark.id !== action.payload)
+        toggleVisibilityApparatus(state, action: PayloadAction<{ id: string, visible: boolean }>) {
+            const apparatuses = state.apparatuses 
+            const apparatus = apparatuses.find(apparatus => apparatus.id === action.payload.id);
+            if (apparatus) {
+                apparatus.visible = action.payload.visible;
+            }
+            state.apparatuses = apparatuses            
         },
-        addBookmarkCategory(state) {
-            console.log("addBookmarkCategory:", state)
-            const bookmarkCategoryPattern = /^Category (\d+)$/;
-            const matchingBookmarkCategories = state.bookmarkCategories.filter(categoryBookmarks =>
-                bookmarkCategoryPattern.test(categoryBookmarks)
-            );
-
-            const sortedBookmarkCategories = matchingBookmarkCategories.sort((a, b) => {
-                const aMatch = a.match(bookmarkCategoryPattern);
-                const bMatch = b.match(bookmarkCategoryPattern);
-                const aNum = aMatch ? parseInt(aMatch[1]) : 0;
-                const bNum = bMatch ? parseInt(bMatch[1]) : 0;
-                return aNum - bNum;
+        createApparatusesFromDocument(state, action: PayloadAction<any[]>) {
+            const apparatusesData = action.payload
+            if (apparatusesData === undefined) return
+            state.apparatuses = apparatusesData.map((apparatus) => ({
+                id: uuidv4(),
+                title: apparatus.title,
+                type: apparatus.type,
+                visible: true
+            }));
+        },
+        addApparatusAfterIndex(state, action: PayloadAction<{ type: "CRITICAL" | "PAGE_NOTES" | "SECTION_NOTES" | "INNER_MARGIN" | "OUTER_MARGIN", index: number }>) {
+            state.apparatuses.splice(action.payload.index + 1, 0, {
+                id: uuidv4(),
+                title: "Apparatus " + (state.apparatuses.length + 1),
+                type: action.payload.type,
+                visible: true
             });
-
-            var lastSortedNumber = 1;
-            if (sortedBookmarkCategories && sortedBookmarkCategories.length > 0) {
-                const lastBookmarkCategory = sortedBookmarkCategories[sortedBookmarkCategories.length - 1];
-                const number = parseInt(lastBookmarkCategory.match(/\d+/)?.[0] || '0');
-                lastSortedNumber = number + 1;
-            }
-
-            state.bookmarkCategories.push(`Category ${lastSortedNumber}`)
         },
-        deleteBookmarkCategory(state, action: PayloadAction<number>) {
-            const categoryName = state.bookmarkCategories[action.payload];
-            state.bookmarks = state.bookmarks.filter(bookmark => bookmark.category !== categoryName);
-            state.bookmarkCategories.splice(action.payload, 1)
+        addApparatusAtTop(state, action: PayloadAction<"CRITICAL" | "PAGE_NOTES" | "SECTION_NOTES" | "INNER_MARGIN" | "OUTER_MARGIN">) {
+            state.apparatuses.unshift({
+                id: uuidv4(),
+                title: "Apparatus " + (state.apparatuses.length + 1),
+                type: action.payload,
+                visible: true
+            });
+        },
+        removeApparatus(state, action: PayloadAction<Apparatus>) {
+            state.apparatuses = state.apparatuses.filter(apparatus => apparatus.id !== action.payload.id);
+        },
+        changeApparatusType(state, action: PayloadAction<{ id: string, type: Apparatus['type'] }>) {
+            const apparatus = state.apparatuses.find(apparatus => apparatus.id === action.payload.id);
+            if (apparatus) {
+                apparatus.type = action.payload.type;
+            }
+        },
+        changeApparatusTitle(state, action: PayloadAction<{ id: string, title: string }>) {
+            const apparatus = state.apparatuses.find(apparatus => apparatus.id === action.payload.id);
+            if (apparatus) {
+                apparatus.title = action.payload.title;
+            }
+        },
+        setCharacters(state, action: PayloadAction<number>) {
+            state.characters = action.payload;
+        },
+        setWords(state, action: PayloadAction<number>) {
+            state.words = action.payload;
         },
     },
+
 });
 
 export const {
-    fetchDataStart,
-    fetchDataSuccess,
-    fetchDataFailure,
-    setBold,
-    toggleBold,
-    setItalic,
-    toggleItalic,
-    setUnderline,
-    toggleUnderline,
-    setHeadingLevel,
-    redo,
-    setFontFamily,
-    setFontSize,
-    increaseFontSize,
-    decreaseFontSize,
-    setTextColor,
-    setHighlightColor,
-    setComment,
-    executeComment,
+    setEmphasisState,
+    setCanUndo,
+    setCanRedo,
+    updateTocSettings,
+    setEditorMode,
+    setHistory,
+    setCanAddBookmark,
+    clearTocSettings,
+    setSelectedSidebarTabIndex,
+    changeIndentention,
     setBookmark,
-    executeBookmark,
-    addBookmark,
-    deleteBookmark,
-    addBookmarkCategory,
-    deleteBookmarkCategory,
+    toggleBookmark,
+    setTocStructure,
+    setHeadingEnabled,
+    setBookmarkHighlighted,
+    toggleBookmarkHighlighted,
+    setCommentHighlighted,
+    toggleCommentHighlighted,
+    setCanAddComment,
+    setComment,
+    updateApparatuses,
+    addApparatus,
+    toggleVisibilityApparatus,
+    createApparatusesFromDocument,
+    addApparatusAfterIndex,
+    addApparatusAtTop,
+    removeApparatus,
+    changeApparatusType,
+    changeApparatusTitle,
+    setCharacters,
+    setWords,
 } = editorSlice.actions;
 
 export default editorSlice.reducer;

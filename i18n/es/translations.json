@@ -1,0 +1,639 @@
+{
+  "welcome": "¡Bienvenido a Criterion!",
+  "selectLanguage": "Selecciona tu idioma preferido:",
+  "editor": {
+    "sectionTypes": {
+      "body": "Cuerpo",
+      "note": "Nota",
+      "title": "Título",
+      "heading": "Encabezado 1",
+      "heading2": "Encabezado 2",
+      "heading3": "Encabezado 3",
+      "heading4": "Encabezado 4",
+      "heading5": "Encabezado 5",
+      "footerHeader": "Pie de página y Encabezado"
+    },
+    "color": {
+      "differentColor": "Color diferente",
+      "noColor": "Sin color"
+    },
+    "bulletList": {
+      "resumeNumbering": "Reanudar numeración",
+      "continuePreviousNumbering": "Continuar numeración anterior"
+    },
+    "history": "Historial",
+    "mode": {
+      "editing": {
+        "label": "Edición",
+        "info": "Realizar cambios"
+      },
+      "review": {
+        "label": "Revisión",
+        "info": "Sugerir cambios"
+      }
+    }
+  },
+  "toolbar": {
+    "bold": "Negrita",
+    "italic": "Cursiva",
+    "underline": "Subrayado",
+    "strikethrough": "Tachado",
+    "alignment": "Alineación",
+    "alignLeft": "Alinear a la izquierda",
+    "alignCenter": "Alinear al centro",
+    "alignRight": "Alinear a la derecha",
+    "justify": "Justificar",
+    "nonPrintingCharacters": "Caracteres no imprimibles",
+    "bulletList": "Lista con viñetas",
+    "numberedList": "Lista numerada",
+    "increaseIndent": "Aumentar sangría",
+    "decreaseIndent": "Disminuir sangría",
+    "fontSize": "Tamaño de fuente",
+    "fontFamily": "Familia de fuente",
+    "fontColor": "Color de fuente",
+    "highlightColor": "Color de resaltado",
+    "insertLink": "Insertar enlace",
+    "insertImage": "Insertar imagen",
+    "insertTable": "Insertar tabla",
+    "headingStyle": "Estilo de encabezado",
+    "clearFormatting": "Borrar formato",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "cut": "Cortar",
+    "copy": "Copiar",
+    "paste": "Pegar",
+    "sidebar": {
+      "toggle": "Mostrar/ocultar barra lateral"
+    },
+    "blockquote": "Cita",
+    "siglum": "Sigla",
+    "citation": "Citación",
+    "addComment": "Añadir comentario",
+    "addBookmark": "Añadir marcador",
+    "addLink": "Añadir enlace",
+    "spacing": "Espaciado",
+    "list": "Lista",
+    "search": "Buscar",
+    "printPreview": "Vista previa de impresión",
+    "listNumber": "Lista numerada",
+    "listUppercase": "Lista con letras mayúsculas",
+    "listLowercase": "Lista con letras minúsculas",
+    "listBullet": "Lista con viñetas",
+    "listBulletEmpty": "Lista con viñetas vacías",
+    "listBulletSquare": "Lista con viñetas cuadradas",
+    "superscript": "Superíndice",
+    "subscript": "Subíndice"
+  },
+  "dividerSections": {
+    "toc": "Tabla de contenidos",
+    "introduction": "Introducción",
+    "mainText": "Texto Crítico",
+    "bibliography": "Bibliografía",
+    "appendix": "Apéndice"
+  },
+  "menu": {
+    "file": {
+      "label": "Archivo",
+      "new": "Nuevo",
+      "open": "Abrir",
+      "openRecent": "Abrir reciente",
+      "noRecentDocuments": "No hay documentos recientes",
+      "import": "Importar",
+      "close": "Cerrar",
+      "save": "Guardar",
+      "saveAs": "Guardar como",
+      "duplicate": "Duplicar",
+      "rename": "Renombrar",
+      "moveTo": "Mover a",
+      "revertTo": {
+        "label": "Restaurar",
+        "lastSaved": "Último guardado",
+        "browse": "Explorar versiones"
+      },
+      "shareForReview": "Compartir para revisión",
+      "lock": "Bloquear...",
+      "unlock": "Desbloquear...",
+      "exportTo": {
+        "label": "Exportar a",
+        "pdf": "PDF",
+        "odt": "ODT",
+        "xml": "XML/TEI",
+        "exportTemplate": "Exportar plantilla"
+      },
+      "language&Region": "Idioma y región...",
+      "saveAsTemplate": "Guardar como plantilla...",
+      "metadata": "Metadatos",
+      "pageSetup": "Configuración de página...",
+      "print": "Imprimir"
+    },
+    "edit": {
+      "label": "Editar",
+      "find": {
+        "label": "Buscar",
+        "findAndReplace": "Buscar y reemplazar",
+        "findNext": "Buscar siguiente",
+        "findPrevious": "Buscar anterior",
+        "jumpToSelection": "Ir a la selección"
+      },
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "cut": "Cortar",
+      "copy": "Copiar",
+      "copyStyle": "Copiar estilo",
+      "paste": "Pegar",
+      "pasteStyle": "Pegar estilo",
+      "pasteAndMatchStyle": "Pegar y adaptar estilo",
+      "pasteWithNotes": "Pegar con notas",
+      "delete": "Eliminar",
+      "duplicateSelection": "Duplicar selección",
+      "selectAll": "Seleccionar todo",
+      "deSelectAll": "Deseleccionar todo"
+    },
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "cut": "Cortar",
+    "copy": "Copiar",
+    "paste": "Pegar",
+    "selectAll": "Seleccionar todo",
+    "view": "Ver",
+    "settings": "Configuración",
+    "reload": "Recargar",
+    "toggleDevTools": "Abrir Herramientas de Desarrollador",
+    "language": {
+      "label": "Idioma",
+      "en": "Inglés",
+      "it": "Italiano",
+      "es": "Español",
+      "fr": "Francés",
+      "de": "Alemán"
+    },
+    "insert": {
+      "label": "Insertar",
+      "section": "Sección",
+      "comment": "Comentario",
+      "bookmark": "Marcador",
+      "highlight": "Resaltar",
+      "link": "Enlace",
+      "image": "Imagen",
+      "symbol": "Símbolo",
+      "object": "Objeto",
+      "table": "Tabla",
+      "shapesAndLines": "Formas y líneas",
+      "pageBreak": "Salto de página",
+      "sectionBreak": "Salto de sección",
+      "lineNumber": {
+        "label": "Número de línea",
+        "none": "Ninguno",
+        "each5Line": "Cada 5 líneas",
+        "every10Lines": "Cada 10 líneas",
+        "every15Lines": "Cada 15 líneas"
+      },
+      "pageNumber": "Número de página",
+      "date": "Fecha",
+      "dateAndTime": "Fecha y hora",
+      "author": "Autor",
+      "title": "Título"
+    },
+    "references": {
+      "label": "Referencias",
+      "addNote": "Añadir nota",
+      "addNoteInInnerMargin": "Añadir nota en el margen interno",
+      "addNoteInOuterMargin": "Añadir nota en el margen externo",
+      "swapMargin": "Intercambiar margen",
+      "addReadingSeparator": "Añadir separador de lectura",
+      "addSiglum": "Añadir sigla",
+      "siglaSetup": "Configurar siglas",
+      "addCitation": "Añadir cita",
+      "bibliography": "Bibliografía",
+      "referencesFormat": "Formato de referencias",
+      "addApparatus": {
+        "label": "Añadir aparato",
+        "critical": "Crítico",
+        "pageNotes": "Notas de página",
+        "sectionNotes": "Notas de sección",
+        "innerMargin": "Margen interno",
+        "outerMargin": "Margen externo"
+      }
+    },
+    "format": {
+      "label": "Formato",
+      "font": {
+        "label": "Fuente",
+        "bold": "Negrita",
+        "italic": "Cursiva",
+        "underline": "Subrayado",
+        "strikethrough": "Tachado",
+        "characterSpacing": {
+          "label": "Espaciado de caracteres",
+          "normal": "Normal",
+          "tighten": "Estrechar",
+          "loosen": "Ampliar"
+        },
+        "ligature": {
+          "label": "Ligadura",
+          "default": "Usar predeterminado",
+          "none": "No usar ninguna",
+          "all": "Usar todas"
+        },
+        "captalization": {
+          "label": "Mayúsculas",
+          "none": "Ninguna",
+          "allCaps": "Todo en mayúsculas",
+          "smallCaps": "Versalitas",
+          "titleCase": "Iniciales en mayúsculas",
+          "startCase": "Primera letra en mayúscula"
+        }
+      },
+      "text": {
+        "label": "Texto",
+        "alignLeft": "Alinear a la izquierda",
+        "alignCenter": "Alinear al centro",
+        "alignRight": "Alinear a la derecha",
+        "justify": "Justificar",
+        "increaseIndent": "Aumentar nivel de sangría",
+        "decreaseIndent": "Disminuir nivel de sangría",
+        "spacing": {
+          "label": "Espaciado",
+          "single": "Simple",
+          "oneAndHalf": "1.5",
+          "double": "Doble"
+        }
+      },
+      "list": {
+        "number": "1",
+        "maxLetter": "A",
+        "lowerLetter": "a",
+        "point": "●",
+        "emptyPoint": "○",
+        "square": "■",
+        "label": "Lista",
+        "bullet": "Lista con viñetas",
+        "numbering": "Numeración",
+        "resumeNumbering": "Reanudar numeración",
+        "continuePreviousNumbering": "Continuar numeración anterior"
+      },
+      "sectionsStyle": "Estilo de secciones",
+      "table": "Tabla",
+      "shapesAndLines": "Formas y líneas",
+      "removeLink": "Eliminar enlace",
+      "changeTemplate": "Cambiar plantilla",
+      "layout": {
+        "label": "Diseño...",
+        "pageSetup": {
+          "label": "Configuración de página",
+          "component": {
+            "title": "Configuración del documento",
+            "sectionInclude": "Incluir",
+            "columns": "columna",
+            "section": {
+              "toc": "Tabla de contenidos",
+              "intro": "Introducción",
+              "critical": "Texto crítico",
+              "bibliography": "Bibliografía"
+            },
+            "accordionSetup": {
+              "title": "Configuración de página",
+              "size": "Tamaño del papel",
+              "orientation": {
+                "title": "Orientación de página",
+                "horizontal": "horizontal",
+                "vertical": "vertical"
+              }
+            }
+          }
+        }
+      },
+      "toc": {
+        "label": "Tabla de contenidos"
+      },
+      "lineNumber": {
+        "label": "Numeración de líneas..."
+      },
+      "header": {
+        "label": "Encabezado..."
+      },
+      "footer": {
+        "label": "Pie de página..."
+      },
+      "pageNumber": {
+        "label": "Número de página..."
+      }
+    },
+    "help": {
+      "label": "Ayuda",
+      "criterionHelp": "Ayuda de Criterion",
+      "faqs": "FAQs",
+      "forum": "Foro",
+      "whatsNewInCriterion": "Novedades en Criterion",
+      "reportAnIssue": "Reportar un problema",
+      "about": "Acerca de Criterion"
+    }
+  },
+  "about": {
+    "label": "Acerca de",
+    "version": "Versión",
+    "license": "Licencia"
+  },
+  "buttons": {
+    "cancel": "Cancelar",
+    "ok": "Aceptar",
+    "save": "Guardar",
+    "done": "Hecho",
+    "apply": "Aplicar",
+    "cut": "Cortar",
+    "copy": "Copiar",
+    "paste": "Pegar",
+    "acknowledgements": "Agradecimientos",
+    "licenseAgreement": "Acuerdo de Licencia"
+  },
+  "customSpacing": {
+    "title": "Espaciado personalizado",
+    "lineSpacing": "Espaciado entre líneas",
+    "beforeParagraphSpacing": "Antes del párrafo",
+    "afterParagraphSpacing": "Después del párrafo"
+  },
+  "resumeNumbering": {
+    "label": "Start from",
+    "title": "Reanudar numeración"
+  },
+  "pageNumber": {
+    "label": "Número de página",
+    "numeration": "Numeración de páginas",
+    "format": {
+      "label": "Formato de numeración",
+      "arab": "1,2,3",
+      "arab-to": "1 de 3",
+      "roman": "I, II, III",
+      "roman-to": "I de III",
+      "lowerRoman": "i, ii, iii",
+      "lowerRoman-to": "i de iii"
+    },
+    "none": "Ninguna",
+    "continue": "Continuar desde la anterior",
+    "start": "Comenzar desde:"
+  },
+  "headerFooter": {
+    "header": "Encabezado",
+    "footer": "Pie de página",
+    "content": {
+      "selection": "Selección del contenido",
+      "none": "Ninguno",
+      "page": "Número de página",
+      "date": "Fecha",
+      "dateTime": "Fecha y hora",
+      "author": "Autor",
+      "title": "Título"
+    },
+    "show": {
+      "label": "Mostrar",
+      "none": "No mostrar",
+      "firstPage": "Solo en la primera página",
+      "fromPage": "Desde la página:",
+      "allSections": "En todas las secciones",
+      "selectedSections": "En las secciones seleccionadas",
+      "toc": "Tabla de contenidos",
+      "intro": "Introducción",
+      "crt": "Texto crítico",
+      "apdx": "Apéndice",
+      "biblio": "Bibliografía"
+    },
+    "position": {
+      "left": "Izquierda",
+      "right": "Derecha",
+      "center": "Centro",
+      "options": {
+        "none": "Ninguna",
+        "pageNumber": "Número de página",
+        "date": "Fecha",
+        "dateTime": "Fecha y hora",
+        "author": "Autor",
+        "title": "Título"
+      }
+    }
+  },
+  "toc": {
+    "label": "Tabla de contenidos",
+    "section": {
+      "title": "Título",
+      "pageNumber": "Número de página"
+    },
+    "accordionSetup": {
+      "title": "Configuración de tabla de contenidos",
+      "level": {
+        "label": "Nivel",
+        "allLevels": "Todos los niveles",
+        "level1": "Nivel 1",
+        "level2": "Nivel 2",
+        "level3": "Nivel 3"
+      }
+    }
+  },
+  "lineNumber": {
+    "label": "Numeración de líneas",
+    "numeration": "Numeración de líneas",
+    "show": {
+      "label": "Mostrar",
+      "description": "Los números de línea se muestran solo en el texto crítico.",
+      "none": "Ninguna",
+      "everyFive": "Cada 5 líneas",
+      "everyTen": "Cada 10 líneas",
+      "everyFifteen": "Cada 15 líneas"
+    },
+    "whole": "Todo el texto crítico",
+    "everyPage": "Reiniciar en cada página",
+    "everySection": "Reiniciar en cada sección:",
+    "none": "Ninguna",
+    "all": "Todas",
+    "default": "Predeterminado"
+  },
+  "pageSetup": {
+    "title": "Elegir Diseño",
+    "confirmationModal": {
+      "title": "¿Estás seguro de que deseas eliminar \"{{apparatus}}\" permanentemente?",
+      "description": "Todo el contenido de \"{{apparatus}}\" se eliminará permanentemente de todas partes."
+    },
+    "component": {
+      "configurationSubtitle": "Configuración del documento",
+      "sectionInclude": "Incluir",
+      "selectCustom": "Personalizado",
+      "add": "Añadir aparato",
+      "section": {
+        "toc": "Tabla de contenidos",
+        "intro": "Introducción",
+        "critical": "Texto crítico",
+        "bibliography": "Bibliografía"
+      },
+      "accordionSetup": {
+        "title": "Configuración de página",
+        "size": "Tamaño del papel",
+        "orientation": {
+          "title": "Orientación de página",
+          "horizontal": "horizontal",
+          "vertical": "vertical"
+        }
+      },
+      "customPaperSize": {
+        "title": "Tamaño de página personalizado",
+        "width": "Ancho",
+        "height": "Alto",
+        "done": "Hecho",
+        "cancel": "Atrás"
+      }
+    },
+    "areas": {
+      "header": "Encabezado",
+      "footer": "Pie de página",
+      "innerMarginNote": "Notas de margen interno",
+      "outerMarginNote": "Notas de margen externo",
+      "documentMargin": "Margen del documento"
+    },
+    "position": {
+      "left": "Izquierda",
+      "right": "Derecha",
+      "top": "Arriba",
+      "bottom": "Abajo"
+    },
+    "selectPage": "Seleccionar página",
+    "buttons": {
+      "cancel": "Atrás",
+      "save": "Guardar",
+      "delete": "Eliminar"
+    }
+  },
+  "tableOfContents": {
+    "label": "Tabla de contenidos",
+    "sidepanelLabel": "Panel de navigation",
+    "settings": {
+      "none": "Ninguna",
+      "title": "Tabla de contenidos",
+      "setTitle": "Establecer título",
+      "show": "Mostrar",
+      "showLevels": "Mostrar niveles",
+      "indentLevels": "Indentar niveles",
+      "tabLeader": "Carácter de relleno",
+      "headingNumbers": "Mostrar números de encabezado",
+      "numberSeparator": "Separador de números",
+      "level1Format": "Formato nivel 1",
+      "level2Format": "Formato nivel 2",
+      "level3Format": "Formato nivel 3",
+      "level4Format": "Formato nivel 4",
+      "level5Format": "Formato nivel 5",
+      "level6Format": "Formato nivel 6"
+    },
+    "sections": {
+      "introduction": "Introducción",
+      "criticalText": {
+        "start": "Inicio del texto crítico",
+        "end": "Fin del texto crítico"
+      },
+      "bibliography": "Bibliografía"
+    },
+    "navigation": {
+      "placeholder": "Tabla de contenidos"
+    }
+  },
+  "bookmarks": {
+    "title": "Marcadores",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "move": "Mover"
+  },
+  "delete_bookmark_dialog": {
+    "title": "Si continúas, eliminarás el marcador",
+    "description": "Si continúas, eliminarás el marcador. ¿Quieres continuar? Si sí, haz clic en el botón Eliminar, de lo contrario haz clic en Cancelar; alternativamente.",
+    "buttons": {
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "move": "Mover"
+    }
+  },
+  "delete_bookmark_category_dialog": {
+    "title": "Si continúas, eliminarás todos los marcadores en la categoría",
+    "description": "¿Quieres continuar? Si sí, haz clic en el botón Eliminar, de lo contrario haz clic en Cancelar; alternativamente mueve todos los marcadores a otra categoría creada con el botón Mover",
+    "buttons": {
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "move": "Mover"
+    }
+  },
+  "move_bookmark_dialog": {
+    "title": "Mover marcador",
+    "description": "Selecciona una categoría a la que mover el marcador.",
+    "buttons": {
+      "cancel": "Cancelar",
+      "move": "Mover"
+    }
+  },
+  "move_bookmarks_dialog": {
+    "title": "Mover todos los marcadores",
+    "description": "Selecciona una categoría a la que mover los marcadores.",
+    "buttons": {
+      "cancel": "Cancelar",
+      "move": "Mover"
+    }
+  },
+  "comments": {
+    "title": "Comentarios",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "move": "Mover"
+  },
+  "delete_comment_dialog": {
+    "title": "Si continúas, eliminarás el comentario",
+    "description": "Si continúas, eliminarás el comentario. ¿Quieres continuar? Si sí, haz clic en el botón Eliminar, de lo contrario haz clic en Cancelar; alternativamente.",
+    "buttons": {
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "move": "Mover"
+    }
+  },
+  "delete_comment_category_dialog": {
+    "title": "Si continúas, eliminarás todos los comentarios en la categoría",
+    "description": "¿Quieres continuar? Si sí, haz clic en el botón Eliminar, de lo contrario haz clic en Cancelar; alternativamente mueve todos los comentarios a otra categoría creada con el botón Mover",
+    "buttons": {
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "move": "Mover"
+    }
+  },
+  "move_comment_dialog": {
+    "title": "Mover comentario",
+    "description": "Selecciona una categoría a la que mover el comentario.",
+    "buttons": {
+      "cancel": "Cancelar",
+      "move": "Mover"
+    }
+  },
+  "move_comments_dialog": {
+    "title": "Mover todos los comentarios",
+    "description": "Selecciona una categoría a la que mover los comentarios.",
+    "buttons": {
+      "cancel": "Cancelar",
+      "move": "Mover"
+    }
+  },
+  "choose_template_dialog": {
+    "title": "Elegir plantilla",
+    "sections": {
+      "recent": "Recientes",
+      "publishers": "Editores"
+    },
+    "browse_link": "Explorar plantillas de la comunidad",
+    "buttons": {
+      "cancel": "Cancelar",
+      "import": "Importar plantilla",
+      "continue": "Continuar"
+    },
+    "save_as_template_dialog": {
+      "title": "Guardar como plantilla",
+      "sections": {
+        "publishers": "Editores",
+        "myTemplates": "Mis plantillas"
+      },
+      "buttons": {
+        "cancel": "Cancelar",
+        "done": "Guardar"
+      }
+    }
+  }
+}

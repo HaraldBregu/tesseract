@@ -20,11 +20,11 @@ const Typogaphy = ({ component, children, className, ...props }: TypographyProps
         h3: 'scroll-m-20 text-2xl font-semibold tracking-tight',
         h4: 'scroll-m-20 text-xl font-semibold tracking-tight',
         h5: 'scroll-m-20 text-lg font-semibold tracking-tight',
-        h6: 'leading-7 [&:not(:first-child)]:mt-6 font-bold',
-        p: 'leading-7 [&:not(:first-child)]:mt-6',
-        span: 'leading-7 [&:not(:first-child)]:mt-6',
-        label: 'leading-7 [&:not(:first-child)]:mt-6',
-        div: 'leading-7 [&:not(:first-child)]:mt-6',
+        h6: 'leading-7 font-bold',
+        p: 'leading-7',
+        span: 'leading-7',
+        label: 'leading-7',
+        div: 'leading-7',
     }
     const TagComponent = component;
 

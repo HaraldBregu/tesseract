@@ -10,7 +10,7 @@ export interface SvgIconProps {
     variant?: 'filled' | 'outline' | 'tonal';
     disabled?: boolean;
     viewBox?: string;
-    [key: string]: any; // per le altre proprietà SVG
+    [key: string]: any;
 }
 
 export const calculateIconColor = ({
@@ -20,20 +20,15 @@ export const calculateIconColor = ({
     variant = 'filled',
     disabled = false,
 }: Omit<SvgIconProps, 'children'>): string => {
-    let fillColor = "#001450"; // Colore di default
+    let fillColor = "#001450";
 
-    // Struttura if-else-if per dare la giusta priorità
     if (disabled) {
-        // Gestione colori per icone in pulsanti disabilitati
         fillColor = "var(--color-grey-60, #A3A3A3)";
     } else if (color) {
-        // Se è fornito un colore esplicito, usalo
-        console.log("Utilizzo colore esplicito:", color);
         fillColor = color;
     } else if (inheritColor) {
         fillColor = "currentColor";
     } else if (intent && variant) {
-        // Logica di colore basata sulla combinazione intent+variant
         if (variant === 'filled') {
             switch (intent) {
                 case 'primary':
@@ -68,7 +63,7 @@ export const normalizeSize = (size: string | number = "24px"): string | number =
     if (size === "small") {
         return "18px";
     } else if (typeof size === "number") {
-        return `${size}px`; // Se è un numero, lo considero come pixel
+        return `${size}px`;
     }
 
     return size;
@@ -91,7 +86,6 @@ const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps>(({
     });
 
     const _size = normalizeSize(size);
-    console.log("🚀 ~ fillColor:", fillColor)
 
     return (
         <svg
@@ -109,7 +103,6 @@ const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps>(({
     );
 });
 
-// Aggiungiamo displayName per migliorare il debugging
 SvgIcon.displayName = 'SvgIcon';
 
 export default SvgIcon;

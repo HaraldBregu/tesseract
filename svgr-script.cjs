@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const { transform } = require('@svgr/core');
 
-const INPUT_DIR = 'src/renderer/src/assets/icons';
-const OUTPUT_DIR = 'src/renderer/src/assets/reactIcons';
+const INPUT_DIR = 'buildResources/icons';
+const OUTPUT_DIR = 'src/renderer/src/components/icons';
 
 // Assicurati che la directory di output esista
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -40,7 +40,8 @@ async function processFiles() {
                                 name: 'preset-default',
                                 params: {
                                     overrides: {
-                                        removeViewBox: false
+                                        removeViewBox: false,
+                                        mergePaths: false
                                     }
                                 }
                             },
@@ -66,20 +67,23 @@ async function processFiles() {
 
             // Genera il componente finale utilizzando SvgIcon
             const tsCode = `
-import SvgIcon, { SvgIconProps } from '../../components/SvgIcon';
+                import * as React from "react"
+                import SvgIcon, { SvgIconProps } from '../../components/SvgIcon';
 
-type ${componentName}Props = Omit<SvgIconProps, 'children' | 'viewBox'>;
+                type ${componentName}Props = Omit<SvgIconProps, 'children' | 'viewBox'>;
 
-const ${componentName} = (props: ${componentName}Props) => {
-  return (
-    <SvgIcon viewBox="${viewBox}" {...props}>
-      ${svgContent}
-    </SvgIcon>
-  );
-};
+                const ${componentName} = React.forwardRef<SVGSVGElement, ${componentName}Props>((props, ref) => {
+                return (
+                    <SvgIcon viewBox="${viewBox}" {...props} ref={ref}>
+                    ${svgContent}
+                    </SvgIcon>
+                );
+                });
 
-export default ${componentName};
-`;
+                ${componentName}.displayName = '${componentName}';
+
+                export default ${componentName};
+            `;
 
             // Scrivi il file di output
             const outputPath = path.join(OUTPUT_DIR, `${componentName}.tsx`);

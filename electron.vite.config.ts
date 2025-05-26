@@ -20,7 +20,8 @@ export default defineConfig({
         '@pages': resolve(__dirname, './src/renderer/src/pages'),
         '@store': resolve(__dirname, './src/renderer/src/store'),
         '@components': resolve(__dirname, './src/renderer/src/components'),
-        '@icons': resolve(__dirname, './src/renderer/src/assets/icons')
+        '@icons': resolve(__dirname, './src/renderer/src/components/icons'),
+        "@resources": resolve(__dirname, "buildResources"),
       }
     },
     plugins: [react(),

@@ -12,17 +12,27 @@ interface FormatTextColorProps {
     initColor: string;
     icon: ReactNode;
     handleClick: () => void;
+    tabIndex?: number;
+    ariaLabel?: string;
+    tooltip?: string;
 }
 
-const ButtonColor: FC<FormatTextColorProps> = ({ onSelect, initColor, icon, handleClick }) => {
+const ButtonColor: FC<FormatTextColorProps> = ({ tabIndex = 0, ariaLabel = 'Text Color', onSelect, initColor, icon, handleClick, tooltip }) => {
     const { t } = useTranslation();
     const [curColor, setCurColor] = useState<string | undefined>(initColor);
 
     const popoverClass = cn('flex', 'flex-col', 'p-1', 'p-[16px]')
     const gridTemplateClass = cn('grid', 'grid-cols-8', 'gap-1', 'p-1', 'gap-[8px]')
-    const differentColorClass = cn('flex', 'justify-around', 'items-center', 'p-1')
+    const differentColorClass = cn('flex', 'justify-between', 'items-center', 'p-1')
     const ctrlLabelClass = cn('pl-5', 'pb-5');
-    const colorClass = (color: string): string => cn('border', 'rounded-1', 'aspect-square', { ['border-2 border-black']: curColor === color, ['border-gray-300']: curColor !== color })
+    const colorClass = (color: string): string =>
+        cn(
+            'border rounded-1 aspect-square',
+            {
+                ['border-2 border-black']: curColor === color,
+                ['border-gray-300']: curColor !== color
+            }
+        )
 
     const handleClose = (): void => {
         onSelect?.(curColor || initColor);
@@ -33,6 +43,7 @@ const ButtonColor: FC<FormatTextColorProps> = ({ onSelect, initColor, icon, hand
             btnFace={icon}
             closeHdlr={handleClose}
             clickHdlr={handleClick}
+            tooltip={tooltip}
         >
             <>
                 <div className={popoverClass}>
@@ -42,6 +53,8 @@ const ButtonColor: FC<FormatTextColorProps> = ({ onSelect, initColor, icon, hand
                                 key={color}
                                 variant="tonal"
                                 size="iconSm"
+                                tabIndex={tabIndex}
+                                aria-label={ariaLabel}
                                 className={colorClass(color)}
                                 style={{ backgroundColor: color }}
                                 onClick={() => setCurColor(color)}
@@ -49,7 +62,10 @@ const ButtonColor: FC<FormatTextColorProps> = ({ onSelect, initColor, icon, hand
                         ))}
                     </div>
                     <div className={differentColorClass}>
-                        <Typography component="h6" className="font-normal">
+                        <Typography
+                            component="h6"
+                            className="font-normal"
+                        >
                             {t('editor.color.differentColor')}
                         </Typography>
 

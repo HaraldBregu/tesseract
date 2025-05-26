@@ -1,8 +1,8 @@
-import Comment from "../../assets/reactIcons/Comment";
-import List from "@/assets/reactIcons/List";
-import { useEffect, useState } from "react";
+import Comment from "../../components/icons/Comment";
+import List from "@/components/icons/List";
+import { useEffect } from "react";
 import Button from "./button";
-import Bookmark from "@/assets/reactIcons/Bookmark";
+import Bookmark from "@/components/icons/Bookmark";
 
 export interface AppTab {
     value: string;

@@ -1,6 +1,6 @@
-import Account from "@/assets/reactIcons/Account";
+import Account from "@/components/icons/Account";
 import Button from "../ui/button";
-import Right from "@/assets/reactIcons/Right";
+import Right from "@/components/icons/Right";
 
 const ButtonStyling: React.FC = () => {
     return (

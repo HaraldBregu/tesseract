@@ -1,52 +1,212 @@
 {
-  "welcome": "Welcome to My App!",
+  "welcome": "Welcome to Criterion!",
   "selectLanguage": "Select your preferred language:",
   "editor": {
     "sectionTypes": {
       "body": "Body",
       "note": "Note",
       "title": "Title",
-      "heading": "Heading",
+      "heading": "Heading 1",
       "heading2": "Heading 2",
-      "heading3": "Heading 3"
+      "heading3": "Heading 3",
+      "heading4": "Heading 4",
+      "heading5": "Heading 5",
+      "footerHeader": "Footer and Header"
+    },
+    "color": {
+      "differentColor": "Choose a different color",
+      "noColor": "No colour"
+    },
+    "bulletList": {
+      "resumeNumbering": "Resume numbering",
+      "continuePreviousNumbering": "Continue previous numbering"
+    },
+    "history": "History",
+    "mode": {
+      "editing": {
+        "label": "Editing",
+        "info": "Make any changes"
+      },
+      "review": {
+        "label": "Reviewing",
+        "info": "Suggest changes"
+      }
     }
   },
-  "menu": {
-    "file": "File",
-    "new": "New",
-    "save": "Save",
-    "open": "Open",
-    "openRecent": "Open recent",
-    "close": "Close",
-    "exit": "Exit",
-    "ClearMemory": "Clear Memory",
-    "edit": {
-      "label": "Edit",
-      "undo": "Undo",
-      "redo": "Redo",
-      "cut": "Cut",
-      "copy": "Copy",
-      "paste": "Paste",
-      "selectAll": "Select All"
-    },
+  "toolbar": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strikethrough": "Strikethrough",
+    "alignment": "Alignment",
+    "alignLeft": "Align Left",
+    "alignCenter": "Align Center",
+    "alignRight": "Align Right",
+    "justify": "Justify",
+    "nonPrintingCharacters": "Non-printing Characters",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List",
+    "increaseIndent": "Increase Indent",
+    "decreaseIndent": "Decrease Indent",
+    "fontSize": "Font Size",
+    "fontFamily": "Font Family",
+    "fontColor": "Font Color",
+    "highlightColor": "Highlight Color",
+    "insertLink": "Insert Link",
+    "insertImage": "Insert Image",
+    "insertTable": "Insert Table",
+    "headingStyle": "Heading Style",
+    "clearFormatting": "Clear Formatting",
     "undo": "Undo",
     "redo": "Redo",
     "cut": "Cut",
     "copy": "Copy",
     "paste": "Paste",
-    "selectAll": "Select All",
-    "view": "View",
+    "sidebar": {
+      "toggle": "Toggle Sidebar"
+    },
+    "blockquote": "Blockquote",
+    "siglum": "Siglum",
+    "citation": "Citation",
+    "addComment": "Add Comment",
+    "addBookmark": "Add Bookmark",
+    "addLink": "Add Link",
+    "spacing": "Spacing",
+    "list": "List",
+    "search": "Search",
+    "printPreview": "Print Preview",
+    "listNumber": "Numbered List",
+    "listUppercase": "Uppercase Letter List",
+    "listLowercase": "Lowercase Letter List",
+    "listBullet": "Bullet List",
+    "listBulletEmpty": "Empty Bullet List",
+    "listBulletSquare": "Square Bullet List",
+    "superscript": "Superscript",
+    "subscript": "Subscript"
+  },
+  "dividerSections": {
+    "toc": "Table of Contents",
+    "introduction": "Introduction",
+    "mainText": "Critical Text",
+    "bibliography": "Bibliography",
+    "appendix": "Appendix"
+  },
+  "menu": {
+    "file": {
+      "label": "File",
+      "new": "New",
+      "open": "Open",
+      "openRecent": "Open Recent",
+      "noRecentDocuments": "No recent documents",
+      "import": "Import",
+      "close": "Close",
+      "save": "Save",
+      "saveAs": "Save as",
+      "duplicate": "Duplicate",
+      "rename": "Rename",
+      "moveTo": "Move To",
+      "revertTo": {
+        "label": "Revert To",
+        "lastSaved": "Last Saved",
+        "browse": "Browse All Versions"
+      },
+      "shareForReview": "Share For Review",
+      "lock": "Lock...",
+      "unlock": "Unlock...",
+      "exportTo": {
+        "label": "Export To",
+        "pdf": "PDF",
+        "odt": "ODT",
+        "xml": "XML/TEI",
+        "exportTemplate": "Export Template"
+      },
+      "language&Region": "Language & Region...",
+      "saveAsTemplate": "Save as Template...",
+      "metadata": "Metadata",
+      "pageSetup": "Page Setup...",
+      "print": "Print"
+    },
+    "edit": {
+      "label": "Edit",
+      "find": {
+        "label": "Find",
+        "findAndReplace": "Find and Replace",
+        "findNext": "Find Next",
+        "findPrevious": "Find Previous",
+        "jumpToSelection": "Jump to Selection"
+      },
+      "undo": "Undo",
+      "redo": "Redo",
+      "cut": "Cut",
+      "copy": "Copy",
+      "copyStyle": "Copy Style",
+      "paste": "Paste",
+      "pasteStyle": "Paste Style",
+      "pasteAndMatchStyle": "Paste And Match Style",
+      "pasteWithNotes": "Paste With Notes",
+      "delete": "Delete",
+      "duplicateSelection": "Duplicate Selection",
+      "selectAll": "Select All",
+      "deSelectAll": "Deselect All"
+    },
     "settings": "Settings",
     "reload": "Reload",
     "toggleDevTools": "Toggle Developer Tools",
     "language": {
       "label": "Language",
       "en": "English",
-      "it": "Italian"
+      "it": "Italian",
+      "fr": "French",
+      "de": "German",
+      "es": "Spanish"
     },
     "insert": {
       "label": "Insert",
-      "comment": "Comment"
+      "section": "Section",
+      "comment": "Comment",
+      "bookmark": "Bookmark",
+      "highlight": "Highlight",
+      "link": "Link",
+      "image": "Image",
+      "symbol": "Symbol",
+      "object": "Object",
+      "table": "Table",
+      "shapesAndLines": "Shapes and Lines",
+      "pageBreak": "Page Break",
+      "sectionBreak": "Section Break",
+      "lineNumber": {
+        "label": "Line Number",
+        "none": "None",
+        "each5Line": "Each 5 Line",
+        "every10Lines": "Every 10 Lines",
+        "every15Lines": "Every 15 Lines"
+      },
+      "pageNumber": "Page Number",
+      "date": "Date",
+      "dateAndTime": "Date & Time",
+      "author": "Author",
+      "title": "Title"
+    },
+    "references": {
+      "label": "References",
+      "addNote": "Add Note",
+      "addNoteInInnerMargin": "Add Note in Inner Margin",
+      "addNoteInOuterMargin": "Add Note in Outer Margin",
+      "swapMargin": "Swap Margin",
+      "addReadingSeparator": "Add Reading Separator",
+      "addSiglum": "Add Siglum",
+      "siglaSetup": "Sigla Setup",
+      "addCitation": "Add Citation",
+      "bibliography": "Bibliography",
+      "referencesFormat": "References Format",
+      "addApparatus": {
+        "label": "Add Apparatus",
+        "critical": "Critical",
+        "pageNotes": "Page Notes",
+        "sectionNotes": "Section Notes",
+        "innerMargin": "Inner Margin",
+        "outerMargin": "Outer Margin"
+      }
     },
     "format": {
       "label": "Format",
@@ -62,19 +222,19 @@
           "tighten": "Tighten",
           "loosen": "Loosen"
         },
+        "ligature": {
+          "label": "Ligature",
+          "default": "Use Default",
+          "none": "Use None",
+          "all": "Use All"
+        },
         "captalization": {
           "label": "Captalization",
+          "none": "None",
           "allCaps": "All Caps",
           "smallCaps": "Small Caps",
           "titleCase": "Title Case",
-          "startCase": "Start Case",
-          "none": "None"
-        },
-        "ligature": {
-          "label": "Ligature",
-          "none": "Use None",
-          "all": "Use All",
-          "default": " Use Default"
+          "startCase": "Start Case"
         }
       },
       "text": {
@@ -88,15 +248,462 @@
         "spacing": {
           "label": "Spacing",
           "single": "Single",
-          "double": "Double",
-          "customSpacing": "Custom Spacing"
+          "oneAndHalf": "1.5",
+          "double": "Double"
         }
       },
       "list": {
+        "number": "1",
+        "maxLetter": "A",
+        "lowerLetter": "a",
+        "point": "●",
+        "emptyPoint": "○",
+        "square": "■",
         "label": "List",
         "bullet": "Bullet",
-        "numbering": "Numbering"
+        "numbering": "Numbering",
+        "resumeNumbering": "Resume Numbering",
+        "continuePreviousNumbering": "Continue previous Numbering"
+      },
+      "sectionsStyle": "Sections Style",
+      "table": "Table",
+      "shapesAndLines": "Shapes and Lines",
+      "removeLink": "Remove Link",
+      "changeTemplate": "Change Template",
+      "layout": {
+        "label": "Layout...",
+        "pageSetup": {
+          "label": "Page Setup",
+          "component": {
+            "title": "Document setup",
+            "sectionInclude": "Include",
+            "section": {
+              "toc": "Table Of Content",
+              "intro": "Introduction",
+              "critical": "Critical Text",
+              "bibliography": "Bibliography"
+            },
+            "accordionSetup": {
+              "title": "Page Setup",
+              "size": "Paper Size",
+              "orientation": {
+                "title": "Page Orientation",
+                "horizontal": "horizontal",
+                "vertical": "vertical"
+              }
+            }
+          }
+        }
+      },
+      "toc": {
+        "label": "Table of Contents"
+      },
+      "lineNumber": {
+        "label": "Line Number..."
+      },
+      "header": {
+        "label": "Header..."
+      },
+      "footer": {
+        "label": "Footer..."
+      },
+      "pageNumber": {
+        "label": "Page Number..."
       }
+    },
+    "tools": {
+      "label": "Tools",
+      "macros": {
+        "label": "Macros",
+        "record": "Record Marcos"
+      },
+      "documentStatistics": "Document Statistics",
+      "hyphenation": "Hyphenation",
+      "compareDocuments": "Compare documents",
+      "review": "Review",
+      "acceptAllChanges": "Accept All Changes",
+      "rejectAllChanges": "Reject All Changes",
+      "addOns": "Add-ons"
+    },
+    "keyboard": {
+      "label": "Keyboard",
+      "showMap": "Show Map",
+      "customizeShortcuts": "Customize Shortcuts",
+      "none": "None",
+      "arabic": "Arabic",
+      "armenian": "Armenian",
+      "cyrillic": "Cyrillic",
+      "latin": "Latin"
+    },
+    "view": {
+      "label": "View",
+      "apparatus": {
+        "label": "Apparatus",
+        "apparatus1": "Apparatus 1 (Critical)",
+        "apparatus2": "Apparatus 2 (Page Notes)",
+        "apparatus3": "Apparatus 3 (Section Note)",
+        "apparatus4": "Apparatus 4 (Inner Margin)",
+        "pippo": "Pippo (Critical)"
+      },
+      "headerFooter": "Header & Footer",
+      "tableOfContents": "Table of Contents",
+      "toolbar": "Toolbar",
+      "customizeToolbar": "Customize Toolbar",
+      "statusBar": "Status Bar",
+      "customizeStatusBar": "Customize Status Bar",
+      "printPreview": "Print Preview",
+      "showTabsAlignedHorizontally": "Show All Tabs Aligned Horizontally",
+      "showTabsAlignedVertically": "Show All Tabs Aligned Vertically",
+      "zoom": "Zoom",
+      "enterFullScreen": "Enter Full Screen",
+      "goTo": {
+        "label": "Go To",
+        "nextPage": "Next Page",
+        "previousPage": "Previous Page",
+        "firstPage": "First Page",
+        "lastPage": "Last Page",
+        "page": "Page"
+      },
+      "synchronizeViews": "Synchronize Views",
+      "synchronizeDocuments": "Synchronize Documents",
+      "nonprintingCharacters": "Nonprinting Characters",
+      "expandCollapse": "Expand & Collapse",
+      "thesaurus": "Thesaurus"
+    },
+    "window": {
+      "label": "Window",
+      "minimise": "Minimise",
+      "zoom": "Zoom",
+      "zoomAll": "Zoom All",
+      "fill": "Fill",
+      "centre": "Centre",
+      "moveResize": "Move & Resize",
+      "fullScreenTile": "Full-Screen Tile",
+      "removeWindowFromSet": "Remove Window from Set",
+      "moveTo": "Move to DELL U2599",
+      "bringAllToFront": "Bring All to Front",
+      "showPreviousTab": "Show Previous Tab",
+      "showNextTab": "Show Next Tab",
+      "moveTabToNewWindow": "Move Tab to New Window",
+      "mergeAllWindows": "Merge All Windows",
+      "untitled": "Untitled"
+    },
+    "help": {
+      "label": "Help",
+      "criterionHelp": "Criterion Help",
+      "faqs": "FAQs",
+      "forum": "Forum",
+      "whatsNewInCriterion": "What's New in Criterion",
+      "reportAnIssue": "Report an Issue",
+      "about": "About Criterion"
+    }
+  },
+  "about": {
+    "label": "About",
+    "version": "Version",
+    "license": "License"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "ok": "Ok",
+    "save": "Save",
+    "done": "Done",
+    "apply": "Apply",
+    "cut": "Cut",
+    "copy": "Copy",
+    "paste": "Paste",
+    "acknowledgements": "Acknowledgements",
+    "licenseAgreement": "License Agreement"
+  },
+  "customSpacing": {
+    "title": "Custom Spacing",
+    "lineSpacing": "Line Spacing",
+    "beforeParagraphSpacing": "Before Paragraph",
+    "afterParagraphSpacing": "After Paragraph"
+  },
+  "resumeNumbering": {
+    "label": "Start from",
+    "title": "Resume Numbering"
+  },
+  "pageNumber": {
+    "label": "Page number",
+    "numeration": "Pages numeration",
+    "format": {
+      "label": "Number format",
+      "arab": "1,2,3",
+      "arab-to": "1 of 3",
+      "roman": "I, II, III",
+      "roman-to": "I of III",
+      "lowerRoman": "i, ii, iii",
+      "lowerRoman-to": "i of iii"
+    },
+    "none": "None",
+    "continue": "Continue from previous",
+    "start": "Start at:"
+  },
+  "headerFooter": {
+    "header": "Header",
+    "footer": "Footer",
+    "content": {
+      "selection": "Content selection",
+      "none": "None",
+      "page": "Page number",
+      "date": "Date",
+      "dateTime": "Date & time",
+      "author": "Author",
+      "title": "Title"
+    },
+    "show": {
+      "label": "Show",
+      "none": "Don't show",
+      "firstPage": "Only in first page",
+      "fromPage": "From page:",
+      "allSections": "In all sections",
+      "selectedSections": "In selected sections",
+      "toc": "Table of contents",
+      "intro": "Introduction",
+      "crt": "Critical Text",
+      "apdx": "Appendix",
+      "biblio": "Bibliography"
+    },
+    "position": {
+      "left": "Left",
+      "right": "Right",
+      "center": "Center",
+      "options": {
+        "none": "None",
+        "pageNumber": "Page number",
+        "date": "Date",
+        "dateTime": "Date & time",
+        "author": "Author",
+        "title": "Title"
+      }
+    }
+  },
+  "toc": {
+    "label": "Table of Contents",
+    "section": {
+      "title": "Title",
+      "pageNumber": "Page number"
+    },
+    "accordionSetup": {
+      "title": "Table of contents setup",
+      "level": {
+        "label": "Level",
+        "allLevels": "All levels",
+        "level1": "Level 1",
+        "level2": "Level 2",
+        "level3": "Level 3"
+      }
+    }
+  },
+  "lineNumber": {
+    "label": "Line number",
+    "show": {
+      "label": "Show",
+      "description": "Line numbers are shown in critical text only.",
+      "none": "None",
+      "everyFive": "Every 5 lines",
+      "everyTen": "Every 10 lines",
+      "everyFifteen": "Every 15 lines"
+    },
+    "numeration": "Lines numeration",
+    "whole": "Whole critical text",
+    "everyPage": "Restart at every page",
+    "everySection": "Restart at every section:",
+    "none": "None",
+    "all": "All",
+    "default": "Default"
+  },
+  "pageSetup": {
+    "title": "Choose Layout",
+    "confirmationModal": {
+      "title": "Are you sure you want to delete \"{{apparatus}}\" permanently?",
+      "description": "All contents in \"{{apparatus}}\" will be permanently deleted from everywhere."
+    },
+    "component": {
+      "configurationSubtitle": "Document setup",
+      "sectionInclude": "Include",
+      "selectCustom": "Custom",
+      "add": "Add apparatus",
+      "columns": "columns",
+      "section": {
+        "toc": "Table Of Content",
+        "intro": "Introduction",
+        "critical": "Critical Text",
+        "bibliography": "Bibliography"
+      },
+      "customPaperSize": {
+        "title": "Custom Paper Size",
+        "width": "Width",
+        "height": "Height",
+        "done": "Done",
+        "cancel": "Cancel"
+      },
+      "accordionSetup": {
+        "title": "Page Setup",
+        "size": "Paper Size",
+        "orientation": {
+          "title": "Page Orientation",
+          "horizontal": "horizontal",
+          "vertical": "vertical"
+        }
+      }
+    },
+    "areas": {
+      "documentMargin": "Document Margin",
+      "header": "Header",
+      "footer": "Footer",
+      "innerMarginNote": "Inner margin note",
+      "outerMarginNote": "Outer margin note"
+    },
+    "position": {
+      "left": "Left",
+      "right": "Right",
+      "top": "Top",
+      "bottom": "Bottom"
+    },
+    "selectPage": "Select page",
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete"
+    }
+  },
+  "tableOfContents": {
+    "label": "Table of Contents",
+    "sidepanelLabel": "Navigation Panel",
+    "settings": {
+      "none": "None",
+      "title": "Table of Contents",
+      "setTitle": "Set title",
+      "show": "Show",
+      "showLevels": "Show Levels",
+      "indentLevels": "Indent Levels",
+      "tabLeader": "Tab leader",
+      "headingNumbers": "Show headings numbers",
+      "numberSeparator": "Number separator",
+      "level1Format": "Level 1 format",
+      "level2Format": "Level 2 format",
+      "level3Format": "Level 3 format",
+      "level4Format": "Level 4 format",
+      "level5Format": "Level 5 format",
+      "level6Format": "Level 6 format"
+    },
+    "sections": {
+      "introduction": "Introduction",
+      "criticalText": {
+        "start": "Start critical text",
+        "end": "End critical text"
+      },
+      "bibliography": "Bibliography"
+    },
+    "navigation": {
+      "placeholder": "Table of Contents"
+    }
+  },
+  "bookmarks": {
+    "title": "Bookmarks",
+    "edit": "Edit",
+    "delete": "Delete",
+    "move": "Move"
+  },
+  "delete_bookmark_dialog": {
+    "title": "If you continue, you will delete the bookmark",
+    "description": "If you continue, you will delete the bookmark. Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively.",
+    "buttons": {
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "move": "Move"
+    }
+  },
+  "delete_bookmark_category_dialog": {
+    "title": "If you continue, you will delete every bookmarks in the category",
+    "description": "Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively move the all bookmarks to another caregory created with the “Move” button",
+    "buttons": {
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "move": "Move"
+    }
+  },
+  "move_bookmark_dialog": {
+    "title": "Move bookmark",
+    "description": "Select a category to move the bookmark.",
+    "buttons": {
+      "cancel": "Cancel",
+      "move": "Move"
+    }
+  },
+  "move_bookmarks_dialog": {
+    "title": "Move all bookmarks",
+    "description": "Select a category to move the bookmarks.",
+    "buttons": {
+      "cancel": "Cancel",
+      "move": "Move"
+    }
+  },
+  "comments": {
+    "title": "Comments",
+    "edit": "Edit",
+    "delete": "Delete",
+    "move": "Move"
+  },
+  "delete_comment_dialog": {
+    "title": "If you continue, you will delete the comment",
+    "description": "If you continue, you will delete the comment. Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively.",
+    "buttons": {
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "move": "Move"
+    }
+  },
+  "delete_comment_category_dialog": {
+    "title": "If you continue, you will delete every comments in the category",
+    "description": "Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively move the all comments to another caregory created with the “Move” button",
+    "buttons": {
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "move": "Move"
+    }
+  },
+  "move_comment_dialog": {
+    "title": "Move comment",
+    "description": "Select a category to move the comment.",
+    "buttons": {
+      "cancel": "Cancel",
+      "move": "Move"
+    }
+  },
+  "move_comments_dialog": {
+    "title": "Move all comments",
+    "description": "Select a category to move the comments.",
+    "buttons": {
+      "cancel": "Cancel",
+      "move": "Move"
+    }
+  },
+  "choose_template_dialog": {
+    "title": "Choose Template",
+    "sections": {
+      "recent": "Recent",
+      "publishers": "Publishers"
+    },
+    "browse_link": "Browse community templates",
+    "buttons": {
+      "cancel": "Cancel",
+      "import": "Import template",
+      "continue": "Continue"
+    }
+  },
+  "save_as_template_dialog": {
+    "title": "Save as template",
+    "sections": {
+      "publishers": "Publishers",
+      "myTemplates": "My templates"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "done": "Done"
     }
   }
 }

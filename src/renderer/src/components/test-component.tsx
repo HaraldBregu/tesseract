@@ -3,7 +3,8 @@
  * @see https://v0.dev/t/c1m5HN2cfvI
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-import { Button } from "@/components/ui/button"
+
+import Button from "./ui/button"
 
 export default function TestComponent() {
     return (

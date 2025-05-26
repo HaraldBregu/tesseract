@@ -1,5 +1,7 @@
-type FontSizes = string[];
+type FontSizes = number[];
 type Color = string[];
+type SectionTypes = 'introduction' | 'toc' | 'maintext' | 'bibliography' | 'appendix';
+
 interface SectionType {
     label: string;
     value: number;
@@ -10,23 +12,84 @@ interface FontFamilyType {
     value: string;
 }
 
+interface NumberFormat {
+    label: string;
+    value: string;
+}
+
+// Definire le costanti per i valori comuni
+const MIN_FONT_SIZE = 8;
+const MAX_FONT_SIZE = 96;
+// const DEFAULT_FONT_SIZE = 12;
+const DEFAULT_LINE_SPACING = '1';
+
+const numberFormat: NumberFormat[] = [
+    { label: 'pageNumber.format.arab', value: '1' },
+    { label: 'pageNumber.format.arab-to', value: '2' },
+    { label: 'pageNumber.format.roman', value: '3' },
+    { label: 'pageNumber.format.roman-to', value: '4' },
+    { label: 'pageNumber.format.lowerRoman', value: '5' },
+    { label: 'pageNumber.format.lowerRoman-to', value: '6' },
+]
+
+const tabLeaderFormat = [
+    { label: 'tableOfContents.settings.none', value: '0' },
+    { label: '..........', value: '1' },
+    { label: '----------', value: '2' },
+    { label: '__________', value: '3' },
+]
+
+const numberSeparator = [
+    { label: 'tableOfContents.settings.none', value: '0' },
+    { label: ')', value: '1' },
+    { label: '.', value: '2' },
+    { label: '-', value: '3' },
+]
+
+const levelFormat = [
+    { label: '1,2,3', value: '1' },
+    { label: 'a,b,c', value: '2' },
+    { label: 'A,B,C', value: '3' },
+    { label: 'i,ii,iii', value: '4' },
+    { label: 'I,II,III', value: '5' },
+]
+
+const sectionDividerLabels: Record<SectionTypes, string> = {
+    introduction: 'dividerSection.introduction',
+    toc: 'dividerSection.toc',
+    maintext: 'dividerSection.maintext',
+    bibliography: 'dividerSection.bibliography',
+    appendix: 'dividerSection.appendix'
+};
+
 const fontSizes: FontSizes = [
-    "8px",
-    "9px",
-    "10px",
-    "11px",
-    "12px",
-    "14px",
-    "16px",
-    "18px",
-    "20px",
-    "22px",
-    "24px",
-    "26px",
-    "28px",
-    "36px",
-    "48px",
-    "72px",
+    8,
+    9,
+    10,
+    11,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    32,
+    36,
+    40,
+    48,
+    56,
+    64,
+    72,
+    80,
+    88,
+    96,
+    104,
+    112,
+    120,
+    128,
 ];
 
 const sectionTypes: SectionType[] = [
@@ -34,11 +97,13 @@ const sectionTypes: SectionType[] = [
     { label: "editor.sectionTypes.heading", value: 2 },
     { label: "editor.sectionTypes.heading2", value: 3 },
     { label: "editor.sectionTypes.heading3", value: 4 },
-    // { label: "editor.sectionTypes.heading5", value: 5 },
+    { label: "editor.sectionTypes.heading4", value: 5 },
+    { label: "editor.sectionTypes.heading5", value: 6 },
     { label: "editor.sectionTypes.body", value: 0 },
-    { label: "editor.sectionTypes.note", value: 0 },
+    { label: "editor.sectionTypes.note", value: -1 },
 
     // { label: "editor.sectionTypes.heading6", value: 6 },
+    { label: "editor.sectionTypes.footerHeader", value: -2 },
 ];
 
 const fontFamilies: FontFamilyType[] = [
@@ -125,6 +190,6 @@ const textFormatColors: Color = [
 const minorWords = new Set([
     "a", "an", "the", "and", "but", "or", "for", "nor", "so", "yet",
     "at", "by", "in", "of", "on", "to", "up", "with", "as",
-  ]);
+]);
 
-export { sectionTypes, fontSizes, fontFamilies, HighlightColors, textFormatColors, minorWords };
+export { sectionTypes, sectionDividerLabels, tabLeaderFormat, fontSizes, numberSeparator, numberFormat, levelFormat, fontFamilies, HighlightColors, textFormatColors, minorWords, MIN_FONT_SIZE, MAX_FONT_SIZE, DEFAULT_LINE_SPACING };

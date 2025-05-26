@@ -31,4 +31,4 @@ dist-electron
 
 package-lock.json
 
-.cursor/*
+out/

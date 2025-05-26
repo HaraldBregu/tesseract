@@ -1,19 +1,26 @@
 {
+  "productName": "Criterion",
   "appId": "com.finconsgroup.criterion",
   "copyright": "FinconGroup © 2025",
-  "files": ["out", "i18n", "resources"],
+  "files": ["out", "i18n", "buildResources"],
+  "icon": "./buildResources/appIcons/icon.ico",
   "extraResources": [
+    "out/preload/preload.mjs",
     {
       "from": "./i18n",
       "to": "i18n"
     },
     {
-      "from": "./resources",
-      "to": "resources"
+      "from": "./LICENSE",
+      "to": "LICENSE"
     },
-    "out/preload/preload.mjs"
+    {
+      "from": "./buildResources",
+      "to": "buildResources"
+    }
   ],
-  "icon": "./resources/appIcons/appIcon.png",
+  "asar": true,
+  "asarUnpack": [],
   "mac": {
     "target": [
       {
@@ -25,13 +32,28 @@
         "arch": ["x64", "arm64"]
       }
     ],
-    "icon": "./resources/appIcons/appIcon_512.png",
+    "icon": "./buildResources/appIcons/icon.icns",
     "extendInfo": {
       "LSApplicationCategoryType": "public.app-category.utilities"
-    }
+    },
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "darkModeSupport": true,
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "./buildResources/entitlements.mac.plist",
+    "entitlementsInherit": "./buildResources/entitlements.mac.plist",
+    "identity": "FinconGroup",
+    "fileAssociations": [
+      {
+        "ext": "critx",
+        "name": "Criterion Document",
+        "icon": "./buildResources/appIcons/icon.icns",
+        "role": "Editor"
+      }
+    ]
   },
   "dmg": {
-    "icon": "./resources/appIcons/appIcon.png",
+    "icon": "./buildResources/appIcons/icon.png",
     "iconSize": 100,
     "window": {
       "width": 600,
@@ -49,12 +71,18 @@
         "type": "link",
         "path": "/Applications"
       }
-    ]
+    ],
+    "title": "Criterion Installer",
+    "internetEnabled": false,
+    "format": "UDZO",
+    "sign": true,
+    "artifactName": "${productName}-setup-${version}.${ext}",
+    "writeUpdateInfo": false
   },
   "linux": {
     "target": ["AppImage", "deb", "rpm"],
     "category": "Utility",
-    "icon": "./resources/appIcons/appIcon.png",
+    "icon": "./buildResources/appIcons",
     "desktop": {
       "Type": "Application",
       "Name": "Criterion",
@@ -64,23 +92,40 @@
     }
   },
   "win": {
-    "target": ["nsis"],
-    "icon": "./resources/appIcons/appIcon.png",
-    "signAndEditExecutable": false,
-    "artifactName": "${productName}-${version}.${ext}",
-    "asar": true,
+    "icon": "./buildResources/appIcons/icon.ico",
+    "target": "nsis",
+    "signAndEditExecutable": true,
+    "artifactName": "${productName}.${ext}",
     "forceCodeSigning": false,
     "signtoolOptions": {
       "publisherName": "FinconGroup"
-    }
+    },
+    "requestedExecutionLevel": "asInvoker",
+    "fileAssociations": [
+      {
+        "ext": "critx",
+        "name": "Criterion Document",
+        "icon": "./buildResources/appIcons/icon.ico"
+      }
+    ]
   },
   "nsis": {
     "oneClick": false,
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
+    "shortcutName": "Criterion",
     "multiLanguageInstaller": true,
     "warningsAsErrors": false,
-    "include": "./installer.nsh",
-    "deleteAppDataOnUninstall": true
+    "include": "./scripts/installer.nsh",
+    "deleteAppDataOnUninstall": true,
+    "installerIcon": "./buildResources/appIcons/icon.ico",
+    "uninstallerIcon": "./buildResources/appIcons/icon.ico",
+    "perMachine": false,
+    "license": "./LICENSE",
+    "artifactName": "${productName}-${version}.${ext}",
+    "displayLanguageSelector": true,
+    "runAfterFinish": false,
+    "language": "1040",
+    "installerLanguages": ["it-IT", "en-US", "es-ES", "fr-FR", "de-DE"]
   }
 }

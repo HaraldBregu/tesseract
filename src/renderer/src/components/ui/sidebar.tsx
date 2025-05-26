@@ -23,7 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import DockToRight from "@/assets/reactIcons/DockToRight"
+import DockToRight from "@/components/icons/DockToRight"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7

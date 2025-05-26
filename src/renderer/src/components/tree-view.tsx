@@ -2,7 +2,7 @@ import React from 'react'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
 import { cva } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
-import Right_1 from '@/assets/reactIcons/Right_1'
+import Dropdown from '@/components/icons/Dropdown'
 
 const treeVariants = cva(
     'group hover:before:opacity-100 before:absolute before:rounded-lg before:left-0 px-2 before:w-full before:opacity-0 before:bg-accent/70 before:h-[2rem] before:-z-10'
@@ -19,6 +19,8 @@ const dragOverVariants = cva(
 interface TreeDataItem {
     id: string
     name: string
+    customName?: string
+    showHeadingNumbers?: boolean
     icon?: any
     selectedIcon?: any
     openIcon?: any
@@ -36,7 +38,10 @@ type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
     expandAll?: boolean
     defaultNodeIcon?: any
     defaultLeafIcon?: any
+    onItemClick?: (item: TreeDataItem) => void;
     onDocumentDrag?: (sourceItem: TreeDataItem, targetItem: TreeDataItem) => void
+    defaultOpen?: boolean
+    indentLevels?: boolean
 }
 
 const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
@@ -50,6 +55,9 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
             defaultNodeIcon,
             className,
             onDocumentDrag,
+            defaultOpen = false,
+            onItemClick,
+            indentLevels = true,
             ...props
         },
         ref
@@ -87,11 +95,11 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
             }
 
             const ids: string[] = []
-
+            //@ts-ignore
             function walkTreeItems(
                 items: TreeDataItem[] | TreeDataItem,
                 targetId: string
-            ) {
+            ): boolean {
                 if (items instanceof Array) {
                     for (let i = 0; i < items.length; i++) {
                         ids.push(items[i]!.id)
@@ -100,11 +108,13 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
                         }
                         if (!expandAll) ids.pop()
                     }
+                    return false
                 } else if (!expandAll && items.id === targetId) {
                     return true
                 } else if (items.children) {
                     return walkTreeItems(items.children, targetId)
                 }
+                return false
             }
 
             walkTreeItems(data, initialSelectedItemId)
@@ -124,6 +134,9 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
                     handleDragStart={handleDragStart}
                     handleDrop={handleDrop}
                     draggedItem={draggedItem}
+                    defaultOpen={defaultOpen}
+                    onItemClick={onItemClick}
+                    indentLevels={indentLevels}
                     {...props}
                 />
                 {/* <div
@@ -145,6 +158,9 @@ type TreeItemProps = TreeProps & {
     handleDragStart?: (item: TreeDataItem) => void
     handleDrop?: (item: TreeDataItem) => void
     draggedItem: TreeDataItem | null
+    defaultOpen?: boolean
+    onItemClick?: (item: TreeDataItem) => void
+    indentLevels?: boolean
 }
 
 const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
@@ -160,6 +176,9 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
             handleDragStart,
             handleDrop,
             draggedItem,
+            defaultOpen,
+            onItemClick,
+            indentLevels,
             ...props
         },
         ref
@@ -183,6 +202,9 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                                     handleDragStart={handleDragStart}
                                     handleDrop={handleDrop}
                                     draggedItem={draggedItem}
+                                    defaultOpen={defaultOpen}
+                                    onItemClick={onItemClick}
+                                    indentLevels={indentLevels}
                                 />
                             ) : (
                                 <TreeLeaf
@@ -193,6 +215,8 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                                     handleDragStart={handleDragStart}
                                     handleDrop={handleDrop}
                                     draggedItem={draggedItem}
+                                    onItemClick={onItemClick}
+                                    indentLevels={indentLevels}
                                 />
                             )}
                         </li>
@@ -214,6 +238,9 @@ const TreeNode = ({
     handleDragStart,
     handleDrop,
     draggedItem,
+    defaultOpen,
+    onItemClick,
+    indentLevels,
 }: {
     item: TreeDataItem
     handleSelectChange: (item: TreeDataItem | undefined) => void
@@ -224,9 +251,12 @@ const TreeNode = ({
     handleDragStart?: (item: TreeDataItem) => void
     handleDrop?: (item: TreeDataItem) => void
     draggedItem: TreeDataItem | null
+    defaultOpen?: boolean
+    onItemClick?: (item: TreeDataItem) => void
+    indentLevels?: boolean
 }) => {
     const [value, setValue] = React.useState(
-        expandedItemIds.includes(item.id) ? [item.id] : []
+        defaultOpen || expandedItemIds.includes(item.id) ? [item.id] : []
     )
     const [isDragOver, setIsDragOver] = React.useState(false)
 
@@ -256,11 +286,10 @@ const TreeNode = ({
         handleDrop?.(item)
     }
 
-    // If the node has no children, return a TreeLeaf
     if (item.children && item.children.length === 0) {
         return (
             <div>
-                <TreeLeaf item={item} selectedItemId={selectedItemId} handleSelectChange={handleSelectChange} defaultLeafIcon={defaultLeafIcon} handleDragStart={handleDragStart} handleDrop={handleDrop} draggedItem={draggedItem} />
+                <TreeLeaf item={item} selectedItemId={selectedItemId} handleSelectChange={handleSelectChange} defaultLeafIcon={defaultLeafIcon} handleDragStart={handleDragStart} handleDrop={handleDrop} draggedItem={draggedItem} onItemClick={onItemClick} indentLevels={indentLevels} />
             </div>
         )
     }
@@ -270,6 +299,7 @@ const TreeNode = ({
             type="multiple"
             value={value}
             onValueChange={(s) => setValue(s)}
+            defaultValue={defaultOpen ? [item.id] : undefined}
         >
             <AccordionPrimitive.Item value={item.id}>
                 <AccordionTrigger
@@ -291,15 +321,18 @@ const TreeNode = ({
                     <TreeIcon
                         item={item}
                         isSelected={selectedItemId === item.id}
-                        isOpen={value.includes(item.id)}
+                        isOpen={defaultOpen || value.includes(item.id)}
                         default={defaultNodeIcon}
                     />
-                    <span className="text-sm font-medium truncate">{item.name}</span>
+                    <span
+                        className="text-sm font-medium truncate max-w-[200px]"
+                        onClick={() => onItemClick?.(item)}
+                    >{item.showHeadingNumbers ? item.customName : item.name}</span>
                     <TreeActions isSelected={selectedItemId === item.id}>
                         {item.actions}
                     </TreeActions>
                 </AccordionTrigger>
-                <AccordionContent className="ml-4 pl-1">
+                <AccordionContent className={cn(indentLevels ? "ml-2" : "ml-0")}>
                     <TreeItem
                         data={item.children ? item.children : item}
                         selectedItemId={selectedItemId}
@@ -310,6 +343,9 @@ const TreeNode = ({
                         handleDragStart={handleDragStart}
                         handleDrop={handleDrop}
                         draggedItem={draggedItem}
+                        defaultOpen={defaultOpen}
+                        onItemClick={onItemClick}
+                        indentLevels={indentLevels}
                     />
                 </AccordionContent>
             </AccordionPrimitive.Item>
@@ -327,6 +363,8 @@ const TreeLeaf = React.forwardRef<
         handleDragStart?: (item: TreeDataItem) => void
         handleDrop?: (item: TreeDataItem) => void
         draggedItem: TreeDataItem | null
+        onItemClick?: (item: TreeDataItem) => void
+        indentLevels?: boolean
     }
 >(
     (
@@ -339,6 +377,8 @@ const TreeLeaf = React.forwardRef<
             handleDragStart,
             handleDrop,
             draggedItem,
+            onItemClick,
+            indentLevels,
             ...props
         },
         ref
@@ -375,7 +415,8 @@ const TreeLeaf = React.forwardRef<
             <div
                 ref={ref}
                 className={cn(
-                    'ml-5 flex text-left items-center py-2 cursor-pointer before:right-1',
+                    indentLevels ? 'ml-2' : 'ml-1',
+                    'flex text-left items-center py-2 cursor-pointer before:Dropdown-1',
                     treeVariants(),
                     className,
                     selectedItemId === item.id && selectedTreeVariants(),
@@ -397,7 +438,10 @@ const TreeLeaf = React.forwardRef<
                     isSelected={selectedItemId === item.id}
                     default={defaultLeafIcon}
                 />
-                <span className="flex-grow text-sm truncate">{item.name}</span>
+                <span
+                    className="flex-grow text-sm truncate max-w-[200px]"
+                    onClick={() => onItemClick?.(item)}
+                >{item.showHeadingNumbers ? item.customName : item.name}</span>
                 <TreeActions isSelected={selectedItemId === item.id}>
                     {item.actions}
                 </TreeActions>
@@ -415,13 +459,12 @@ const AccordionTrigger = React.forwardRef<
         <AccordionPrimitive.Trigger
             ref={ref}
             className={cn(
-                'flex flex-1 w-full items-center py-2 transition-all first:[&[data-state=open]>svg]:rotate-90',
+                'flex flex-1 w-full items-center py-2 transition-all first:[&[data-state=open]>svg]:rotate-180',
                 className
             )}
             {...props}
         >
-            <Right_1 variant="icon" intent="secondary" size={20} />
-            {/* <ChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200 text-accent-foreground/50 mr-1" /> */}
+            <Dropdown className="transition-transform duration-200" variant="icon" intent="secondary" size={20} />
             {children}
         </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
@@ -435,7 +478,7 @@ const AccordionContent = React.forwardRef<
     <AccordionPrimitive.Content
         ref={ref}
         className={cn(
-            'overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down',
+            'overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-Dropdown',
             className
         )}
         {...props}
@@ -482,7 +525,7 @@ const TreeActions = ({
         <div
             className={cn(
                 isSelected ? 'block' : 'hidden',
-                'absolute right-3 group-hover:block'
+                'absolute Dropdown-3 group-hover:block'
             )}
         >
             {children}

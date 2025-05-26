@@ -23,14 +23,6 @@ function hasFromTo(step: Step): step is StepWithFromTo {
     return 'from' in step && 'to' in step;
 }
 
-export interface HistoryAction {
-    id: string;
-    type: string;
-    timestamp: number;
-    content: string;
-    description: string;
-}
-
 export interface HistoryState {
     lastAction: HistoryAction | null;
     recentActions: HistoryAction[];

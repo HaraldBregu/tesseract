@@ -1,28 +1,14 @@
-import { call, delay, put, takeLatest } from 'redux-saga/effects';
-import { fetchDataStart, fetchDataSuccess, fetchDataFailure, setComment, executeComment, setBookmark, executeBookmark } from './editor.slice';
+import { call } from 'redux-saga/effects';
 
+// @ts-ignore
 function* fetchDataSaga() {
     try {
+        // @ts-ignore
         const data: string[] = yield call(fetchDataFromAPI);
-        yield put(fetchDataSuccess(data));
     } catch (error) {
-        console.log('Error fetching data:', error);
-        yield put(fetchDataFailure());
+        // console.log('Error fetching data:', error);
     }
 }
-
-function* handleCommentSaga() {
-    yield put(setComment(true))
-    yield delay(100)
-    yield put(setComment(false))
-}
-
-function* handleBookmarkSaga() {
-    yield put(setBookmark(true))
-    yield delay(100)
-    yield put(setBookmark(false))
-}
-
 
 function fetchDataFromAPI(): Promise<string[]> {
     return new Promise((resolve) =>
@@ -31,7 +17,4 @@ function fetchDataFromAPI(): Promise<string[]> {
 }
 
 export default function* editorSaga() {
-    yield takeLatest(fetchDataStart.type, fetchDataSaga);
-    yield takeLatest(executeComment.type, handleCommentSaga);
-    yield takeLatest(executeBookmark.type, handleBookmarkSaga);
 }

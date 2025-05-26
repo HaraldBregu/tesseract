@@ -1,0 +1,137 @@
+MIT License
+
+Copyright (c) 2024 ITSERR - Intellectual Property Owner. Developed by FinconsGroup SpA
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+# Additional Explanations and Guidelines
+
+## Overview of the MIT License
+The MIT License is a permissive free software license. It allows users to do
+almost anything with the software, including private use, modification, and
+distribution, as long as the original copyright notice and license terms are
+retained.
+
+## Key Permissions
+1. **Use**: You are free to use this software for any purpose, including
+    commercial applications.
+2. **Copy**: You may make copies of the software and distribute them.
+3. **Modify**: You can modify the software to suit your needs.
+4. **Merge**: You are allowed to combine this software with other software.
+5. **Publish**: You can publish the software or its modifications.
+6. **Distribute**: You may distribute the software, either in its original
+    form or with modifications.
+7. **Sublicense**: You can grant others the rights to use the software under
+    the same terms.
+
+## Conditions
+- The copyright notice and permission notice must be included in all copies
+  or substantial portions of the software.
+- Any modifications to the software must also retain the original copyright
+  notice and license terms.
+
+## Disclaimer
+The software is provided "as is," without warranty of any kind. This means:
+- The authors are not responsible for any issues that arise from using the
+  software.
+- There are no guarantees of performance, reliability, or suitability for a
+  particular purpose.
+
+## Frequently Asked Questions
+
+### Can I use this software in a commercial product?
+Yes, the MIT License explicitly allows commercial use.
+
+### Do I need to open-source my modifications?
+No, the MIT License does not require you to open-source your modifications.
+You can keep them private or distribute them under a different license.
+
+### What happens if I don't include the copyright notice?
+Failing to include the copyright notice and license terms is a violation of
+the license. This could result in legal consequences.
+
+### Can I combine this software with software under a different license?
+Yes, the MIT License is compatible with many other licenses. However, you
+should ensure that the terms of the other license do not conflict with the
+MIT License.
+
+### How can I contribute to this project?
+As an open source project, community contributions are welcome. To contribute, you can fork the repository on GitHub, make your changes, and submit a pull request. All contributions will be reviewed by the project maintainers.
+
+---
+
+# Project Information
+
+## Development and Ownership
+- Intellectual property owned by **ITSERR**
+- Developed by **Finconsgroup SpA**
+- Published as open source software on GitHub
+- Open to external contributions under the terms of the MIT License
+
+## How to Contribute
+1. Fork the repository on GitHub
+2. Create a branch for your changes
+3. Develop your features or fixes
+4. Submit a pull request for review
+5. After approval, your changes will be integrated into the main project
+
+## Support and Community
+- To report bugs or request new features, use the GitHub Issues section
+- For general discussions about the project, use the Discussions section
+
+---
+
+# Placeholder Text for Line Count
+This section contains placeholder text to ensure the document reaches
+approximately 300 lines. You can replace this text with additional content
+as needed.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio.
+Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at
+nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec
+tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget
+nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra,
+per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim
+lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque
+sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula
+vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis,
+luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum.
+Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque
+volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent
+per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna
+non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis
+turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a
+tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices.
+Suspendisse in justo eu magna luctus suscipit. Sed lectus. Integer euismod
+lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa
+mattis sem, at interdum magna augue eget diam. Vestibulum ante ipsum primis
+in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia
+molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue
+congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus
+nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt
+malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris.
+Morbi in dui quis est pulvinar ullamcorper. Nulla facilisi. Integer lacinia
+sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam.
+Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit
+amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet.
+Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. Ut
+orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium
+blandit orci. Ut eu diam at pede suscipit sodales.

@@ -1,0 +1,639 @@
+{
+  "welcome": "Willkommen bei Criterion!",
+  "selectLanguage": "Wählen Sie Ihre bevorzugte Sprache:",
+  "editor": {
+    "sectionTypes": {
+      "body": "Textkörper",
+      "note": "Notiz",
+      "title": "Titel",
+      "heading": "Überschrift 1",
+      "heading2": "Überschrift 2",
+      "heading3": "Überschrift 3",
+      "heading4": "Überschrift 4",
+      "heading5": "Überschrift 5",
+      "footerHeader": "Fußzeile und Kopfzeile"
+    },
+    "color": {
+      "differentColor": "Andere Farbe",
+      "noColor": "Keine Farbe"
+    },
+    "bulletList": {
+      "resumeNumbering": "Nummerierung fortsetzen",
+      "continuePreviousNumbering": "Vorherige Nummerierung fortsetzen"
+    },
+    "history": "Verlauf",
+    "mode": {
+      "editing": {
+        "label": "Bearbeiten",
+        "info": "Änderungen vornehmen"
+      },
+      "review": {
+        "label": "Überprüfung",
+        "info": "Änderungen vorschlagen"
+      }
+    }
+  },
+  "toolbar": {
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "underline": "Unterstrichen",
+    "strikethrough": "Durchgestrichen",
+    "alignment": "Ausrichtung",
+    "alignLeft": "Linksbündig",
+    "alignCenter": "Zentriert",
+    "alignRight": "Rechtsbündig",
+    "justify": "Blocksatz",
+    "nonPrintingCharacters": "Nicht druckbare Zeichen",
+    "bulletList": "Aufzählung",
+    "numberedList": "Nummerierte Liste",
+    "increaseIndent": "Einzug vergrößern",
+    "decreaseIndent": "Einzug verkleinern",
+    "fontSize": "Schriftgröße",
+    "fontFamily": "Schriftart",
+    "fontColor": "Schriftfarbe",
+    "highlightColor": "Hervorhebungsfarbe",
+    "insertLink": "Link einfügen",
+    "insertImage": "Bild einfügen",
+    "insertTable": "Tabelle einfügen",
+    "headingStyle": "Überschriftstil",
+    "clearFormatting": "Formatierung entfernen",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "cut": "Ausschneiden",
+    "copy": "Kopieren",
+    "paste": "Einfügen",
+    "sidebar": {
+      "toggle": "Seitenleiste umschalten"
+    },
+    "blockquote": "Blockzitat",
+    "siglum": "Sigle",
+    "citation": "Zitat",
+    "addComment": "Kommentar hinzufügen",
+    "addBookmark": "Lesezeichen hinzufügen",
+    "addLink": "Link hinzufügen",
+    "spacing": "Abstand",
+    "list": "Liste",
+    "search": "Suche",
+    "printPreview": "Druckvorschau",
+    "listNumber": "Nummerierte Liste",
+    "listUppercase": "Großbuchstabenliste",
+    "listLowercase": "Kleinbuchstabenliste",
+    "listBullet": "Aufzählung",
+    "listBulletEmpty": "Leere Aufzählung",
+    "listBulletSquare": "Quadratische Aufzählung",
+    "superscript": "Hochgestellt",
+    "subscript": "Tiefgestellt"
+  },
+  "dividerSections": {
+    "toc": "Inhaltsverzeichnis",
+    "introduction": "Einleitung",
+    "mainText": "Kritischer Text",
+    "bibliography": "Bibliografie",
+    "appendix": "Anhang"
+  },
+  "menu": {
+    "file": {
+      "label": "Datei",
+      "new": "Neu",
+      "open": "Öffnen",
+      "openRecent": "Zuletzt geöffnet",
+      "noRecentDocuments": "Keine zuletzt geöffneten Dokumente",
+      "import": "Importieren",
+      "close": "Schließen",
+      "save": "Speichern",
+      "saveAs": "Speichern unter",
+      "duplicate": "Duplizieren",
+      "rename": "Umbenennen",
+      "moveTo": "Verschieben nach",
+      "revertTo": {
+        "label": "Zurücksetzen",
+        "lastSaved": "Letzte Speicherung",
+        "browse": "Versionen durchsuchen"
+      },
+      "shareForReview": "Zur Überprüfung freigeben",
+      "lock": "Sperren...",
+      "unlock": "Entsperren...",
+      "exportTo": {
+        "label": "Exportieren als",
+        "pdf": "PDF",
+        "odt": "ODT",
+        "xml": "XML/TEI",
+        "exportTemplate": "Vorlage exportieren"
+      },
+      "language&Region": "Sprache und Region...",
+      "saveAsTemplate": "Als Vorlage speichern...",
+      "metadata": "Metadaten",
+      "pageSetup": "Seiteneinrichtung...",
+      "print": "Drucken"
+    },
+    "edit": {
+      "label": "Bearbeiten",
+      "find": {
+        "label": "Suchen",
+        "findAndReplace": "Suchen und Ersetzen",
+        "findNext": "Weitersuchen",
+        "findPrevious": "Vorheriges suchen",
+        "jumpToSelection": "Zur Auswahl springen"
+      },
+      "undo": "Rückgängig",
+      "redo": "Wiederholen",
+      "cut": "Ausschneiden",
+      "copy": "Kopieren",
+      "copyStyle": "Stil kopieren",
+      "paste": "Einfügen",
+      "pasteStyle": "Stil einfügen",
+      "pasteAndMatchStyle": "Einfügen und Stil anpassen",
+      "pasteWithNotes": "Mit Notizen einfügen",
+      "delete": "Löschen",
+      "duplicateSelection": "Auswahl duplizieren",
+      "selectAll": "Alles auswählen",
+      "deSelectAll": "Auswahl aufheben"
+    },
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "cut": "Ausschneiden",
+    "copy": "Kopieren",
+    "paste": "Einfügen",
+    "selectAll": "Alles auswählen",
+    "view": "Ansicht",
+    "settings": "Einstellungen",
+    "reload": "Neu laden",
+    "toggleDevTools": "Developer Tools öffnen",
+    "language": {
+      "label": "Sprache",
+      "en": "Englisch",
+      "it": "Italienisch",
+      "de": "Deutsch",
+      "es": "Spanisch",
+      "fr": "Französisch"
+    },
+    "insert": {
+      "label": "Einfügen",
+      "section": "Abschnitt",
+      "comment": "Kommentar",
+      "bookmark": "Lesezeichen",
+      "highlight": "Hervorheben",
+      "link": "Link",
+      "image": "Bild",
+      "symbol": "Symbol",
+      "object": "Objekt",
+      "table": "Tabelle",
+      "shapesAndLines": "Formen und Linien",
+      "pageBreak": "Seitenumbruch",
+      "sectionBreak": "Abschnittumbruch",
+      "lineNumber": {
+        "label": "Zeilennummer",
+        "none": "Keine",
+        "each5Line": "Alle 5 Zeilen",
+        "every10Lines": "Alle 10 Zeilen",
+        "every15Lines": "Alle 15 Zeilen"
+      },
+      "pageNumber": "Seitenzahl",
+      "date": "Datum",
+      "dateAndTime": "Datum und Uhrzeit",
+      "author": "Autor",
+      "title": "Titel"
+    },
+    "references": {
+      "label": "Referenzen",
+      "addNote": "Notiz hinzufügen",
+      "addNoteInInnerMargin": "Notiz am inneren Rand hinzufügen",
+      "addNoteInOuterMargin": "Notiz am äußeren Rand hinzufügen",
+      "swapMargin": "Rand tauschen",
+      "addReadingSeparator": "Lesetrennzeichen hinzufügen",
+      "addSiglum": "Sigle hinzufügen",
+      "siglaSetup": "Siglen konfigurieren",
+      "addCitation": "Zitat hinzufügen",
+      "bibliography": "Bibliografie",
+      "referencesFormat": "Referenzformat",
+      "addApparatus": {
+        "label": "Apparat hinzufügen",
+        "critical": "Kritisch",
+        "pageNotes": "Seitennotizen",
+        "sectionNotes": "Abschnittnotizen",
+        "innerMargin": "Innerer Rand",
+        "outerMargin": "Äußerer Rand"
+      }
+    },
+    "format": {
+      "label": "Format",
+      "font": {
+        "label": "Schrift",
+        "bold": "Fett",
+        "italic": "Kursiv",
+        "underline": "Unterstrichen",
+        "strikethrough": "Durchgestrichen",
+        "characterSpacing": {
+          "label": "Zeichenabstand",
+          "normal": "Normal",
+          "tighten": "Verengen",
+          "loosen": "Erweitern"
+        },
+        "ligature": {
+          "label": "Ligatur",
+          "default": "Standard verwenden",
+          "none": "Keine verwenden",
+          "all": "Alle verwenden"
+        },
+        "captalization": {
+          "label": "Großschreibung",
+          "none": "Keine",
+          "allCaps": "Alles Großbuchstaben",
+          "smallCaps": "Kapitälchen",
+          "titleCase": "Substantive groß",
+          "startCase": "Erster Buchstabe groß"
+        }
+      },
+      "text": {
+        "label": "Text",
+        "alignLeft": "Linksbündig",
+        "alignCenter": "Zentriert",
+        "alignRight": "Rechtsbündig",
+        "justify": "Blocksatz",
+        "increaseIndent": "Einzug vergrößern",
+        "decreaseIndent": "Einzug verkleinern",
+        "spacing": {
+          "label": "Zeilenabstand",
+          "single": "Einfach",
+          "oneAndHalf": "1,5",
+          "double": "Doppelt"
+        }
+      },
+      "list": {
+        "number": "1",
+        "maxLetter": "A",
+        "lowerLetter": "a",
+        "point": "●",
+        "emptyPoint": "○",
+        "square": "■",
+        "label": "Liste",
+        "bullet": "Aufzählung",
+        "numbering": "Nummerierung",
+        "resumeNumbering": "Nummerierung fortsetzen",
+        "continuePreviousNumbering": "Vorherige Nummerierung fortsetzen"
+      },
+      "sectionsStyle": "Abschnittstil",
+      "table": "Tabelle",
+      "shapesAndLines": "Formen und Linien",
+      "removeLink": "Link entfernen",
+      "changeTemplate": "Vorlage ändern",
+      "layout": {
+        "label": "Layout...",
+        "pageSetup": {
+          "label": "Seiteneinrichtung",
+          "component": {
+            "title": "Dokumenteneinstellungen",
+            "sectionInclude": "Einbeziehen",
+            "columns": "Spalte",
+            "section": {
+              "toc": "Inhaltsverzeichnis",
+              "intro": "Einleitung",
+              "critical": "Kritischer Text",
+              "bibliography": "Bibliografie"
+            },
+            "accordionSetup": {
+              "title": "Seiteneinstellungen",
+              "size": "Papierformat",
+              "orientation": {
+                "title": "Seitenausrichtung",
+                "horizontal": "Querformat",
+                "vertical": "Hochformat"
+              }
+            }
+          }
+        }
+      },
+      "toc": {
+        "label": "Inhaltsverzeichnis"
+      },
+      "lineNumber": {
+        "label": "Zeilennummerierung..."
+      },
+      "header": {
+        "label": "Kopfzeile..."
+      },
+      "footer": {
+        "label": "Fußzeile..."
+      },
+      "pageNumber": {
+        "label": "Seitenzahl..."
+      }
+    },
+    "help": {
+      "label": "Hilfe",
+      "criterionHelp": "Criterion Hilfe",
+      "faqs": "FAQs",
+      "forum": "Forum",
+      "whatsNewInCriterion": "Was ist neu in Criterion",
+      "reportAnIssue": "Problem melden",
+      "about": "Über Criterion"
+    }
+  },
+  "about": {
+    "label": "Über",
+    "version": "Version",
+    "license": "Lizenz"
+  },
+  "buttons": {
+    "cancel": "Abbrechen",
+    "ok": "OK",
+    "save": "Speichern",
+    "done": "Fertig",
+    "apply": "Anwenden",
+    "cut": "Ausschneiden",
+    "copy": "Kopieren",
+    "paste": "Einfügen",
+    "acknowledgements": "Danksagungen",
+    "licenseAgreement": "Lizenzvereinbarung"
+  },
+  "customSpacing": {
+    "title": "Benutzerdefinierter Abstand",
+    "lineSpacing": "Zeilenabstand",
+    "beforeParagraphSpacing": "Vor dem Absatz",
+    "afterParagraphSpacing": "Nach dem Absatz"
+  },
+  "resumeNumbering": {
+    "label": "Start from",
+    "title": "Nummerierung fortsetzen"
+  },
+  "pageNumber": {
+    "label": "Seitenzahl",
+    "numeration": "Seitennummerierung",
+    "format": {
+      "label": "Nummerierungsformat",
+      "arab": "1,2,3",
+      "arab-to": "1 von 3",
+      "roman": "I, II, III",
+      "roman-to": "I von III",
+      "lowerRoman": "i, ii, iii",
+      "lowerRoman-to": "i von iii"
+    },
+    "none": "Keine",
+    "continue": "Vom vorherigen fortsetzen",
+    "start": "Beginnen bei:"
+  },
+  "headerFooter": {
+    "header": "Kopfzeile",
+    "footer": "Fußzeile",
+    "content": {
+      "selection": "Inhaltsauswahl",
+      "none": "Keine",
+      "page": "Seitenzahl",
+      "date": "Datum",
+      "dateTime": "Datum und Uhrzeit",
+      "author": "Autor",
+      "title": "Titel"
+    },
+    "show": {
+      "label": "Anzeigen",
+      "none": "Nicht anzeigen",
+      "firstPage": "Nur auf der ersten Seite",
+      "fromPage": "Ab Seite:",
+      "allSections": "In allen Abschnitten",
+      "selectedSections": "In ausgewählten Abschnitten",
+      "toc": "Inhaltsverzeichnis",
+      "intro": "Einleitung",
+      "crt": "Kritischer Text",
+      "apdx": "Anhang",
+      "biblio": "Bibliografie"
+    },
+    "position": {
+      "left": "Links",
+      "right": "Rechts",
+      "center": "Zentriert",
+      "options": {
+        "none": "Keine",
+        "pageNumber": "Seitenzahl",
+        "date": "Datum",
+        "dateTime": "Datum und Uhrzeit",
+        "author": "Autor",
+        "title": "Titel"
+      }
+    }
+  },
+  "toc": {
+    "label": "Inhaltsverzeichnis",
+    "section": {
+      "title": "Titel",
+      "pageNumber": "Seitenzahl"
+    },
+    "accordionSetup": {
+      "title": "Einstellungen für Inhaltsverzeichnis",
+      "level": {
+        "label": "Ebene",
+        "allLevels": "Alle Ebenen",
+        "level1": "Ebene 1",
+        "level2": "Ebene 2",
+        "level3": "Ebene 3"
+      }
+    }
+  },
+  "lineNumber": {
+    "label": "Zeilennummerierung",
+    "numeration": "Zeilennummerierung",
+    "show": {
+      "label": "Anzeigen",
+      "description": "Zeilennummern werden nur im kritischen Text angezeigt.",
+      "none": "Keine",
+      "everyFive": "Alle 5 Zeilen",
+      "everyTen": "Alle 10 Zeilen",
+      "everyFifteen": "Alle 15 Zeilen"
+    },
+    "whole": "Gesamter kritischer Text",
+    "everyPage": "Bei jeder Seite neu beginnen",
+    "everySection": "Bei jedem Abschnitt neu beginnen:",
+    "none": "Keine",
+    "all": "Alle",
+    "default": "Standard"
+  },
+  "pageSetup": {
+    "title": "Layout wählen",
+    "confirmationModal": {
+      "title": "Bist du sicher, dass du \"{{apparatus}}\" dauerhaft löschen möchtest?",
+      "description": "Alle Inhalte in \"{{apparatus}}\" werden dauerhaft überall gelöscht."
+    },
+    "component": {
+      "configurationSubtitle": "Dokumenteneinstellungen",
+      "sectionInclude": "Einbeziehen",
+      "selectCustom": "Benutzerdefiniert",
+      "add": "Apparat hinzufügen",
+      "section": {
+        "toc": "Inhaltsverzeichnis",
+        "intro": "Einleitung",
+        "critical": "Kritischer Text",
+        "bibliography": "Bibliografie"
+      },
+      "accordionSetup": {
+        "title": "Seiteneinstellungen",
+        "size": "Papierformat",
+        "orientation": {
+          "title": "Seitenausrichtung",
+          "horizontal": "Querformat",
+          "vertical": "Hochformat"
+        }
+      },
+      "customPaperSize": {
+        "title": "Benutzerdefiniertes Papierformat",
+        "width": "Breite",
+        "height": "Höhe",
+        "done": "Fertig",
+        "cancel": "Zurück"
+      }
+    },
+    "areas": {
+      "header": "Kopfzeile",
+      "footer": "Fußzeile",
+      "innerMarginNote": "Notizen am inneren Rand",
+      "outerMarginNote": "Notizen am äußeren Rand",
+      "documentMargin": "Seitenrand des Dokuments"
+    },
+    "position": {
+      "left": "Links",
+      "right": "Rechts",
+      "top": "Oben",
+      "bottom": "Unten"
+    },
+    "selectPage": "Seite auswählen",
+    "buttons": {
+      "cancel": "Zurück",
+      "save": "Speichern",
+      "delete": "Löschen"
+    }
+  },
+  "tableOfContents": {
+    "label": "Inhaltsverzeichnis",
+    "sidepanelLabel": "Navigationsbereich",
+    "settings": {
+      "none": "Keine",
+      "title": "Inhaltsverzeichnis",
+      "setTitle": "Titel festlegen",
+      "show": "Anzeigen",
+      "showLevels": "Ebenen anzeigen",
+      "indentLevels": "Ebenen einrücken",
+      "tabLeader": "Füllzeichen",
+      "headingNumbers": "Überschriftsnummern anzeigen",
+      "numberSeparator": "Nummerntrennzeichen",
+      "level1Format": "Format Ebene 1",
+      "level2Format": "Format Ebene 2",
+      "level3Format": "Format Ebene 3",
+      "level4Format": "Format Ebene 4",
+      "level5Format": "Format Ebene 5",
+      "level6Format": "Format Ebene 6"
+    },
+    "sections": {
+      "introduction": "Einleitung",
+      "criticalText": {
+        "start": "Beginn des kritischen Textes",
+        "end": "Ende des kritischen Textes"
+      },
+      "bibliography": "Bibliografie"
+    },
+    "navigation": {
+      "placeholder": "Inhaltsverzeichnis"
+    }
+  },
+  "bookmarks": {
+    "title": "Lesezeichen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "move": "Verschieben"
+  },
+  "delete_bookmark_dialog": {
+    "title": "Wenn Sie fortfahren, löschen Sie das Lesezeichen",
+    "description": "Wenn Sie fortfahren, löschen Sie das Lesezeichen. Möchten Sie fortfahren? Falls ja, klicken Sie auf „Löschen, andernfalls auf „Abbrechen.",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "move": "Verschieben"
+    }
+  },
+  "delete_bookmark_category_dialog": {
+    "title": "Wenn Sie fortfahren, löschen Sie alle Lesezeichen in der Kategorie",
+    "description": "Möchten Sie fortfahren? Falls ja, klicken Sie auf „Löschen, andernfalls auf Abbrechen; alternativ können Sie alle Lesezeichen in eine andere Kategorie verschieben mit der Schaltfläche „Verschieben",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "move": "Verschieben"
+    }
+  },
+  "move_bookmark_dialog": {
+    "title": "Lesezeichen verschieben",
+    "description": "Wählen Sie eine Kategorie aus, in die das Lesezeichen verschoben werden soll.",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "move": "Verschieben"
+    }
+  },
+  "move_bookmarks_dialog": {
+    "title": "Alle Lesezeichen verschieben",
+    "description": "Wählen Sie eine Kategorie aus, in die die Lesezeichen verschoben werden sollen.",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "move": "Verschieben"
+    }
+  },
+  "comments": {
+    "title": "Kommentare",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "move": "Verschieben"
+  },
+  "delete_comment_dialog": {
+    "title": "Wenn Sie fortfahren, löschen Sie den Kommentar",
+    "description": "Wenn Sie fortfahren, löschen Sie den Kommentar. Möchten Sie fortfahren? Falls ja, klicken Sie auf „Löschen, andernfalls auf Abbrechen",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "move": "Verschieben"
+    }
+  },
+  "delete_comment_category_dialog": {
+    "title": "Wenn Sie fortfahren, löschen Sie alle Kommentare in der Kategorie",
+    "description": "Möchten Sie fortfahren? Falls ja, klicken Sie auf „Löschen, andernfalls auf „Abbrechen; alternativ können Sie alle Kommentare in eine andere Kategorie verschieben mit der Schaltfläche „Verschieben",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "move": "Verschieben"
+    }
+  },
+  "move_comment_dialog": {
+    "title": "Kommentar verschieben",
+    "description": "Wählen Sie eine Kategorie aus, in die der Kommentar verschoben werden soll.",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "move": "Verschieben"
+    }
+  },
+  "move_comments_dialog": {
+    "title": "Alle Kommentare verschieben",
+    "description": "Wählen Sie eine Kategorie aus, in die die Kommentare verschoben werden sollen.",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "move": "Verschieben"
+    }
+  },
+  "choose_template_dialog": {
+    "title": "Vorlage wählen",
+    "sections": {
+      "recent": "Zuletzt verwendet",
+      "publishers": "Verlage"
+    },
+    "browse_link": "Community-Vorlagen durchsuchen",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "import": "Vorlage importieren",
+      "continue": "Weiter"
+    }
+  },
+  "save_as_template_dialog": {
+    "title": "Als Vorlage speichern",
+    "sections": {
+      "publishers": "Verlage",
+      "myTemplates": "Meine Vorlagen"
+    },
+    "buttons": {
+      "cancel": "Abbrechen",
+      "done": "Speichern"
+    }
+  }
+}

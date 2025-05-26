@@ -1,6 +1,12 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 import { cn } from "@/lib/utils"
 
@@ -26,6 +32,7 @@ const buttonVariants = cva(
         mini: "h-[24px] px-[8px] py-[4px] text-xs",
         icon: "h-9 w-9 p-[12px]",
         iconSm: "h-[24px] w-[24px] p-[4px] rounded-[4px]",
+        iconMini: "h-[18px] w-[18px] p-[2px] rounded-[6px]",
       },
     },
     defaultVariants: {
@@ -82,17 +89,17 @@ const buttonVariants = cva(
       {
         intent: "primary",
         variant: "border",
-        className: "text-primary border-grey-80 hover:bg-grey-80 disabled:text-grey"
+        className: "text-primary border-grey-85 hover:bg-grey-80 disabled:text-grey"
       },
       {
         intent: "secondary",
         variant: "border",
-        className: "text-secondary border-grey-80 hover:bg-grey-80 disabled:text-grey"
+        className: "text-secondary border-grey-85 hover:bg-grey-80 disabled:text-grey"
       },
       {
         intent: "destructive",
         variant: "border",
-        className: "text-destructive border-grey-80 hover:bg-grey-80 disabled:text-grey"
+        className: "text-destructive border-grey-85 hover:bg-grey-80 disabled:text-grey"
       },
       //icon variables
       {
@@ -137,19 +144,22 @@ export interface ButtonProps
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   icon?: React.ReactNode;
+  tooltip?: string;
+  tooltipSide?: "top" | "right" | "bottom" | "left";
+  tooltipAlign?: "start" | "center" | "end";
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, intent, variant, size, asChild = false, leftIcon, rightIcon, icon, children, ...props }, ref) => {
+  ({ className, intent, variant, size, asChild = false, leftIcon, rightIcon, icon, tooltip, tooltipSide = "top", tooltipAlign = "end", children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
 
     let buttonSize = size;
     if (icon) {
-      if (size !== 'icon' && size !== 'iconSm') {
+      if (size !== 'icon' && size !== 'iconSm' && size !== 'iconMini') {
         buttonSize = 'icon';
       }
 
-      return (
+      const buttonElement = (
         <Comp
           className={cn(buttonVariants({ intent, variant, size: buttonSize, className }))}
           ref={ref}
@@ -158,9 +168,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           {icon}
         </Comp>
       );
+
+      if (tooltip) {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
+              <TooltipContent side={tooltipSide} align={tooltipAlign}>{tooltip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      }
+
+      return buttonElement;
     }
 
-    return (
+    const buttonElement = (
       <Comp
         className={cn(buttonVariants({ intent, variant, size: buttonSize, className }))}
         ref={ref}
@@ -170,7 +193,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
         {rightIcon && <span className="inline-flex">{rightIcon}</span>}
       </Comp>
-    )
+    );
+
+    if (tooltip) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
+            <TooltipContent side={tooltipSide} align={tooltipAlign}>{tooltip}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return buttonElement;
   }
 )
 Button.displayName = "Button"

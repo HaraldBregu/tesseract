@@ -1,11 +1,29 @@
+default:
+  timeout: 1 hours # Timeout predefinito per tutti i job
+
 stages:
+  - build-check
   - Build-Windows
   - Build-Linux
-  # - Build-MacOS
+
+# Lint the code
+lint:
+  stage: build-check
+  image: electronuserland/builder:wine
+  timeout: 4 hours
+  script:
+    # Proceed with lint
+    - yarn install
+    - yarn typecheck
+  only:
+    - develop
+  tags:
+    - docker
 
 build-windows:
   stage: Build-Windows
   image: electronuserland/builder:wine
+  timeout: 4 hours # Timeout specifico per questo job
   script:
     # Install Mono (required for .NET dependencies)
     - apt-get update && apt-get install -y mono-complete
@@ -34,51 +52,59 @@ build-windows:
     - yarn install
     - yarn dist-win
   artifacts:
-    name: $CI_COMMIT_REF_SLUG-windows
+    name: "windows-builds-${CI_COMMIT_REF_NAME}"
+    expire_in: 2 weeks
     paths:
-      - $CI_PROJECT_DIR/dist/*.exe
-      - $CI_PROJECT_DIR/dist/*.msi
+      - dist/*.exe
     when: on_success
   only:
-    - develop
+    - pre
   tags:
     - docker
 
-build-linux:
+build-ubuntu-linux:
   stage: Build-Linux
   image: electronuserland/builder
+  timeout: 3 hours # Timeout specifico per questo job
   script:
     # Proceed with Linux build
+    - apt-get update && apt-get install -y rpm
     - yarn install
     - yarn dist-linux
+    - echo "Checking dist folder..."
+    - ls -lh dist || echo "dist not found"
+    #- find dist -type f
   artifacts:
-    name: $CI_COMMIT_REF_SLUG-linux
+    name: "ubuntu-linux-builds-${CI_COMMIT_REF_NAME}"
+    expire_in: 2 weeks
     paths:
-      - $CI_PROJECT_DIR/dist/*.AppImage
-      - $CI_PROJECT_DIR/dist/*.deb
-      - $CI_PROJECT_DIR/dist/*.rpm
+      - dist/*.AppImage
+      - dist/*.deb
     when: on_success
   only:
-    - develop
+    - pre
   tags:
     - docker
-# build-macos:
-#   stage: Build-MacOS
-#   image: electronuserland/builder:latest
-#   script:
-#     # Install macOS build dependencies
-#     - apt-get update && apt-get install -y libatomic1
 
-#     # Proceed with macOS build
-#     - yarn install
-#     - yarn dist-mac
-#   artifacts:
-#     name: $CI_COMMIT_REF_SLUG-macos
-#     paths:
-#       - $CI_PROJECT_DIR/dist/*.dmg
-#       - $CI_PROJECT_DIR/dist/*.pkg
-#     when: on_success
-#   only:
-#     - develop
-#   tags:
-#     - docker
+build-redhat-linux:
+  stage: Build-Linux
+  image: electronuserland/builder
+  timeout: 3 hours # Timeout specifico per questo job
+  script:
+    # Proceed with Linux build
+    - apt-get update && apt-get install -y rpm
+    - yarn install
+    - yarn dist-linux
+    - echo "Checking dist folder..."
+    - ls -lh dist || echo "dist not found"
+    #- find dist -type f
+  artifacts:
+    name: "redhat-linux-builds-${CI_COMMIT_REF_NAME}"
+    expire_in: 2 weeks
+    paths:
+      - dist/*.rpm
+    when: on_success
+  only:
+    - pre
+  tags:
+    - docker

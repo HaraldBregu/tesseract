@@ -2,18 +2,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import useTranslationLoader from "../../utils/useTranslationLoader";
 import { useNavigate } from "react-router-dom";
+import Typography from "@/components/Typography";
+import { Card, CardContent } from "@/components/ui/card";
+import Button from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  Typography,
   Select,
-  MenuItem,
-  Button,
-  Box,
-  FormControl,
-  Container,
-  SelectChangeEvent
-} from '@mui/material';
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function LanguageSelector() {
   const [selectedLanguage, setSelectedLanguage] = useState("en");
@@ -21,84 +19,51 @@ function LanguageSelector() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  const handleSelectChange = (e: SelectChangeEvent) => {
-    setSelectedLanguage(e.target.value);
+  const handleSelectChange = (value: string) => {
+    setSelectedLanguage(value);
   };
 
   const handleSave = () => {
     changeLanguage(selectedLanguage);
     i18n.changeLanguage(selectedLanguage);
     localStorage.setItem("appLanguage", selectedLanguage);
-    navigate("/editor");
+    navigate("/");
   };
 
   return (
-    <Container
-      sx={{
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'transparent'
-      }}
-    >
-      <Card sx={{ minWidth: 400, maxWidth: 500, padding: 8 }}>
-        <CardContent>
-          <Typography variant="h6" component="div" gutterBottom align="center" sx={{ mb: 4 }}>
+    <div className="h-screen flex items-center justify-center">
+      <Card className="w-[400px] max-w-[500px] p-6">
+        <CardContent className="pt-6">
+          <Typography component="h6" className="text-center mb-6 text-[15px] font-semibold">
             {t("selectLanguage")}
           </Typography>
 
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1  // Aggiunge spazio tra gli elementi
-          }}>
-            <FormControl sx={{ flexGrow: 1 }}>
-              <Select
-                size="small"
-                value={selectedLanguage}
-                onChange={handleSelectChange}
-                variant="outlined"
-                sx={{
-                  height: '40px',
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#b3b3b3',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#b3b3b3',
-                  },
-                  '.MuiMenuItem-root.Mui-selected': {
-                    backgroundColor: '#ccc',
-                    '&:hover': {
-                      backgroundColor: '#b3b3b3'
-                    }
-                  }
-                }}
-              >
-                <MenuItem value="en">English</MenuItem>
-                <MenuItem value="it">Italian</MenuItem>
+          <div className="flex items-center gap-3">
+            <div className="flex-grow">
+              <Select value={selectedLanguage} onValueChange={handleSelectChange}>
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">{t("menu.language.en")}</SelectItem>
+                  <SelectItem value="it">{t("menu.language.it")}</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
 
             <Button
-              size="medium"
-              variant="contained"
+              intent="primary"
+              variant="filled"
+              size="small"
               onClick={handleSave}
-              sx={{
-                minWidth: 120,
-                height: '40px',
-                backgroundColor: '#5453a7',
-                '&:hover': {
-                  backgroundColor: '#a29ec2'
-                }
-              }}
+              className="min-w-[80px] h-8"
             >
-              Apply
+              {t("buttons.save")}
             </Button>
-          </Box>
+          </div>
         </CardContent>
       </Card>
-    </Container>
+    </div>
   );
 }
 

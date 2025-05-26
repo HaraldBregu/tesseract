@@ -1,30 +1,31 @@
 //global types definition must not be abused,
 //only use it when you need to extend the global object to let communicate electron with the renderer process (react)
 
-interface Alert {
-    message: string,
-    type: string,
-    comments?: CategoryState[] | [];
-}
+// interface Alert {
+//     message: string,
+//     type: string,
+//     comments?: CategoryState[] | [];
+// }
 
-interface EditorContent {
-    mainText: string;
-    apparatusText: string;
-    comments?: CategoryState[] | [];
+// interface EditorContent {
+//     mainText: string;
+//     apparatusText: string;
+//     comments?: CategoryState[] | [];
 
-}
+// }
 
-type JsonValue = string | number | boolean | null;
-type JsonArray = Array<JsonValue | JsonObject>;
-interface JsonObject {
-    [key: string]: JsonValue | JsonObject | JsonArray;
-}
+// type JsonValue = string | number | boolean | null;
+// type JsonArray = Array<JsonValue | JsonObject>;
+// interface JsonObject {
+//     [key: string]: JsonValue | JsonObject | JsonArray;
+// }
 
-interface DocumentContentParsed {
-    mainText: JsonObject | null;
-    apparatusText: JsonObject | null
-    comments?: CategoryState[] | [];
-}
+// interface DocumentContentParsed {
+//     mainText: JsonObject | null;
+//     apparatusText: JsonObject | null
+//     comments?: CategoryState[] | [];
+//     tocSettings?: TocSettings | null;
+// }
 
 interface ErrorDetails {
     errorCode: number;
@@ -47,17 +48,17 @@ interface LogEntry {
     duration?: number;
 }
 
-type LigatureType = "standard" | "all" | "none";
+// type LigatureType = "standard" | "all" | "none";
 
-interface CommentState {
-    id: string;
-    title: string;
-    selectedText: string;
-    comment: string;
-}
+// interface CommentState {
+//     id: string;
+//     title: string;
+//     selectedText: string;
+//     comment: string;
+// }
 
-interface CategoryState {
-    id: string;
-    name: string;
-    comments: CommentState[];
-}
+// interface CategoryState {
+//     id: string;
+//     name: string;
+//     comments: CommentState[];
+// }
