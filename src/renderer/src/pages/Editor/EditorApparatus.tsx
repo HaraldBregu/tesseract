@@ -1,6 +1,6 @@
 import PlusSimple from "@/components/icons/PlusSimple";
 import UnfoldMore from "@/components/icons/UnfoldMore";
-import { AnimatePresence, motion, Reorder } from "framer-motion";
+import { AnimatePresence, motion, Reorder, MotionGlobalConfig } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import DragIndicator from "@/components/icons/DragIndicator";
@@ -41,6 +41,8 @@ import { Input } from "@/components/ui/input";
 import { rendererLogger } from "@/utils/logger";
 import { useIpcRenderer } from "@/hooks/use-ipc-renderer";
 
+
+MotionGlobalConfig.skipAnimations = true;
 
 const EditorApparatusLayout = ({
     children,
