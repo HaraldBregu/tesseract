@@ -52,7 +52,7 @@ build-windows:
     - yarn install
     - yarn dist-win
   artifacts:
-    name: "windows-builds-${CI_COMMIT_REF_NAME}"
+    name: 'windows-builds-${CI_COMMIT_REF_NAME}'
     expire_in: 2 weeks
     paths:
       - dist/*.exe
@@ -75,7 +75,7 @@ build-ubuntu-linux:
     - ls -lh dist || echo "dist not found"
     #- find dist -type f
   artifacts:
-    name: "ubuntu-linux-builds-${CI_COMMIT_REF_NAME}"
+    name: 'ubuntu-linux-builds-${CI_COMMIT_REF_NAME}'
     expire_in: 2 weeks
     paths:
       - dist/*.AppImage
@@ -99,7 +99,7 @@ build-redhat-linux:
     - ls -lh dist || echo "dist not found"
     #- find dist -type f
   artifacts:
-    name: "redhat-linux-builds-${CI_COMMIT_REF_NAME}"
+    name: 'redhat-linux-builds-${CI_COMMIT_REF_NAME}'
     expire_in: 2 weeks
     paths:
       - dist/*.rpm

@@ -1,31 +1,30 @@
 import { BaseWindow, shell, WebContentsView } from 'electron'
 import { join } from 'path'
 import { getRootUrl } from './shared/util'
-import { getTabs, setTabs } from './store';
+import { getTabs, setTabs } from './store'
 
 const toolbarHeight = 32
-const toolbar: Route = "/browser-tab-bar";
+const toolbar: Route = '/browser-tab-bar'
 
 let toolbarWebContentsView: WebContentsView | null = null
 
 export const getToolbarWebContentsViewHeight = (): number => toolbarHeight
 export const getToolbarWebContentsView = (): WebContentsView | null => toolbarWebContentsView
 
-export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Promise<WebContentsView | null> {
+export function createToolbarWebContentsView(
+  baseWindow: BaseWindow | null
+): Promise<WebContentsView | null> {
   return new Promise((resolve) => {
+    if (toolbarWebContentsView !== null) return resolve(toolbarWebContentsView)
 
-    if (toolbarWebContentsView !== null)
-      return resolve(toolbarWebContentsView)
-
-    if (baseWindow === null)
-      return resolve(null)
+    if (baseWindow === null) return resolve(null)
 
     toolbarWebContentsView = new WebContentsView({
       webPreferences: {
         preload: join(__dirname, '../preload/index.mjs'),
         sandbox: false,
         nodeIntegration: false,
-        contextIsolation: true,
+        contextIsolation: true
       }
     })
 
@@ -46,8 +45,7 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
     baseWindow.on('resize', () => {
       const newBounds = baseWindow.getBounds()
 
-      if (toolbarWebContentsView === null)
-        return
+      if (toolbarWebContentsView === null) return
 
       toolbarWebContentsView.setBounds({
         x: 0,
@@ -73,8 +71,7 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
 export function resizeToolbarWebContentsView(baseWindow: BaseWindow): void {
   const newBounds = baseWindow.getBounds()
 
-  if (toolbarWebContentsView === null)
-    return
+  if (toolbarWebContentsView === null) return
 
   toolbarWebContentsView.setBounds({
     x: 0,
@@ -88,7 +85,7 @@ export function setSelectedTabIndex(index: number): void {
   const tabs = getTabs()
 
   tabs?.forEach((tab, i) => {
-    tab.selected = (i === index)
+    tab.selected = i === index
   })
 
   setTabs(tabs)
@@ -101,15 +98,13 @@ export function getSelectedTab(): Tab | null {
 export function getSelectedTabIndex(): number {
   const tabs = getTabs()
 
-  if (!tabs)
-    return -1
+  if (!tabs) return -1
 
   const selectedTabIndex = tabs.findIndex((tab) => tab.selected)
 
-  if (selectedTabIndex === -1)
-    return -1
+  if (selectedTabIndex === -1) return -1
 
-  return selectedTabIndex;
+  return selectedTabIndex
 }
 
 export function setFilePathForSelectedTab(path: string): void {

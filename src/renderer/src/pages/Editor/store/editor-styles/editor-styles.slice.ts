@@ -1,18 +1,18 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { stylesState, StylesState } from "./editor-styles.state";
-import _ from "lodash";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { stylesState, StylesState } from './editor-styles.state'
+import _ from 'lodash'
 
 const initialState: StylesState = stylesState
 
 const stylesSlice = createSlice({
-  name: "styles",
+  name: 'styles',
   initialState,
   reducers: {
     updateStyles(state, action: PayloadAction<Style[]>) {
-      state.styles = action.payload;
-    },
-  },
-});
+      state.styles = action.payload
+    }
+  }
+})
 
-export const { updateStyles } = stylesSlice.actions;
-export default stylesSlice.reducer;
+export const { updateStyles } = stylesSlice.actions
+export default stylesSlice.reducer

@@ -1,20 +1,27 @@
-import React from "react";
-import ButtonColor from "@/components/button-color";
-import HighlighterSplitted from "./icons/Highlighter";
+import React from 'react'
+import ButtonColor from '@/components/button-color'
+import HighlighterSplitted from './icons/Highlighter'
 
 interface HighlightColorProps {
-  onSelect?: (color: string) => void;
-  highlightColorInputRef?: React.RefObject<HTMLInputElement>;
-  highlightColor: string;
-  tabIndex?: number;
-  tooltip?: string;
-  ariaLabel?: string;
+  onSelect?: (color: string) => void
+  highlightColorInputRef?: React.RefObject<HTMLInputElement>
+  highlightColor: string
+  tabIndex?: number
+  tooltip?: string
+  ariaLabel?: string
 }
 // highlightColor
-const HighlightColor: React.FC<HighlightColorProps> = ({ onSelect, highlightColorInputRef, highlightColor, tabIndex = 0, ariaLabel = 'Highlight Color', tooltip }) => {
+const HighlightColor: React.FC<HighlightColorProps> = ({
+  onSelect,
+  highlightColorInputRef,
+  highlightColor,
+  tabIndex = 0,
+  ariaLabel = 'Highlight Color',
+  tooltip
+}) => {
   const handleClick = (): void => {
-    highlightColorInputRef?.current?.click();
-  };
+    highlightColorInputRef?.current?.click()
+  }
 
   return (
     <ButtonColor
@@ -27,7 +34,7 @@ const HighlightColor: React.FC<HighlightColorProps> = ({ onSelect, highlightColo
         <HighlighterSplitted
           className="[&>path:first-child]:fill-current"
           style={{ color: highlightColor }}
-          size='small'
+          size="small"
         />
       }
       handleClick={handleClick}
@@ -35,4 +42,4 @@ const HighlightColor: React.FC<HighlightColorProps> = ({ onSelect, highlightColo
   )
 }
 
-export default HighlightColor;
+export default HighlightColor

@@ -97,22 +97,26 @@ The project supports multiple languages through the `i18n/` directory. Use the `
 ### File Naming
 
 1. **Reusable Components**
+
    - All reusable components (except page components) should use snake case naming
    - Example: `button_group.tsx`, `data_table.tsx`, `form_input.tsx`
    - This applies to components in `components/`, `lib/`, and any other shared component directories
 
 2. **Page Components**
+
    - Page components should use Pascal case naming
    - Example: `HomePage.tsx`, `SettingsPage.tsx`, `UserProfile.tsx`
    - These are typically located in the `pages/` directory
 
 3. **Hooks**
+
    - Custom hooks should use camel case with 'use' prefix
    - Example: `useWindowSize.ts`, `useLocalStorage.ts`
 
 4. **Utility Files**
+
    - Utility files should use camel case
-   - Example: `formatDate.ts`, `validationUtils.ts` 
+   - Example: `formatDate.ts`, `validationUtils.ts`
 
 5. **Type Definitions**
    - Type definition files should use camel case
@@ -121,6 +125,7 @@ The project supports multiple languages through the `i18n/` directory. Use the `
 ### Component Naming
 
 1. **Component Names**
+
    - Component names should use Pascal case
    - Example: `ButtonGroup`, `DataTable`, `FormInput`
    - This applies regardless of the file naming convention
@@ -134,10 +139,12 @@ The project supports multiple languages through the `i18n/` directory. Use the `
 ### Variable and Function Naming
 
 1. **Variables**
+
    - Use camel case for variables
    - Example: `userData`, `isLoading`, `handleSubmit`
 
 2. **Functions**
+
    - Use camel case for functions
    - Event handlers should be prefixed with 'handle'
    - Example: `handleClick`, `handleSubmit`, `fetchData`
@@ -149,11 +156,10 @@ The project supports multiple languages through the `i18n/` directory. Use the `
 ### Import/Export Naming
 
 1. **Default Exports**
+
    - Use Pascal case for default exports
    - Example: `export default ButtonGroup`
 
 2. **Named Exports**
    - Use camel case for named exports
    - Example: `export const formatDate`, `export const validateInput`
-
-

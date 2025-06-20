@@ -4,48 +4,48 @@ const ListItemName = 'listItem'
 const TextStyleName = 'textStyle'
 
 export interface OrderedListOptions {
-    /**
-     * The node type name for list items.
-     * @default 'listItem'
-     * @example 'myListItem'
-     */
-    itemTypeName: string,
+  /**
+   * The node type name for list items.
+   * @default 'listItem'
+   * @example 'myListItem'
+   */
+  itemTypeName: string
 
-    /**
-     * The HTML attributes for an ordered list node.
-     * @default {}
-     * @example { class: 'foo' }
-     */
-    HTMLAttributes: Record<string, any>,
+  /**
+   * The HTML attributes for an ordered list node.
+   * @default {}
+   * @example { class: 'foo' }
+   */
+  HTMLAttributes: Record<string, any>
 
-    /**
-     * Keep the marks when splitting a list item.
-     * @default false
-     * @example true
-     */
-    keepMarks: boolean,
+  /**
+   * Keep the marks when splitting a list item.
+   * @default false
+   * @example true
+   */
+  keepMarks: boolean
 
-    /**
-     * Keep the attributes when splitting a list item.
-     * @default false
-     * @example true
-     */
-    keepAttributes: boolean,
+  /**
+   * Keep the attributes when splitting a list item.
+   * @default false
+   * @example true
+   */
+  keepAttributes: boolean
 }
 
 declare module '@tiptap/core' {
-    interface Commands<ReturnType> {
-        orderList: {
-            /**
-             * Toggle an ordered list
-             * @example editor.commands.toggleOrderList()
-             */
-            toggleOrderList: (listStyle?: string) => ReturnType,
-            getOrderListStyleType: () => any,
-            unsetOrderList: () => ReturnType,
-            continueFromPreviousNumber: () => ReturnType,
-        }
+  interface Commands<ReturnType> {
+    orderList: {
+      /**
+       * Toggle an ordered list
+       * @example editor.commands.toggleOrderList()
+       */
+      toggleOrderList: (listStyle?: string) => ReturnType
+      getOrderListStyleType: () => any
+      unsetOrderList: () => ReturnType
+      continueFromPreviousNumber: () => ReturnType
     }
+  }
 }
 
 /**
@@ -60,169 +60,178 @@ export const inputRegex = /^(\d+)\.\s$/
  * @see https://www.tiptap.dev/api/nodes/list-item
  */
 export const CustomOrderList = Node.create<OrderedListOptions>({
-    name: 'orderList',
+  name: 'orderList',
 
-    addOptions() {
-        return {
-            itemTypeName: 'listItem',
-            HTMLAttributes: {},
-            keepMarks: false,
-            keepAttributes: false,
+  addOptions() {
+    return {
+      itemTypeName: 'listItem',
+      HTMLAttributes: {},
+      keepMarks: false,
+      keepAttributes: false
+    }
+  },
+
+  group: 'block list',
+
+  content() {
+    return `${this.options.itemTypeName}+`
+  },
+
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      start: {
+        default: 1,
+        parseHTML: (element) => {
+          return element.hasAttribute('start')
+            ? parseInt(element.getAttribute('start') || '', 10)
+            : 1
         }
-    },
-
-    group: 'block list',
-
-    content() {
-        return `${this.options.itemTypeName}+`
-    },
-
-    addAttributes() {
-        return {
-            ...this.parent?.(),
-            start: {
-                default: 1,
-                parseHTML: element => {
-                    return element.hasAttribute('start')
-                        ? parseInt(element.getAttribute('start') || '', 10)
-                        : 1
-                },
-            },
-            type: {
-                default: undefined,
-                parseHTML: element => element.getAttribute('type'),
-            },
-            listStyle: {
-                default: 'decimal', // Default style
-                parseHTML: (element) => element.style.listStyleType || 'decimal',
-                renderHTML: (attributes) => {
-                    if (!attributes.listStyle) {
-                        return {};
-                    }
-                    return {
-                        style: `list-style-type: ${attributes.listStyle} !important`,
-                    };
-                },
-            },
-            indent: {
-                default: 0,
-                parseHTML: (element) => parseInt(element.getAttribute('data-indent') || '0', 10),
-                renderHTML: (attributes) => {
-                    if (!attributes.indent || attributes.indent === 0) {
-                        return {};
-                    }
-                    return {
-                        style: `margin-left: ${attributes.indent * 40}px !important;`,
-                        'data-indent': attributes.indent,
-                    };
-                },
-            },
+      },
+      type: {
+        default: undefined,
+        parseHTML: (element) => element.getAttribute('type')
+      },
+      listStyle: {
+        default: 'decimal', // Default style
+        parseHTML: (element) => element.style.listStyleType || 'decimal',
+        renderHTML: (attributes) => {
+          if (!attributes.listStyle) {
+            return {}
+          }
+          return {
+            style: `list-style-type: ${attributes.listStyle} !important`
+          }
         }
-    },
-
-    parseHTML() {
-        return [
-            {
-                tag: 'ol',
-            },
-        ]
-    },
-
-
-    addStorage() {
-        return {
-            HTMLAttributes: { ...this.options.HTMLAttributes },
+      },
+      indent: {
+        default: 0,
+        parseHTML: (element) => parseInt(element.getAttribute('data-indent') || '0', 10),
+        renderHTML: (attributes) => {
+          if (!attributes.indent || attributes.indent === 0) {
+            return {}
+          }
+          return {
+            style: `margin-left: ${attributes.indent * 40}px !important;`,
+            'data-indent': attributes.indent
+          }
         }
-    },
+      }
+    }
+  },
 
-    renderHTML({ HTMLAttributes }) {
-        const { start, ...attributesWithoutStart } = HTMLAttributes
+  parseHTML() {
+    return [
+      {
+        tag: 'ol'
+      }
+    ]
+  },
 
-        return start === 1
-            ? ['ol', mergeAttributes(this.options.HTMLAttributes, attributesWithoutStart), 0]
-            : ['ol', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
-    },
+  addStorage() {
+    return {
+      HTMLAttributes: { ...this.options.HTMLAttributes }
+    }
+  },
 
-    addCommands() {
-        return {
-            toggleOrderList: (listStyle?: string) => ({ chain }) => {
-                this.storage.HTMLAttributes.listStyle = listStyle;
-                if (this.options.keepAttributes) {
-                    return chain()
-                        .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
-                        .updateAttributes(this.name, { listStyle })
-                        .updateAttributes(ListItemName, this.editor.getAttributes(TextStyleName))
-                        .run()
-                }
-                return chain()
-                    .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
-                    .updateAttributes(this.name, { listStyle })
-                    .run();
-            },
-            getBulletListStyleType: () => () => {
-                return this.storage.HTMLAttributes.listStyle || 'decimal';
-            },
-            unsetOrderList: () => ({ chain }) => {
-                this.storage.HTMLAttributes.listStyle = 'decimal';
-                return chain()
-                    .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
-                    .run();
-            },
-            continueFromPreviousNumber: () => ({ chain }) => {
+  renderHTML({ HTMLAttributes }) {
+    const { start, ...attributesWithoutStart } = HTMLAttributes
 
-                const { from } = this.editor.state.selection;
-                const currentNode = this.editor.state.doc.resolve(from);
-                let start = 1;
+    return start === 1
+      ? ['ol', mergeAttributes(this.options.HTMLAttributes, attributesWithoutStart), 0]
+      : ['ol', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
+  },
 
-                // Traverse backwards from the current position
-                for (let pos = currentNode.pos - 1; pos >= 0; pos--) {
-                    const node = this.editor.state.doc.nodeAt(pos);
-                    if (!node) continue;
+  addCommands() {
+    return {
+      toggleOrderList:
+        (listStyle?: string) =>
+        ({ chain }) => {
+          this.storage.HTMLAttributes.listStyle = listStyle
+          if (this.options.keepAttributes) {
+            return chain()
+              .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
+              .updateAttributes(this.name, { listStyle })
+              .updateAttributes(ListItemName, this.editor.getAttributes(TextStyleName))
+              .run()
+          }
+          return chain()
+            .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
+            .updateAttributes(this.name, { listStyle })
+            .run()
+        },
+      getBulletListStyleType: () => () => {
+        return this.storage.HTMLAttributes.listStyle || 'decimal'
+      },
+      unsetOrderList:
+        () =>
+        ({ chain }) => {
+          this.storage.HTMLAttributes.listStyle = 'decimal'
+          return chain()
+            .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
+            .run()
+        },
+      continueFromPreviousNumber:
+        () =>
+        ({ chain }) => {
+          const { from } = this.editor.state.selection
+          const currentNode = this.editor.state.doc.resolve(from)
+          let start = 1
 
-                    if (node.type.name === this.name && node.attrs.listStyle === 'decimal' && node.nodeSize < currentNode.pos - pos) {
-                        start = node.attrs.start + node.childCount;
-                        break;
-                    }
-                }
+          // Traverse backwards from the current position
+          for (let pos = currentNode.pos - 1; pos >= 0; pos--) {
+            const node = this.editor.state.doc.nodeAt(pos)
+            if (!node) continue
 
-                if (this.editor.isActive(this.name)) {
-                    // If the list is already active, just update the start number
-                    return chain()
-                        .updateAttributes(this.name, { start })
-                        .updateAttributes(ListItemName, this.editor.getAttributes(TextStyleName))
-                        .run()
-                }
+            if (
+              node.type.name === this.name &&
+              node.attrs.listStyle === 'decimal' &&
+              node.nodeSize < currentNode.pos - pos
+            ) {
+              start = node.attrs.start + node.childCount
+              break
+            }
+          }
 
-                return chain()
-                    .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
-                    .updateAttributes(this.name, { listStyle: 'decimal', start })
-                    .updateAttributes(ListItemName, this.editor.getAttributes(TextStyleName))
-                    .run()
-            },
+          if (this.editor.isActive(this.name)) {
+            // If the list is already active, just update the start number
+            return chain()
+              .updateAttributes(this.name, { start })
+              .updateAttributes(ListItemName, this.editor.getAttributes(TextStyleName))
+              .run()
+          }
+
+          return chain()
+            .toggleList(this.name, this.options.itemTypeName, this.options.keepMarks)
+            .updateAttributes(this.name, { listStyle: 'decimal', start })
+            .updateAttributes(ListItemName, this.editor.getAttributes(TextStyleName))
+            .run()
         }
-    },
+    }
+  },
 
-    addInputRules() {
-        let inputRule = wrappingInputRule({
-            find: inputRegex,
-            type: this.type,
-            getAttributes: match => ({ start: +match[1] }),
-            joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
-        })
+  addInputRules() {
+    let inputRule = wrappingInputRule({
+      find: inputRegex,
+      type: this.type,
+      getAttributes: (match) => ({ start: +match[1] }),
+      joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1]
+    })
 
-        if (this.options.keepMarks || this.options.keepAttributes) {
-            inputRule = wrappingInputRule({
-                find: inputRegex,
-                type: this.type,
-                keepMarks: this.options.keepMarks,
-                keepAttributes: this.options.keepAttributes,
-                getAttributes: match => ({ start: +match[1], ...this.editor.getAttributes(TextStyleName) }),
-                joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
-                editor: this.editor,
-            })
-        }
-        return [
-            inputRule,
-        ]
-    },
+    if (this.options.keepMarks || this.options.keepAttributes) {
+      inputRule = wrappingInputRule({
+        find: inputRegex,
+        type: this.type,
+        keepMarks: this.options.keepMarks,
+        keepAttributes: this.options.keepAttributes,
+        getAttributes: (match) => ({
+          start: +match[1],
+          ...this.editor.getAttributes(TextStyleName)
+        }),
+        joinPredicate: (match, node) => node.childCount + node.attrs.start === +match[1],
+        editor: this.editor
+      })
+    }
+    return [inputRule]
+  }
 })

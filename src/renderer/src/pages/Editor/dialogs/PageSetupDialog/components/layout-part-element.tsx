@@ -1,48 +1,40 @@
-import Check from "@/components/icons/Check";
-import Pencil from "@/components/icons/Pencil";
-import Button from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { ReactNode, useEffect, useState } from "react";
-import DragHandle from "@/components/icons/DragHandle";
-import Typogaphy from "@/components/Typography";
+import Check from '@/components/icons/Check'
+import Pencil from '@/components/icons/Pencil'
+import Button from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { ReactNode, useEffect, useState } from 'react'
+import DragHandle from '@/components/icons/DragHandle'
+import Typogaphy from '@/components/Typography'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  ApparatusTypes,
-  ColDetailsType,
-  TElement,
-} from "@/pages/editor/store/layout/layout.state";
-import { settingsLayout } from "../constants";
-import CloseBig from "@/components/icons/CloseBig";
-import { useTranslation } from "react-i18next";
-import { TooltipTrigger, TooltipContent, Tooltip } from "@radix-ui/react-tooltip";
+  SelectValue
+} from '@/components/ui/select'
+import { ApparatusTypes, ColDetailsType, TElement } from '@/pages/editor/store/layout/layout.state'
+import { settingsLayout } from '../constants'
+import CloseBig from '@/components/icons/CloseBig'
+import { useTranslation } from 'react-i18next'
+import { TooltipTrigger, TooltipContent, Tooltip } from '@radix-ui/react-tooltip'
 
 interface LayoutPartElementProps {
-  details: TElement;
-  onDelete: (index: number) => void;
-  index: number;
-  onChangeColumnNr: (i: number, details: TElement) => void;
-  readonly?: boolean;
-  sectionTypes: { [key in ApparatusTypes]: ColDetailsType };
-  dragHandler: (c: ReactNode) => ReactNode;
-  curLayout?: string;
-  curSection: string;
+  details: TElement
+  onDelete: (index: number) => void
+  index: number
+  onChangeColumnNr: (i: number, details: TElement) => void
+  readonly?: boolean
+  sectionTypes: { [key in ApparatusTypes]: ColDetailsType }
+  dragHandler: (c: ReactNode) => ReactNode
+  curLayout?: string
+  curSection: string
   setIncludedElements: (action: {
-    type:
-    | "textColumns"
-    | "nrApparatus"
-    | "apparatusColumns"
-    | "apparatusDetails";
-    posi: string;
-    payload: number | TElement[];
-  }) => void;
-  apparatusDetails: TElement[];
+    type: 'textColumns' | 'nrApparatus' | 'apparatusColumns' | 'apparatusDetails'
+    posi: string
+    payload: number | TElement[]
+  }) => void
+  apparatusDetails: TElement[]
 }
 
 const LayoutPartElement = ({
@@ -56,87 +48,83 @@ const LayoutPartElement = ({
   sectionTypes,
   dragHandler,
   setIncludedElements,
-  apparatusDetails,
+  apparatusDetails
 }: LayoutPartElementProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
-  const [edit, setEdit] = useState<boolean>(false);
-  const [dets, setDets] = useState<TElement>(details);
+  const [edit, setEdit] = useState<boolean>(false)
+  const [dets, setDets] = useState<TElement>(details)
   const [apparatusSectionTypes, setApparatusSectionTypes] = useState<string[]>(
-    Object.keys(sectionTypes).filter((type) => { type !== "text" })
-  );
+    Object.keys(sectionTypes).filter((type) => {
+      type !== 'text'
+    })
+  )
 
   const editEndHandler = (i, details) => {
-   
-    console.log({details})
-    onChangeColumnNr(i, details);
-    setEdit(false);
-  };
+    console.log({ details })
+    onChangeColumnNr(i, details)
+    setEdit(false)
+  }
 
-  const getArrayFromNumber = (num) =>
-    Array.from({ length: num }, (_, i) => i + 1);
-  const changeTitleValue = (e) =>{
-     const findSameName = apparatusDetails.find(({title})=>title===e.target.value);
-    if(!findSameName){
-      setDets((prev) => ({ ...prev, title: e.target.value }));
+  const getArrayFromNumber = (num) => Array.from({ length: num }, (_, i) => i + 1)
+  const changeTitleValue = (e) => {
+    const findSameName = apparatusDetails.find(({ title }) => title === e.target.value)
+    if (!findSameName) {
+      setDets((prev) => ({ ...prev, title: e.target.value }))
     }
-  };
+  }
 
   const sectionTypeLabel = (sectionType) => {
     switch (sectionType) {
-      case "text":
-        return "Text";
-      case "critical":
-        return "Critical";
-      case "pageNotes":
-        return "Page notes";
-      case "sectionNotes":
-        return "Section notes";
-      case "innerMargin":
-        return "Inner margin";
-      case "outerMargin":
-        return "Outer margin";
+      case 'text':
+        return 'Text'
+      case 'critical':
+        return 'Critical'
+      case 'pageNotes':
+        return 'Page notes'
+      case 'sectionNotes':
+        return 'Section notes'
+      case 'innerMargin':
+        return 'Inner margin'
+      case 'outerMargin':
+        return 'Outer margin'
       default:
-        return "Critical";
+        return 'Critical'
     }
-  };
+  }
 
   useEffect(() => {
-    if (!curLayout || !curSection || !dets.sectionType) return;
+    if (!curLayout || !curSection || !dets.sectionType) return
 
     const maxColumns =
-      settingsLayout?.[curLayout]?.[curSection]?.columnDetails?.[
-        dets.sectionType
-      ]?.columnNr || 1;
+      settingsLayout?.[curLayout]?.[curSection]?.columnDetails?.[dets.sectionType]?.columnNr || 1
 
     if ((dets.columns || 1) > maxColumns) {
-      setDets((prev) => ({ ...prev, columns: 1 }));
+      setDets((prev) => ({ ...prev, columns: 1 }))
     }
     const updateThumbnails = apparatusDetails.map((app) => ({
       ...app,
-      columns: 1,
-    }));
+      columns: 1
+    }))
     setIncludedElements({
-      type: "apparatusDetails",
+      type: 'apparatusDetails',
       posi: curSection,
-      payload: updateThumbnails,
-    });
-  }, [curLayout]);
+      payload: updateThumbnails
+    })
+  }, [curLayout])
 
   useEffect(() => {
-    const updateThumbnails = apparatusDetails.map((app) =>
-      app.id === dets.id ? dets : app
-    );
+    const updateThumbnails = apparatusDetails.map((app) => (app.id === dets.id ? dets : app))
     setIncludedElements({
-      type: "apparatusDetails",
+      type: 'apparatusDetails',
       posi: curSection,
-      payload: updateThumbnails,
-    });
-  }, [dets]);
+      payload: updateThumbnails
+    })
+  }, [dets])
 
   useEffect(() => {
-    setApparatusSectionTypes(Object.keys(sectionTypes).filter((type) => type !== "text"));
-  }, [sectionTypes]);
+    setApparatusSectionTypes(Object.keys(sectionTypes).filter((type) => type !== 'text'))
+  }, [sectionTypes])
 
   return (
     <div className="flex justify-start">
@@ -148,15 +136,17 @@ const LayoutPartElement = ({
         )}
 
         <Checkbox
-          className={`${(apparatusDetails.length=== 2 || dets.type === 'text') && "data-[state=checked]:bg-grey-70 data-[state=checked]:border-grey-70 data-[state=checked]:text-grey-30"} 
+          className={`${(apparatusDetails.length === 2 || dets.type === 'text') && 'data-[state=checked]:bg-grey-70 data-[state=checked]:border-grey-70 data-[state=checked]:text-grey-30'} 
                 mt-2 h-5 w-5 disabled:bg-grey-70 disabled:border-grey-70 disabled:text-grey-30`}
-          defaultChecked={(apparatusDetails.length===2 || dets.type === 'text') ? true : dets.visible}
-          disabled={apparatusDetails.length===2 || dets.type === 'text'}
+          defaultChecked={
+            apparatusDetails.length === 2 || dets.type === 'text' ? true : dets.visible
+          }
+          disabled={apparatusDetails.length === 2 || dets.type === 'text'}
           onCheckedChange={(checked) => {
             setDets((prev) => ({
               ...prev,
-              visible: checked as boolean,
-            }));
+              visible: checked as boolean
+            }))
           }}
         />
         <div className="flex flex-col">
@@ -171,15 +161,19 @@ const LayoutPartElement = ({
               <Tooltip>
                 <TooltipTrigger>
                   <div className="w-[8rem]">
-                    <Typogaphy component="p" className={`${dets.title.length > 15 && 'truncate'} text-left font-semibold`}>
+                    <Typogaphy
+                      component="p"
+                      className={`${dets.title.length > 15 && 'truncate'} text-left font-semibold`}
+                    >
                       {dets.title}
-                    </Typogaphy>              
+                    </Typogaphy>
                   </div>
-
                 </TooltipTrigger>
-                {dets.title.length > 15 && <TooltipContent className="bg-white p-2 z-50">
-                  <p> {dets.title}</p>
-                </TooltipContent>}
+                {dets.title.length > 15 && (
+                  <TooltipContent className="bg-white p-2 z-50">
+                    <p> {dets.title}</p>
+                  </TooltipContent>
+                )}
               </Tooltip>
             )}
           </div>
@@ -191,20 +185,20 @@ const LayoutPartElement = ({
               onValueChange={(val: string) => {
                 setDets((prev) => {
                   if (val === 'outerMargin' || val === 'innerMargin') {
-                    return ({
+                    return {
                       ...prev,
                       columns: 1,
-                      sectionType: val,
-                    })
+                      sectionType: val
+                    }
                   }
-                  return ({
+                  return {
                     ...prev,
-                    sectionType: val,
-                  })
-                });
+                    sectionType: val
+                  }
+                })
               }}
             >
-              {details && details.type === "apparatus" && (
+              {details && details.type === 'apparatus' && (
                 <SelectTrigger
                   className="min-w-[140px]
                                     pl-[4px]
@@ -242,13 +236,11 @@ const LayoutPartElement = ({
             </Select>
           </div>
           <div>
-            {(dets.type === "apparatus" || dets.type === "text") && (
+            {(dets.type === 'apparatus' || dets.type === 'text') && (
               <Select
                 disabled={!edit}
                 value={(dets?.columns || 1).toString()}
-                onValueChange={(val) =>
-                  setDets((prev) => ({ ...prev, columns: parseInt(val) }))
-                }
+                onValueChange={(val) => setDets((prev) => ({ ...prev, columns: parseInt(val) }))}
               >
                 <SelectTrigger
                   className="
@@ -269,13 +261,10 @@ const LayoutPartElement = ({
                 <SelectContent className="rounded-xl">
                   {curLayout &&
                     settingsLayout[curLayout][curSection].columnDetails &&
-                    settingsLayout[curLayout][curSection].columnDetails[
-                    dets.sectionType
-                    ] &&
+                    settingsLayout[curLayout][curSection].columnDetails[dets.sectionType] &&
                     getArrayFromNumber(
-                      settingsLayout[curLayout][curSection].columnDetails[
-                        dets.sectionType
-                      ].columnNr || 1
+                      settingsLayout[curLayout][curSection].columnDetails[dets.sectionType]
+                        .columnNr || 1
                     ).map((_, i) => (
                       <SelectItem
                         className="
@@ -289,7 +278,7 @@ const LayoutPartElement = ({
                         value={(i + 1).toString()}
                         key={i + 1}
                       >
-                        {i + 1} {t("pageSetup.component.columns")}
+                        {i + 1} {t('pageSetup.component.columns')}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -299,11 +288,7 @@ const LayoutPartElement = ({
         </div>
       </div>
       {edit && (
-        <Button
-          variant="icon"
-          size="icon"
-          onClick={() => editEndHandler(index, dets)}
-        >
+        <Button variant="icon" size="icon" onClick={() => editEndHandler(index, dets)}>
           <Check size={22} />
         </Button>
       )}
@@ -313,8 +298,8 @@ const LayoutPartElement = ({
           <Button variant="icon" size="icon" onClick={() => setEdit(true)}>
             <Pencil size={22} />
           </Button>
-          
-          {(apparatusDetails.length>2 && index!==0) && (
+
+          {apparatusDetails.length > 2 && index !== 0 && (
             <Button
               variant="icon"
               size="icon"
@@ -328,7 +313,7 @@ const LayoutPartElement = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default LayoutPartElement;
+export default LayoutPartElement

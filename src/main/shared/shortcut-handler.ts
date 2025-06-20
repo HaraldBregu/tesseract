@@ -1,10 +1,10 @@
-import { globalShortcut, WebContentsView, app } from "electron";
-import { MenuItemId } from "./types";
+import { globalShortcut, WebContentsView, app } from 'electron'
+import { MenuItemId } from './types'
 
 // Map of all shortcuts to their corresponding menu item IDs
 interface ShortcutMapping {
-  shortcut: string;
-  menuItemId: string;
+  shortcut: string
+  menuItemId: string
 }
 
 // Complete list of all shortcuts from menu files
@@ -14,7 +14,7 @@ const MENU_SHORTCUTS: ShortcutMapping[] = [
   { shortcut: 'CmdOrCtrl+I', menuItemId: MenuItemId.FONT_ITALIC },
   { shortcut: 'CmdOrCtrl+U', menuItemId: MenuItemId.FONT_UNDERLINE },
   { shortcut: 'CmdOrCtrl+T', menuItemId: MenuItemId.FONT_STRIKETHROUGH },
-  { shortcut: 'CmdOrCtrl+,', menuItemId: MenuItemId.FONT_SUPERSCRIPT},
+  { shortcut: 'CmdOrCtrl+,', menuItemId: MenuItemId.FONT_SUPERSCRIPT },
   { shortcut: 'CmdOrCtrl+.', menuItemId: MenuItemId.FONT_SUBSCRIPT },
   { shortcut: 'Fn+F7', menuItemId: MenuItemId.FONT_NPC },
   { shortcut: 'CmdOrCtrl+Shift+L', menuItemId: MenuItemId.TEXT_ALIGN_LEFT },
@@ -98,17 +98,17 @@ const MENU_SHORTCUTS: ShortcutMapping[] = [
 
   // Developer menu shortcuts
   { shortcut: 'CmdOrCtrl+R', menuItemId: MenuItemId.RELOAD },
-  { shortcut: 'Alt+CmdOrCtrl+I', menuItemId: MenuItemId.TOGGLE_DEV_TOOLS },
-];
+  { shortcut: 'Alt+CmdOrCtrl+I', menuItemId: MenuItemId.TOGGLE_DEV_TOOLS }
+]
 
 export function registerGlobalShortcut(webContentsView: WebContentsView): void {
   // Unregister any existing shortcuts first
-  globalShortcut.unregisterAll();
+  globalShortcut.unregisterAll()
 
   // Register dev tools shortcut
   globalShortcut.register('CommandOrControl+Shift+I', () => {
-    webContentsView?.webContents.toggleDevTools();
-  });
+    webContentsView?.webContents.toggleDevTools()
+  })
 
   // Register all menu shortcuts
   MENU_SHORTCUTS.forEach(({ shortcut, menuItemId }) => {
@@ -116,12 +116,12 @@ export function registerGlobalShortcut(webContentsView: WebContentsView): void {
       webContentsView.webContents.send('shortcut-command', {
         shortcut: shortcut,
         menuItemId: menuItemId
-      });
-    });
-  });
+      })
+    })
+  })
 
   // Clean up on app quit
   app.on('will-quit', () => {
-    globalShortcut.unregisterAll();
-  });
+    globalShortcut.unregisterAll()
+  })
 }

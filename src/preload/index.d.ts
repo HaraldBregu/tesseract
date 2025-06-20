@@ -7,10 +7,10 @@ declare global {
     store: unknown
     tabs: ITabsAPI
     menu: IMenuAPI
-    system: ISystemAPI,
-    application: IApplicationAPI,
-    doc: IDocumentAPI,
-    theme: IThemeAPI,
+    system: ISystemAPI
+    application: IApplicationAPI
+    doc: IDocumentAPI
+    theme: IThemeAPI
   }
 }
 
@@ -25,7 +25,9 @@ interface ITabsAPI {
 
 interface IMenuAPI {
   disableReferencesMenuItems: (items: string[]) => Promise<void>
-  updateViewApparatusesMenuItems: (items: { id: string, title: string, visible: boolean }[]) => Promise<void>
+  updateViewApparatusesMenuItems: (
+    items: { id: string; title: string; visible: boolean }[]
+  ) => Promise<void>
   setTocVisibility: (visibility: boolean) => Promise<void>
   setTocMenuItemsEnabled: (isEnable: boolean) => Promise<void>
 }
@@ -69,4 +71,3 @@ interface IThemeAPI {
   setTheme: (theme: 'light' | 'dark' | 'system') => Promise<void>
   getTheme: () => Promise<'light' | 'dark' | 'system'>
 }
-

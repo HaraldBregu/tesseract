@@ -11,7 +11,7 @@
       "@resources/*": ["buildResources/*"]
     },
     "jsx": "react-jsx",
-    "types": ["jest", "@testing-library/jest-dom"],
+    "types": [],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
@@ -22,8 +22,5 @@
     "skipLibCheck": true
   },
   "files": [],
-  "references": [
-    { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.web.json" }
-  ]
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]
 }

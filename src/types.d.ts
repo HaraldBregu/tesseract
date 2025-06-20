@@ -1,21 +1,20 @@
-
 // type RequiredProp<T, P extends keyof T> = T & Required<Pick<T, P>>;
 
 // TODO
 type CustomMark = {
-    id: string;
-    title: string;
-    description?: string;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-    author: string;
+  id: string
+  title: string
+  description?: string
+  content: string
+  createdAt: string
+  updatedAt: string
+  author: string
 }
 
 /**
  * Bookmark is a type that represents a single bookmark in the text editor.
  * It is used to store the bookmark data in the text editor.
- * 
+ *
  * @property id - The id of the bookmark.
  * @property title - The title of the bookmark.
  * @property description - The description of the bookmark.
@@ -27,23 +26,23 @@ type CustomMark = {
  * @property visible - Whether the bookmark is visible.
  */
 type Bookmark = {
-    id: string;
-    title: string;
-    description?: string;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-    author: string;
-    categoryId?: string;
-    visible: boolean;
+  id: string
+  title: string
+  description?: string
+  content: string
+  createdAt: string
+  updatedAt: string
+  author: string
+  categoryId?: string
+  visible: boolean
 }
 
 /**
  * AppComment is a type that represents a single comment in the text editor.
  * It is used to store the comment data in the text editor.
- * 
+ *
  * @property id - The id of the comment.
- * @property description - The description of the comment.      
+ * @property description - The description of the comment.
  * @property content - The content of the comment.
  * @property target - The target of the comment.
  * @property createdAt - The date and time the comment was created.
@@ -53,29 +52,29 @@ type Bookmark = {
  * @property visible - Whether the comment is visible.
  */
 type AppComment = {
-    id: string;
-    description?: string;
-    content: string;
-    target: CommentTarget;
-    createdAt: string;
-    updatedAt: string;
-    author: string;
-    categoryId?: string;
-    visible: boolean;
+  id: string
+  description?: string
+  content: string
+  target: CommentTarget
+  createdAt: string
+  updatedAt: string
+  author: string
+  categoryId?: string
+  visible: boolean
 }
 
 /**
  * CommentTarget is a type that represents the target of the comment.
  * It is used to store the target of the comment in the text editor.
- * 
+ *
  * @property MAIN_TEXT - The main text.
  * @property APPARATUS_TEXT - The apparatus text.
  */
 type CommentTarget = 'MAIN_TEXT' | 'APPARATUS_TEXT'
 
 type Category = {
-    id: string;
-    name: string;
+  id: string
+  name: string
 }
 
 type BookmarkCategory = Category<Bookmark>
@@ -85,87 +84,86 @@ type CommentCategory = Category<AppComment>
 /**
  * Apparatus is a type that represents a single apparatus in the text editor.
  * It is used to store the apparatus data in the text editor.
- * 
+ *
  * @property id - The id of the apparatus.
  * @property title - The title of the apparatus.
  * @property type - The type of the apparatus.
  * @property visible - Whether the apparatus is visible.
  */
 type Apparatus = {
-    id: string;
-    title: string;
-    type: ApparatusType;
-    visible: boolean;
+  id: string
+  title: string
+  type: ApparatusType
+  visible: boolean
 }
 
 /**
  * ApparatusType is a type that represents the type of the apparatus.
  * It is used to store the type of the apparatus in the text editor.
- * 
+ *
  * @property CRITICAL - The critical apparatus.
  * @property PAGE_NOTES - The page notes apparatus.
  * @property SECTION_NOTES - The section notes apparatus.
  * @property INNER_MARGIN - The inner margin apparatus.
  * @property OUTER_MARGIN - The outer margin apparatus.
  */
-type ApparatusType = 'CRITICAL' | 'PAGE_NOTES' | 'SECTION_NOTES' | 'INNER_MARGIN' | 'OUTER_MARGIN';
+type ApparatusType = 'CRITICAL' | 'PAGE_NOTES' | 'SECTION_NOTES' | 'INNER_MARGIN' | 'OUTER_MARGIN'
 
 /**
  * DocumentApparatus is a type that represents a single apparatus in the text editor.
  * It is used to store the apparatus data in the text editor.
- * 
+ *
  * @property title - The title of the apparatus.
  * @property type - The type of the apparatus.
  */
 type DocumentApparatus = Pick<Apparatus, 'title' | 'type' | 'visible'> & {
-    content: object | null
+  content: object | null
 }
 
 type FileNameExt = '.critx' | '.pdf' | '.png' | '.jpg' | '.jpeg'
 
 type FileType = FileNameExt extends `.${infer T}` ? T : never
 
-type NodeTextAlign = "left" | "center" | "right" | "justify"
+type NodeTextAlign = 'left' | 'center' | 'right' | 'justify'
 
 type ElementAttribute = {
-    fontSize: string
-    fontFamily: string
-    fontWeight: string
-    fontStyle: string;
-    textAlign: NodeTextAlign;
-    color: string | null | undefined;
-    lineHeight: string;
-    marginLeft: string;
-    marginRight: string;
-    marginTop: string;
-    marginBottom: string;
+  fontSize: string
+  fontFamily: string
+  fontWeight: string
+  fontStyle: string
+  textAlign: NodeTextAlign
+  color: string | null | undefined
+  lineHeight: string
+  marginLeft: string
+  marginRight: string
+  marginTop: string
+  marginBottom: string
 }
 
 type TargetTypeStyle =
-    | "TOC"
-    | "TOC_H1"
-    | "TOC_H2"
-    | "TOC_H3"
-    | "TOC_H4"
-    | "TOC_H5"
-    | "H1"
-    | "H2"
-    | "H3"
-    | "H4"
-    | "H5"
-    | "H6"
-    | "P"
-    | "APP_LEM"
-    | "APP_VAR"
-    | "ANN"
-    | "NOTE_REF_TXT"
-    | "NOTE_REF_FOOT"
-    | "NOTE"
-    | "BIB"
-    | "HEAD"
-    | "FOOT"
-    | "CUSTOM"; // Represent the styles created by the user.
-
+  | 'TOC'
+  | 'TOC_H1'
+  | 'TOC_H2'
+  | 'TOC_H3'
+  | 'TOC_H4'
+  | 'TOC_H5'
+  | 'H1'
+  | 'H2'
+  | 'H3'
+  | 'H4'
+  | 'H5'
+  | 'H6'
+  | 'P'
+  | 'APP_LEM'
+  | 'APP_VAR'
+  | 'ANN'
+  | 'NOTE_REF_TXT'
+  | 'NOTE_REF_FOOT'
+  | 'NOTE'
+  | 'BIB'
+  | 'HEAD'
+  | 'FOOT'
+  | 'CUSTOM' // Represent the styles created by the user.
 
 /**
  * Represents a text style used in the current template.
@@ -189,127 +187,129 @@ type TargetTypeStyle =
  * @property marginBottom - Bottom margin (e.g., "10px", "0.5em").
  */
 type Style = {
-    name: string;
-    enabled: boolean;
-    type: TargetTypeStyle;
-    fontWeight: string
-    color: string
-    fontFamily: string
-    fontSize: string
-    align: NodeTextAlign;
-    lineHeight: string;
-    marginTop: string;
-    marginBottom: string;
+  name: string
+  enabled: boolean
+  type: TargetTypeStyle
+  fontWeight: string
+  color: string
+  fontFamily: string
+  fontSize: string
+  align: NodeTextAlign
+  lineHeight: string
+  marginTop: string
+  marginBottom: string
 }
 
 interface ErrorDetails {
-    errorCode: number;
-    errorMessage: string;
-    stack?: string;
+  errorCode: number
+  errorMessage: string
+  stack?: string
 }
 
 interface PerformanceDetails {
-    durationMs: number;
-    memoryUsage?: number;
+  durationMs: number
+  memoryUsage?: number
 }
 
 interface LogEntry {
-    timestamp: string;
-    level: LogLevel;
-    process: 'main' | 'renderer';
-    category: string;
-    message: string;
-    details?: ErrorDetails | PerformanceDetails;
-    duration?: number;
+  timestamp: string
+  level: LogLevel
+  process: 'main' | 'renderer'
+  category: string
+  message: string
+  details?: ErrorDetails | PerformanceDetails
+  duration?: number
 }
 
-type Route = '/' | '/file-viewer' | '/browser-tab-bar' | '/about' | '/preferences';
+type Route = '/' | '/file-viewer' | '/browser-tab-bar' | '/about' | '/preferences'
 
 type WebContentsRoute = Partial<Route, '/' | '/file-viewer'>
 
 type TabType = FileType
 
 type TabInfo = {
-    id: number
-    name: string
-    type: TabType
-    changed: boolean
+  id: number
+  name: string
+  type: TabType
+  changed: boolean
 }
 
 type Tab = {
-    id: number
-    route: WebContentsRoute
-    selected: boolean
-    filePath: string | null
+  id: number
+  route: WebContentsRoute
+  selected: boolean
+  filePath: string | null
 }
 
-
 type TocSettings = {
-    show: boolean;
-    levels: number;
-    indentLevels: boolean;
-    title: string;
-    tabLeaderFormat: string;
-    showHeadingNumbers: boolean;
-    numberSeparator: string;
-    level1Format?: string;
-    level2Format?: string;
-    level3Format?: string;
-    level4Format?: string;
-    level5Format?: string;
-    level6Format?: string;
+  show: boolean
+  levels: number
+  indentLevels: boolean
+  title: string
+  tabLeaderFormat: string
+  showHeadingNumbers: boolean
+  numberSeparator: string
+  level1Format?: string
+  level2Format?: string
+  level3Format?: string
+  level4Format?: string
+  level5Format?: string
+  level6Format?: string
 }
 
 type Subset = {
-    name: string;
-    start: number;
-    end: number;
+  name: string
+  start: number
+  end: number
 }
 
 type CharacterSet = {
-    code: number;
-    name: string;
+  code: number
+  name: string
 }[]
 
-type Fonts = Record<string, {
-    name: string;
-    path: string;
+type Fonts = Record<
+  string,
+  {
+    name: string
+    path: string
     symbols: CharacterSet
-}>
+  }
+>
 type Metadata = {
-    title: string;
-    author: string;
-    language: string;
-    license: string;
-    keywords: string;
-    status: string;
-    creationDate: string;
-    lastSavedDate: string;
-    subject?: string;
-    copyrightHolder?: string;
-    template: string;
+  title: string
+  author: string
+  language: string
+  license: string
+  keywords: string
+  status: string
+  creationDate: string
+  lastSavedDate: string
+  subject?: string
+  copyrightHolder?: string
+  template: string
 }
 
 type SiglumData = {
-    value: string
-    content: string
+  value: string
+  content: string
 }
 
 type SiglumMetadata = Pick<Metadata, 'author'> & {
-    exportDate: string
+  exportDate: string
 }
 
 type Siglum = {
-    id: string
-    siglum: SiglumData
-    manuscripts: SiglumData
-    description: SiglumData
+  id: string
+  siglum: SiglumData
+  manuscripts: SiglumData
+  description: SiglumData
 }
 
 type DocumentSiglum = Pick<Siglum, 'siglum' | 'manuscripts' | 'description'>
 
 type CharacterConfiguration = {
-    code: number;
-    character: string;
-    shortcut: string | null;
+  code: number
+  character: string
+  shortcut: string | null
 }

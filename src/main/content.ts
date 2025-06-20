@@ -7,7 +7,7 @@ import {
   getSelectedTabIndex,
   getToolbarWebContentsViewHeight,
   resizeToolbarWebContentsView,
-  setSelectedTabIndex,
+  setSelectedTabIndex
 } from './toolbar'
 import { getTabs, setTabs } from './store'
 import { UpdateTabsCallback } from './shared/types'
@@ -15,11 +15,14 @@ import { UpdateTabsCallback } from './shared/types'
 const webContentViews: WebContentsView[] = []
 let currentWebContentsView: WebContentsView | null = null
 
-export const getWebContentsView = (id: number): WebContentsView | undefined => webContentViews.find((tab) => tab.webContents.id === id)
+export const getWebContentsView = (id: number): WebContentsView | undefined =>
+  webContentViews.find((tab) => tab.webContents.id === id)
 export const getWebContentsViews = (): WebContentsView[] => webContentViews
-export const getWebContentsViewsIds = (): number[] => webContentViews.map((tab) => tab.webContents.id)
+export const getWebContentsViewsIds = (): number[] =>
+  webContentViews.map((tab) => tab.webContents.id)
 export const getSelectedWebContentsView = (): WebContentsView | null => currentWebContentsView
-export const getSelectedWebContentsViewId = (): number => currentWebContentsView?.webContents.id ?? -1
+export const getSelectedWebContentsViewId = (): number =>
+  currentWebContentsView?.webContents.id ?? -1
 
 export function createWebContentsView(route: WebContentsRoute): Promise<WebContentsView | null> {
   return new Promise((resolve) => {
@@ -31,7 +34,7 @@ export function createWebContentsView(route: WebContentsRoute): Promise<WebConte
         preload: join(__dirname, '../preload/index.mjs'),
         sandbox: false,
         nodeIntegration: false,
-        contextIsolation: true,
+        contextIsolation: true
       }
     })
 
@@ -73,8 +76,7 @@ export function createWebContentsView(route: WebContentsRoute): Promise<WebConte
 
 export function showWebContentsView(webContentsView: WebContentsView): void {
   const baseWindow = getBaseWindow()
-  if (!baseWindow)
-    return
+  if (!baseWindow) return
 
   const setWebContentBounds = (): void => {
     const [width, height] = baseWindow.getContentSize()
@@ -102,21 +104,20 @@ export function showWebContentsView(webContentsView: WebContentsView): void {
 export function closeWebContentsViewWithId(id: number): Tab[] {
   const idx = webContentViews.findIndex((tab) => tab.webContents.id === id)
   const baseWindow = getBaseWindow()
-  if (idx === -1 || !baseWindow)
-    return []
+  if (idx === -1 || !baseWindow) return []
 
-  const webContentsViews = getWebContentsViews();
+  const webContentsViews = getWebContentsViews()
 
-  let indexToSelect = 0;
+  let indexToSelect = 0
 
   if (webContentsViews.length > 1) {
-    const isLastTab = idx === webContentsViews.length - 1;
-    const isNotFirstTab = idx > 0;
+    const isLastTab = idx === webContentsViews.length - 1
+    const isNotFirstTab = idx > 0
 
     if (isLastTab && isNotFirstTab) {
-      indexToSelect = idx - 1;
+      indexToSelect = idx - 1
     } else if (!isLastTab) {
-      indexToSelect = idx + 1;
+      indexToSelect = idx + 1
     }
   }
 
@@ -150,12 +151,10 @@ export function selectedWebContentsViewSend(message: string, ...args: unknown[])
 }
 
 export function setSelectedWebContentsViewWithId(id: number): void {
-  if (currentWebContentsView?.webContents.id === id)
-    return
+  if (currentWebContentsView?.webContents.id === id) return
 
   const idx = webContentViews.findIndex((tab) => tab.webContents.id === id)
-  if (idx === -1)
-    return
+  if (idx === -1) return
 
   const webContentsView = webContentViews[idx]
 
@@ -168,8 +167,7 @@ export function reorderTabs(ids: number[]): void {
     .map((id) => webContentViews.find((tab) => tab.webContents.id === id))
     .filter((tab): tab is WebContentsView => tab !== undefined)
 
-  if (newTabs.length === 0)
-    return
+  if (newTabs.length === 0) return
 
   webContentViews.splice(0, webContentViews.length, ...newTabs)
 
@@ -180,7 +178,9 @@ export function reorderTabs(ids: number[]): void {
 /**
  * @deprecated Use createWebContentsView() instead
  */
-export async function restoreWebContentsViews({ restore = true }: { restore?: boolean } = {}): Promise<WebContentsView | null> {
+export async function restoreWebContentsViews({
+  restore = true
+}: { restore?: boolean } = {}): Promise<WebContentsView | null> {
   if (!restore) {
     return createWebContentsView(Route.root)
   }
@@ -220,35 +220,33 @@ export function hideWebContentsViewWithId(id: number): void {
 }
 
 const updateTabs = (webContentViews: WebContentsView[], onUpdate?: UpdateTabsCallback): void => {
-  const webContentViewsData = webContentViews
-    .map((webContentView) => {
-      const url = webContentView.webContents.getURL()
-      const idx = url.indexOf('#')
-      const path = idx === -1 ? '/' : url.substring(idx + 1)
+  const webContentViewsData = webContentViews.map((webContentView) => {
+    const url = webContentView.webContents.getURL()
+    const idx = url.indexOf('#')
+    const path = idx === -1 ? '/' : url.substring(idx + 1)
 
-      const data = {
-        id: webContentView.webContents.id,
-        path: path,
-      } as const satisfies Record<string, number | WebContentsRoute>
+    const data = {
+      id: webContentView.webContents.id,
+      path: path
+    } as const satisfies Record<string, number | WebContentsRoute>
 
-      return data
-    })
+    return data
+  })
 
   const currentTabs = getTabs()
 
-  const newTabs = webContentViewsData
-    .map((webContentView, index) => {
-      const currentTab = currentTabs?.find((tab) => tab.id === webContentView.id)
+  const newTabs = webContentViewsData.map((webContentView, index) => {
+    const currentTab = currentTabs?.find((tab) => tab.id === webContentView.id)
 
-      const tab = {
-        id: webContentView.id,
-        route: webContentView.path,
-        selected: index === webContentViewsData.length - 1,
-        filePath: currentTab?.filePath,
-      } as Tab
+    const tab = {
+      id: webContentView.id,
+      route: webContentView.path,
+      selected: index === webContentViewsData.length - 1,
+      filePath: currentTab?.filePath
+    } as Tab
 
-      return tab
-    })
+    return tab
+  })
 
   setTabs(newTabs)
   onUpdate?.(newTabs)
@@ -260,18 +258,15 @@ function saveSelectedTab({ tabIndex = -1 }: { tabIndex?: number } = {}): void {
     return
   }
 
-  if (!currentWebContentsView)
-    return
+  if (!currentWebContentsView) return
 
   const idx = webContentViews.findIndex((tab) => {
-    if (currentWebContentsView === null)
-      return false
+    if (currentWebContentsView === null) return false
 
     return tab.webContents.id === currentWebContentsView!.webContents.id
   })
 
-  if (idx === -1)
-    return
+  if (idx === -1) return
 
   setSelectedTabIndex(idx)
 }

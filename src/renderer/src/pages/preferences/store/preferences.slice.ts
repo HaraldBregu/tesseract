@@ -1,20 +1,16 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit'
 
 export type DocumentTemplate = any
 
-export interface PreferencesState {
+export interface PreferencesState {}
 
-}
-
-const initialState: PreferencesState = {
-};
+const initialState: PreferencesState = {}
 
 const preferencesSlice = createSlice({
-  name: "preferences",
+  name: 'preferences',
   initialState,
-  reducers: {
-  },
-});
+  reducers: {}
+})
 
-export const { } = preferencesSlice.actions;
-export default preferencesSlice.reducer;
+export const {} = preferencesSlice.actions
+export default preferencesSlice.reducer

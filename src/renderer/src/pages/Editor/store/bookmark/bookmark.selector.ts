@@ -1,16 +1,12 @@
-import { createSelector } from "@reduxjs/toolkit";
-import { RootState } from "src/renderer/src/store/store";
+import { createSelector } from '@reduxjs/toolkit'
+import { RootState } from 'src/renderer/src/store/store'
 
 const bookmarkState = (state: RootState) => state.bookmarkState
 
-export const bookmarksSelector = createSelector(
-  bookmarkState,
-  (state) => state.bookmarks
-)
+export const bookmarksSelector = createSelector(bookmarkState, (state) => state.bookmarks)
 
-export const visibleBookmarksSelector = createSelector(
-  bookmarksSelector,
-  (bookmarks) => bookmarks.filter(bookmark => bookmark.visible)
+export const visibleBookmarksSelector = createSelector(bookmarksSelector, (bookmarks) =>
+  bookmarks.filter((bookmark) => bookmark.visible)
 )
 
 export const bookmarkCategoriesSelector = createSelector(
