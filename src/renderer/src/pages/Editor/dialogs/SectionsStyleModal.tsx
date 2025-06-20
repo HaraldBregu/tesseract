@@ -76,7 +76,7 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
         ipc.off('receive-system-fonts')
       }
     },
-    [window.electron.ipcRenderer]
+    [window?.electron?.ipcRenderer]
   )
 
   const exportedStylesOptions = useMemo(() => {

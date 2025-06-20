@@ -167,26 +167,26 @@ const ELayout = () => {
         ipc.cleanup()
       }
     },
-    [window.electron.ipcRenderer]
+    [window?.electron?.ipcRenderer]
   )
 
   useEffect(() => {
-    window.menu.setTocVisibility(showToc)
+    window?.menu?.setTocVisibility(showToc)
   }, [showToc])
 
   useEffect(() => {
-    window.application.toolbarIsVisible().then(setShowToolbar)
-  }, [window.application.toolbarIsVisible])
+    window?.application?.toolbarIsVisible().then(setShowToolbar)
+  }, [window?.application?.toolbarIsVisible])
 
   useEffect(() => {
-    window.application.toolbarAdditionalItems().then(setToolbarAdditionalItems)
-  }, [window.application.toolbarAdditionalItems])
+    window?.application?.toolbarAdditionalItems().then(setToolbarAdditionalItems)
+  }, [window?.application?.toolbarAdditionalItems])
 
   // @REFACTOR: check again this solution, i think it's not the best way to do it
   useEffect(() => {
     const fetchAppStyles = async () => {
       try {
-        const defaultStyles = JSON.parse(await window.doc.getStyle('default.stl'))
+        const defaultStyles = JSON.parse(await window?.doc?.getStyle('default.stl'))
         if (defaultStyles.length > 0) {
           dispatch(updateStyles(defaultStyles))
         }
@@ -200,7 +200,7 @@ const ELayout = () => {
 
   // @REFACTOR: check again this solution
   const handleSaveToolbarOptions = useCallback((items: string[]) => {
-    window.electron.ipcRenderer.send('application:updateToolbarAdditionalItems', items)
+    window?.electron?.ipcRenderer?.send('application:updateToolbarAdditionalItems', items)
     setIsCustomizeToolbarOpen(false)
   }, [])
 

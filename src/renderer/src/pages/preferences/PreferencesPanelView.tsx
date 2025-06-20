@@ -432,8 +432,8 @@ const PreferencesPanelView = () => {
   // Aggiungi una funzione per aprire il dialog di selezione cartella
   const handleSelectDirectory = async () => {
     console.log('handleSelectCustomVersioningDirectory')
-    window.electron.ipcRenderer.send('select-folder-path')
-    window.electron.ipcRenderer.on('receive-folder-path', (_, path) => {
+    window?.electron?.ipcRenderer?.send('select-folder-path')
+    window?.electron?.ipcRenderer?.on('receive-folder-path', (_, path) => {
       if (path?.lenght > 0) setDefaultDirectory(path)
     })
   }
@@ -622,8 +622,8 @@ const PreferencesPanelView = () => {
   // Aggiungi anche la funzione per la cartella di versioning personalizzata
   const handleSelectCustomVersioningDirectory = async () => {
     console.log('handleSelectCustomVersioningDirectory')
-    window.electron.ipcRenderer.send('select-folder-path')
-    window.electron.ipcRenderer.on('receive-folder-path', (_, path) => {
+    window?.electron?.ipcRenderer?.send('select-folder-path')
+    window?.electron?.ipcRenderer?.on('receive-folder-path', (_, path) => {
       if (path?.lenght > 0) setCustomVersioningDirectory(path)
     })
   }

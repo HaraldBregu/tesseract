@@ -24,7 +24,7 @@ const About: React.FC<AboutProps> = ({ isOpen, onClose }) => {
   const { name, copyright, license, version } = appInfo
 
   const navigateTo = (path: string) => {
-    window.electron.ipcRenderer.send('open-external-file', filePaths[path])
+    window?.electron?.ipcRenderer?.send('open-external-file', filePaths[path])
   }
 
   return (

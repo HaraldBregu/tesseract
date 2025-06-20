@@ -249,12 +249,12 @@ const Apparatuses = forwardRef(
           )
         })
       },
-      [window.electron.ipcRenderer]
+      [window?.electron?.ipcRenderer]
     )
 
     useEffect(() => {
-      window.menu.disableReferencesMenuItems(disabledRemainingApparatusesTypes)
-    }, [window.menu, disabledRemainingApparatusesTypes])
+      window?.menu?.disableReferencesMenuItems(disabledRemainingApparatusesTypes)
+    }, [window?.menu, disabledRemainingApparatusesTypes])
 
     useEffect(() => {
       const items = apparatuses.map((apparatus) => {
@@ -265,8 +265,8 @@ const Apparatuses = forwardRef(
           disabled: false
         }
       })
-      window.menu.updateViewApparatusesMenuItems(items)
-    }, [apparatuses, window.menu])
+      window?.menu?.updateViewApparatusesMenuItems(items)
+    }, [apparatuses, window?.menu])
 
     useEffect(() => {
       if (!apparatusesData) return
@@ -286,7 +286,7 @@ const Apparatuses = forwardRef(
       }
       loadApparatuses()
       rendererLogger.endTask(taskId, 'TextEditor', 'Load apparatuses action completed')
-    }, [window.doc])
+    }, [window?.doc])
 
     const updateTextHandler = useCallback(
       (_: EditorData) => {
@@ -298,7 +298,7 @@ const Apparatuses = forwardRef(
             content: editorRefs.current[apparatus.id]?.getJSON()
           } as DocumentApparatus
         }) as DocumentApparatus[]
-        window.doc.setApparatuses(newApparatuses)
+        window?.doc?.setApparatuses(newApparatuses)
       },
       [apparatuses, editorRefs]
     )

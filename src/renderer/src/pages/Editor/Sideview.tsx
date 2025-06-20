@@ -200,7 +200,7 @@ const Sideview = forwardRef(
                   })
                 }}
                 onEditComment={async (comment: AppComment) => {
-                  const userInfo = (await window.system.getUserInfo()) as unknown as UserInfo
+                  const userInfo = (await window?.system?.getUserInfo()) as unknown as UserInfo
                   comment.author = userInfo?.username
                   dispatch(editComment(comment))
                 }}
@@ -252,7 +252,7 @@ const Sideview = forwardRef(
                   })
                 }}
                 onEditBookmark={async (bookmark: Bookmark) => {
-                  const userInfo = (await window.system.getUserInfo()) as unknown as UserInfo
+                  const userInfo = (await window?.system?.getUserInfo()) as unknown as UserInfo
                   bookmark.author = userInfo?.username
                   dispatch(editBookmark(bookmark))
                 }}

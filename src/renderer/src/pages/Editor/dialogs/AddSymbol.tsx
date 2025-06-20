@@ -51,7 +51,7 @@ const AddSymbolDialog: React.FC<{
     setSymbols([])
     setSelectedSymbol(0)
     setSelectedSpecialCharacter(0)
-    window.system.getSymbols(fontName).then(setSymbols)
+    window?.system?.getSymbols(fontName).then(setSymbols)
   }
 
   const handleSubsetChange = (subsetIndex = selectedSubset) => {
@@ -82,12 +82,12 @@ const AddSymbolDialog: React.FC<{
   }, [isOpen])
 
   useEffect(() => {
-    window.system.getFonts().then((fonts) => {
+    window?.system?.getFonts().then((fonts) => {
       setFonts(fonts)
       handleFontChange(fonts[0])
     })
-    window.system.getSubsets().then(setSubsets)
-    window.system.getConfiguredSpcialCharactersList().then(setConfiguredSpecialCharactersList)
+    window?.system?.getSubsets().then(setSubsets)
+    window?.system?.getConfiguredSpcialCharactersList().then(setConfiguredSpecialCharactersList)
   }, [])
 
   return (

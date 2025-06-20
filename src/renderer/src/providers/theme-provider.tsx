@@ -64,9 +64,9 @@ export function ThemeProvider({
 
   // Listen for theme changes from other renderer processes
   useEffect(() => {
-    if (!window.electron?.ipcRenderer) return
+    if (!window?.electron?.ipcRenderer) return
 
-    const unsubscribe = window.electron.ipcRenderer.on(
+    const unsubscribe = window?.electron?.ipcRenderer?.on(
       'theme-changed',
       (_: unknown, newTheme: Theme) => {
         localStorage.setItem(storageKey, newTheme)
@@ -84,8 +84,8 @@ export function ThemeProvider({
       setTheme(theme)
 
       // Communicate theme change to Electron main process
-      if (window.theme?.setTheme) {
-        window.theme.setTheme(theme).catch(console.error)
+      if (window?.theme?.setTheme) {
+        window?.theme?.setTheme(theme).catch(console.error)
       }
     }
   }

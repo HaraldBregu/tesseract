@@ -573,14 +573,14 @@ export const Content = forwardRef(
           ipc.cleanup()
         }
       },
-      [window.electron.ipcRenderer, editorRef, emphasisState]
+      [window?.electron?.ipcRenderer, editorRef, emphasisState]
     )
 
     useEffect(() => {
       const taskId = rendererLogger.startTask('TextEditor', 'DocOpening initialized')
 
       // @REFACTOR: this is a heavy function, we should refactor it
-      window.electron.ipcRenderer.on('load-document', (_event, document: any) => {
+      window?.electron?.ipcRenderer?.on('load-document', (_event, document: any) => {
         const criticalText = document.main_text
         const annotations = document.annotations
         const comments = annotations?.comments
@@ -635,7 +635,7 @@ export const Content = forwardRef(
       })
 
       rendererLogger.endTask(taskId, 'TextEditor', 'DocOpening action completed')
-    }, [window.electron.ipcRenderer])
+    }, [window?.electron?.ipcRenderer])
 
     // @REFACTOR: use a better way to do this, or split this function in smaller ones
     const updateHandler = useCallback(() => {
@@ -643,21 +643,21 @@ export const Content = forwardRef(
 
       const textEditorJson = criticalTextEditorRef.current?.getJSON()
 
-      window.electron.ipcRenderer.send('update-critical-text', textEditorJson)
+      window?.electron?.ipcRenderer?.send('update-critical-text', textEditorJson)
 
-      window.electron.ipcRenderer.send('update-annotations', {
+      window?.electron?.ipcRenderer?.send('update-annotations', {
         comments: commentsRef.current || [],
         commentCategories: commentsCategoriesRef.current,
         bookmarks: bookmarksRef.current,
         bookmarkCategories: bookmarkCategoriesRef.current
       })
 
-      window.doc.setLayoutTemplate(layoutTemplate)
-      window.doc.setPageSetup(pageSetup)
-      window.doc.setSort(sort)
-      window.doc.setStyles(styles)
+      window?.doc?.setLayoutTemplate(layoutTemplate)
+      window?.doc?.setPageSetup(pageSetup)
+      window?.doc?.setSort(sort)
+      window?.doc?.setStyles(styles)
 
-      window.doc.setParatextual({
+      window?.doc?.setParatextual({
         tocSettings: tocSettingsRef.current,
         lineNumberSettings: lineNumberSettingsRef.current,
         pageNumberSettings: pageNumberSettingsRef.current,
@@ -1012,21 +1012,21 @@ export const Content = forwardRef(
         dispatch(updateStyles(templateStyles))
       }
 
-      window.doc.setLayoutTemplate(layoutTemplate)
-      window.doc.setPageSetup(data?.pageSetup)
-      window.doc.setSort(orderSection as unknown[])
+      window?.doc?.setLayoutTemplate(layoutTemplate)
+      window?.doc?.setPageSetup(data?.pageSetup)
+      window?.doc?.setSort(orderSection as unknown[])
 
       // Apply editor styles only if the template defines at least one style.
       if (templateStyles?.length > 0) {
-        window.doc.setStyles(templateStyles)
+        window?.doc?.setStyles(templateStyles)
       } else {
         // Otherwise, use the editor’s default styles.
-        window.doc.setStyles(styles)
+        window?.doc?.setStyles(styles)
       }
 
-      window.doc.setParatextual(data?.paratextual)
+      window?.doc?.setParatextual(data?.paratextual)
 
-      window.menu.setTocMenuItemsEnabled(tocEnabled)
+      window?.menu?.setTocMenuItemsEnabled(tocEnabled)
 
       criticalTextEditorRef.current?.setJSON({
         type: 'doc',
@@ -1158,7 +1158,7 @@ export const Content = forwardRef(
               dispatch(setComment(active))
             }}
             onBookmarkCreated={async (id, content) => {
-              const userInfo = (await window.system.getUserInfo()) as unknown as UserInfo
+              const userInfo = (await window?.system?.getUserInfo()) as unknown as UserInfo
               dispatch(
                 addBookmark({
                   id: id,
@@ -1175,7 +1175,7 @@ export const Content = forwardRef(
               }, 100)
             }}
             onCommentCreated={async (id, content) => {
-              const userInfo = (await window.system.getUserInfo()) as unknown as UserInfo
+              const userInfo = (await window?.system?.getUserInfo()) as unknown as UserInfo
               dispatch(
                 addComment({
                   id: id,

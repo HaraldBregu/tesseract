@@ -11,7 +11,7 @@ const useTranslationLoader = () => {
     setLanguage(lang)
     localStorage.setItem('appLanguage', lang) // Save selected language to localStorage
     i18n.changeLanguage(lang) // Update i18n with the new language
-    window.electron.ipcRenderer.send('set-electron-language', lang)
+    window?.electron?.ipcRenderer?.send('set-electron-language', lang)
 
     // window.electron.setElectronLanguage(lang);// Notify Electron to update its menu (menu translations)
   }

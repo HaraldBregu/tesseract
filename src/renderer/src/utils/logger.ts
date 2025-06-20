@@ -78,7 +78,7 @@ class RendererLogger {
 
     // Sends the log entry via the defined electron API.
     //window.electron.sendLog(entry);
-    window.electron.ipcRenderer.send('log-entry', entry)
+    window?.electron?.ipcRenderer?.send('log-entry', entry)
 
     if (process.env.NODE_ENV !== 'production') {
       // console.log(JSON.stringify(entry, null, 2));

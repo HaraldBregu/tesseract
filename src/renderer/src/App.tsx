@@ -67,19 +67,19 @@ const App: React.FC = () => {
   const { i18n } = useTranslation()
 
   useEffect(() => {
-    if (!window.electron) return
+    if (!window?.electron) return
 
-    const showAboutCleanup = window.electron.ipcRenderer.on('show-about', () => {
+    const showAboutCleanup = window?.electron?.ipcRenderer?.on('show-about', () => {
       setShowAbout(true)
     })
 
     return () => {
       showAboutCleanup()
     }
-  }, [window.electron])
+  }, [window?.electron?.ipcRenderer])
 
   useEffect(() => {
-    const unsubscribe = window.electron.ipcRenderer.on(
+    const unsubscribe = window?.electron?.ipcRenderer?.on(
       'language-changed',
       (_: unknown, lang: string) => {
         i18n.changeLanguage(lang)

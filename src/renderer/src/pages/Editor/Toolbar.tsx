@@ -5,9 +5,7 @@ import FormatTextColor from '../../components/format-text-color'
 import CustomSelect from '@/components/ui/custom-select'
 
 // @ts-ignore
-import {
-  fontSizes,
-} from '../../utils/optionsEnums'
+import { fontSizes } from '../../utils/optionsEnums'
 
 import {
   DropdownMenu,
@@ -307,7 +305,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         ipc.off('receive-system-fonts')
       }
     },
-    [window.electron.ipcRenderer]
+    [window?.electron?.ipcRenderer]
   )
 
   const hideGroups = () => {

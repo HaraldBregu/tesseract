@@ -13,7 +13,9 @@ export const useIpcRenderer = (setup: IpcSetupCallback, deps: any[] = []) => {
     const listeners: Map<string, (() => void)[]> = new Map()
 
     const on = (channel: string, callback: IpcRendererCallback) => {
-      const removeListener = window.electron.ipcRenderer.on(channel, callback)
+      if (!window?.electron?.ipcRenderer) return () => {}
+
+      const removeListener = window?.electron?.ipcRenderer?.on(channel, callback)
 
       if (!listeners.has(channel)) {
         listeners.set(channel, [])
@@ -41,7 +43,7 @@ export const useIpcRenderer = (setup: IpcSetupCallback, deps: any[] = []) => {
     }
 
     const send = (channel: string, ...args: any[]) => {
-      window.electron.ipcRenderer.send(channel, ...args)
+      window?.electron?.ipcRenderer?.send(channel, ...args)
     }
 
     const cleanup = () => {

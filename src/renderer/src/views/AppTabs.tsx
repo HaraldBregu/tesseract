@@ -154,8 +154,8 @@ const AppTabs = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const contentViewsIds = useMemo(() => {
-    return window.tabs.getAllContentViewsIds()
-  }, [window.tabs])
+    return window?.tabs?.getAllContentViewsIds()
+  }, [window?.tabs])
 
   useEffect(() => {
     contentViewsIds.then((ids) => {
@@ -167,7 +167,7 @@ const AppTabs = () => {
     (ipc) => {
       ipc.on('create-new-document', async (_: any) => {
         const fileType: FileType = 'critx'
-        const id = await window.tabs.new(fileType)
+        const id = await window?.tabs?.new(fileType)
         dispatch(actions.addTab(id, 'Untitled.critx', fileType))
         ipc.send('open-choose-layout-modal')
       })
@@ -175,7 +175,7 @@ const AppTabs = () => {
       ipc.on(
         'document-opened',
         async (_: any, filepath: string, filename: string, fileType: FileType) => {
-          const id = await window.tabs.new(fileType)
+          const id = await window?.tabs?.new(fileType)
           dispatch(actions.addTab(id, filename, fileType))
           ipc.send('document-opened-at-path', filepath, fileType)
         }
@@ -201,7 +201,7 @@ const AppTabs = () => {
         ipc.cleanup()
       }
     },
-    [window.electron.ipcRenderer]
+    [window?.electron?.ipcRenderer]
   )
 
   return (
@@ -209,19 +209,19 @@ const AppTabs = () => {
       tabs={state.tabs}
       selectedTab={state.selectedTab}
       onAdd={async () => {
-        await window.doc.openDocument()
+        await window?.doc?.openDocument()
       }}
       onSelect={(tab) => {
-        window.tabs.select(tab.id, tab.type)
+        window?.tabs?.select(tab.id, tab.type)
         dispatch(actions.selectTab(tab))
       }}
       onRemove={async (tab) => {
-        await window.tabs.close(tab.id)
+        await window?.tabs?.close(tab.id)
         dispatch(actions.removeTab(tab))
       }}
       onReorder={(tabs) => {
         dispatch(actions.reorderTabs(tabs))
-        window.tabs.reorder(tabs.map((tab) => tab.id))
+        window?.tabs?.reorder(tabs.map((tab) => tab.id))
       }}
     />
   )
