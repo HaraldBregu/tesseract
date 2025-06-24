@@ -1,63 +1,67 @@
-import { createSelector } from '@reduxjs/toolkit'
-import { RootState } from '@/store/rootReducers'
+import { createSelector } from "@reduxjs/toolkit";
+import { StylesState } from "./editor-styles.state";
+import { HEADING_CUSTOM_TYPES } from "@/utils/stylesUtils";
 
-export const selectStyles = (state: RootState) => state.styles?.styles || []
+/**
+ * @todo remove this, we need to use fixed it
+ */
+// Keep all the couple <style, id>
+const customStyleIdMap = new Map<string, number>();
+let nextCustomId = -1;
 
-// Array dei tipi consentiti
-const ALLOWED_TYPES = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'CUSTOM']
-
-// Selettore per ottenere solo gli stili H1-H6 e CUSTOM
-export const selectHeadingAndCustomStyles = createSelector([selectStyles], (styles) =>
-  styles.filter((style) => ALLOWED_TYPES.includes(style.type))
-)
-
-// Mantieni lo stato della mappatura degli ID personalizzati fuori dal selettore
-const customStyleIdMap = new Map<string, number>()
-let nextCustomId = -1
-
-function getStyleNumericId(style: string, name: string): string {
+// Associate each style with an id
+// In order to mantain some ids fixed, maps a new just for custom styles
+export function getStyleNumericId(style: string, name: string): string {
   switch (style) {
-    case 'H1':
-      return '1'
-    case 'H2':
-      return '2'
-    case 'H3':
-      return '3'
-    case 'H4':
-      return '4'
-    case 'H5':
-      return '5'
-    case 'H6':
-      return '6'
-    case 'P':
-      return '0'
+    case "H1": return "1";
+    case "H2": return "2";
+    case "H3": return "3";
+    case "H4": return "4";
+    case "H5": return "5";
+    case "H6": return "6";
+    case "P": return "0";
     default: {
-      // per CUSTOM o altri stili non standard, usa type + name come chiave unica
-      const uniqueKey = `${style}-${name}`
+      // for the custom or other styles, use type + name as unique key
+     const uniqueKey = `${style}-${name}`;
       if (!customStyleIdMap.has(uniqueKey)) {
-        customStyleIdMap.set(uniqueKey, nextCustomId--) // assegna e decrementa
+        customStyleIdMap.set(uniqueKey, nextCustomId--);
       }
-      return customStyleIdMap.get(uniqueKey)!.toString()
+      return customStyleIdMap.get(uniqueKey)!.toString();
     }
   }
 }
 
-// Selettore per ottenere le opzioni degli stili con ID numerici (solo quelli abilitati)
-export const selectStylesOptions = createSelector([selectHeadingAndCustomStyles], (styles) => {
-  return styles
-    .filter((style) => style.enabled === true)
-    .map(({ name, type }) => ({
-      label: name,
-      value: getStyleNumericId(type, name)
-    }))
-})
-// Selettore per ottenere uno stile specifico per tipo
+// Select all styles
+export const selectStyles = (state: { styles: StylesState }) => state.styles.styles;
+
+// Select the styles tho show on the toolbar select
+export const selectHeadingAndCustomStyles = createSelector(
+  [selectStyles],
+  (styles) => styles?.filter(style => HEADING_CUSTOM_TYPES.includes(style?.type))
+);
+
+// Select a style by type
 export const selectStyleByType = createSelector(
   [selectStyles, (_: any, styleType: string) => styleType],
-  (styles, styleType) => styles.find((style) => style.type === styleType)
-)
+  (styles, styleType) => styles.find(style => style.type === styleType)
+);
 
-// Selettore per ottenere solo gli stili abilitati
-export const selectEnabledStyles = createSelector([selectStyles], (styles) =>
-  styles.filter((style) => style.enabled)
+// Select all enabled styles
+export const selectEnabledStyles = createSelector(
+  [selectStyles],
+  (styles) => styles.filter(style => style.enabled)
+);
+
+// Enabled styles are those to show in sections styles modal
+// Select all enabled styles and add them a numeric id
+export const selectStylesOptions = createSelector(
+  [selectHeadingAndCustomStyles],
+  (styles) => {
+    return styles
+      .filter(style => style.enabled === true)
+      .map(({ name, type }) => ({ 
+        label: name, 
+        value: getStyleNumericId(type, name) 
+      }));
+  }
 )

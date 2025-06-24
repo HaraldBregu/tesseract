@@ -803,8 +803,9 @@
     },
     "comingSoon": "Impostazioni account in arrivo..."
   },
-  "siglum": {
+  "siglum" : {
     "title": "Sigla",
+    "save": "Salva",
     "create": "Crea",
     "cancel": "Annulla",
     "import": "Importa",
@@ -813,6 +814,17 @@
     "description": "Descrizione",
     "empty": {
       "title": "Create sigla before adding notes"
+    },
+    "importDialog": {
+      "title": "Ci sono {{count}} sigle che sono già presenti nel documento. Vuoi sostituirle?",
+      "replace": "Sostituisci",
+      "cancel": "Annulla",
+      "keepBoth": "Mantieni entrambe"
+    },
+    "insertDialog": {
+      "title": "Inserisci sigla",
+      "cancel": "Annulla",
+      "insert": "Inserisci"
     }
   }
 }

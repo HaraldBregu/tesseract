@@ -1,79 +1,132 @@
-import { memo, useCallback, useMemo } from 'react'
-import { useEditor } from '../hooks/useEditor'
-import {
-  setFontFamilySymbols,
-  setSiglumListFromFile,
-  setSiglumSetupDialogVisible
-} from '../provider'
-import { SiglumSetup } from './SiglumSetup'
+import { memo, useCallback, useMemo, useState } from "react"
+import { useEditor } from "../hooks/useEditor"
+import { addSiglumListFromFile, duplicateSiglumListFromFile, replaceSiglumListFromFile, setFontFamilySymbols, setFooterSetupDialogVisible, setHeaderSetupDialogVisible, setLineNumberSetupDialogVisible, setPageNumberSetupDialogVisible, setPageSetupOptDialogVisible, setReferenceFormatVisible, setSiglumSetupDialogVisible, setTocSetupDialogVisible } from "../provider"
+import { SiglumSetup } from "./SiglumSetup"
+import { useTranslation } from "react-i18next"
+import LineNumberSettings from "./LineNumberSettings"
+import PageNumberSettings from "./PageNumberSettings"
+import HeaderSettings from "./HeaderSettings"
+import FooterSettings from "./FooterSettings"
+import PageSetupOptionsModal from "./PageSetupOptionsModal"
+import TocSettings from "./TocSettings"
+import { ReferencesFormatState } from "./ReferencesFormat/types"
+import ReferencesFormatModal from "./ReferencesFormat"
 
 export const SetupDialogs = () => {
-  const [state, dispatch] = useEditor()
+    const { t } = useTranslation()
+    const [state, dispatch] = useEditor()
 
-  const siglumSetupDialogVisible = useMemo(
-    () => state.siglumSetupDialogVisible,
-    [state.siglumSetupDialogVisible]
-  )
-  const siglumList = useMemo(() => state.siglumList, [state.siglumList])
-  const fontFamilyList = useMemo(() => state.fontFamilyList, [state.fontFamilyList])
-  const fontFamilySymbols = useMemo(() => state.fontFamilySymbols, [state.fontFamilySymbols])
+    const siglumSetupDialogVisible = useMemo(() => state.siglumSetupDialogVisible, [state.siglumSetupDialogVisible]);
+    const lineNumberSetupDialogVisible = useMemo(() => state.lineNumberSetupDialogVisible, [state.lineNumberSetupDialogVisible]);
+    const pageNumberSetupDialogVisible = useMemo(() => state.pageNumberSetupDialogVisible, [state.pageNumberSetupDialogVisible]);
+    const headerSetupDialogVisible = useMemo(() => state.headerSetupDialogVisible, [state.headerSetupDialogVisible]);
+    const footerSetupDialogVisible = useMemo(() => state.footerSetupDialogVisible, [state.footerSetupDialogVisible]);
+    const pageSetupOptDialogVisible = useMemo(() => state.pageSetupOptDialogVisible, [state.pageSetupOptDialogVisible]);
+    const tocSetupDialogVisible = useMemo(() => state.tocSetupDialogVisible, [state.tocSetupDialogVisible]);
+    const referenceFormatVisible = useMemo(() => state.referenceFormatVisible, [state.referenceFormatVisible]);
+    // TODO: this is just a sample state, you should implement the actual logic to handle the reference format
+    const [referenceFormatData, setReferenceFormatData] = useState<ReferencesFormatState | undefined>();
 
-  const handleImportSiglum = useCallback(async () => {
-    const importedSiglum = await window?.doc?.importSiglumList()
-    if (!importedSiglum) return
+    const siglumList = useMemo(() => state.siglumList, [state.siglumList]);
+    const fontFamilyList = useMemo(() => state.fontFamilyList, [state.fontFamilyList]);
+    const fontFamilySymbols = useMemo(() => state.fontFamilySymbols, [state.fontFamilySymbols]);
 
-    console.log('siglumList', siglumList)
+    const handleImportSiglum = useCallback(async () => {
+        const importedSiglum = await window.doc.importSiglumList()
 
-    const hasSameSiglum = importedSiglum.some((item) =>
-      siglumList.some((siglum) => siglum.siglum.value === item.siglum.value)
+        const duplicateCount = importedSiglum.filter(item =>
+            siglumList.some(siglum => siglum.siglum.value === item.siglum.value)
+        ).length;
+
+        if (duplicateCount === 0) {
+            dispatch(addSiglumListFromFile(importedSiglum))
+            return
+        }
+
+        const result = await window.system.showMessageBox(
+            t("siglum.importDialog.title", { count: duplicateCount }),
+            [
+                t("siglum.importDialog.replace", "###Replace###"),
+                t("siglum.importDialog.cancel", "###Cancel###"),
+                t("siglum.importDialog.keepBoth", "###Keep Both###"),
+            ]
+        )
+
+        if (result.response === 0)
+            dispatch(replaceSiglumListFromFile(importedSiglum))
+        else if (result.response === 2)
+            dispatch(duplicateSiglumListFromFile(importedSiglum))
+
+    }, [siglumList])
+
+    // TODO: store the reference format data in a proper place, like a global state or a context
+    const handleReferenceFormatSave = useCallback((data: any) => {
+        setReferenceFormatData(data);
+        dispatch(setReferenceFormatVisible(false));
+    }, []);
+
+    return (
+        <>
+
+            {/* TOC SETUP DIALOG */}
+            {tocSetupDialogVisible && <TocSettings
+                isOpen={tocSetupDialogVisible}
+                setIsOpen={(open) => dispatch(setTocSetupDialogVisible(open))}
+            />}
+
+            {/* PAGE SETUP OPTIONS DIALOG */}
+            {pageSetupOptDialogVisible && <PageSetupOptionsModal
+                isOpen={pageSetupOptDialogVisible}
+                setIsOpen={(open) => dispatch(setPageSetupOptDialogVisible(open))}
+            />}
+
+            {/* HEADER SETUP DIALOG */}
+            {headerSetupDialogVisible && <HeaderSettings
+                isOpen={headerSetupDialogVisible}
+                setIsOpen={(open) => dispatch(setHeaderSetupDialogVisible(open))}
+            />}
+
+            {/* FOOTER SETUP DIALOG */}
+            {footerSetupDialogVisible && <FooterSettings
+                isOpen={footerSetupDialogVisible}
+                setIsOpen={(open) => dispatch(setFooterSetupDialogVisible(open))}
+            />}
+
+            {/* PAGE NUMBER SETUP DIALOG */}
+            {pageNumberSetupDialogVisible && <PageNumberSettings
+                isOpen={pageNumberSetupDialogVisible}
+                setIsOpen={(open) => dispatch(setPageNumberSetupDialogVisible(open))}
+            />}
+
+            {/* LINE NUMBER SETUP DIALOG */}
+            {lineNumberSetupDialogVisible && <LineNumberSettings
+                isOpen={lineNumberSetupDialogVisible}
+                setIsOpen={(open) => dispatch(setLineNumberSetupDialogVisible(open))}
+            />}
+
+            {/* SIGLUM SETUP DIALOG */}
+            {siglumSetupDialogVisible && <SiglumSetup
+                open={siglumSetupDialogVisible}
+                onOpenChange={(open) => dispatch(setSiglumSetupDialogVisible(open))}
+                fontFamilyList={fontFamilyList}
+                fontFamilySymbols={fontFamilySymbols}
+                onSelectFontFamily={async (fontFamily) => {
+                    const symbols = await window.system.getSymbols(fontFamily)
+                    dispatch(setFontFamilySymbols(symbols))
+                }}
+                onImportSiglum={handleImportSiglum}
+                onExportSiglumList={() => {
+                    window.doc.exportSiglumList(state.siglumList)
+                }}
+            />}
+
+            {/* References Format SETUP DIALOG */}
+            {
+                referenceFormatVisible &&
+                <ReferencesFormatModal isOpen={referenceFormatVisible} onCancel={() => dispatch(setReferenceFormatVisible(false))} handleSave={handleReferenceFormatSave} initialConfigs={referenceFormatData} />
+            }
+        </>
     )
-
-    // @TODO: manage the duplicate of symbols when importing a siglum list
-    if (hasSameSiglum) {
-      window?.system?.showMessageBox(
-        `The Siglum ${importedSiglum[0].siglum.value} is already present in the document. Do you want to replace it?`
-      )
-
-      // “Yes”: with which the user will proceed with overwriting the Siglum with the same name, replacing the Siglum present in the document with the one uploaded.
-      // “No”: the Siglum present in the document will not be replaced and therefore the Siglum present in the uploaded file will be discarded.
-      // “Keep both”: allows you to keep both versions of the Siglum in the list, with the difference that the Siglum imported from the file will have a sequence number at the end of its name (e.g. A_#1).
-      // Assume that we have Siglum A in the document and upload a file containing, among others, another Siglum A.
-
-      // In this scenario, if the user chooses to keep both versions of the Siglum in the document by pressing the “Keep Both” button,
-      // we will have Siglum A (the one that was already in the document) and Siglum A_1,
-      // corresponding to the Siglum A present in the file imported by the user, in the list of Siglums.
-
-      return
-    }
-
-    dispatch(setSiglumListFromFile(importedSiglum))
-
-    // console.log("siglumList", siglumList)
-    // window.system.showMessageBox("Import Siglum")
-  }, [siglumList])
-
-  return (
-    <>
-      <SiglumSetup
-        open={siglumSetupDialogVisible}
-        onOpenChange={(open) => {
-          dispatch(setSiglumSetupDialogVisible(open))
-        }}
-        fontFamilyList={fontFamilyList}
-        fontFamilySymbols={fontFamilySymbols}
-        onSelectFontFamily={async (fontFamily) => {
-          const symbols = await window?.system?.getSymbols(fontFamily)
-          if (!symbols) return
-
-          dispatch(setFontFamilySymbols(symbols))
-        }}
-        onImportSiglum={handleImportSiglum}
-        onExportSiglumList={() => {
-          window?.doc?.exportSiglumList(state.siglumList)
-        }}
-      />
-    </>
-  )
 }
 
 export default memo(SetupDialogs)

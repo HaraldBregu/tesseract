@@ -1,6 +1,6 @@
-import { clsx } from 'clsx'
-import Typogaphy from '@/components/Typography'
-import * as ToggleGroup from '@radix-ui/react-toggle-group'
+import { clsx } from "clsx";
+import Typogaphy from "@/components/Typography";
+import * as ToggleGroup from "@radix-ui/react-toggle-group";
 
 const COLORS = [
   { value: '#ffffff', label: 'White' },
@@ -12,14 +12,20 @@ const COLORS = [
   { value: '#0000ff', label: 'Blue' },
   { value: '#8000ff', label: 'Purple' },
   { value: '#000000', label: 'Black' }
-]
+];
 
-const COLOR_VALUES = COLORS.map((c) => c.value.toLowerCase())
+const COLOR_VALUES = COLORS.map(c => c.value.toLowerCase());
 
-function ColorToggleGroup({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const normalized = value?.toLowerCase()
-  const isPredefined = COLOR_VALUES.includes(normalized)
-  const activeToggleValue = isPredefined ? normalized : value ? 'custom' : ''
+function ColorToggleGroup({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const normalized = value?.toLowerCase();
+  const isPredefined = COLOR_VALUES.includes(normalized);
+  const activeToggleValue = isPredefined ? normalized : (value ? 'custom' : '');
 
   return (
     <div>
@@ -31,8 +37,8 @@ function ColorToggleGroup({ value, onChange }: { value: string; onChange: (v: st
         type="single"
         value={activeToggleValue}
         onValueChange={(val) => {
-          if (val === 'custom') return
-          if (val) onChange(val)
+          if (val === 'custom') return;
+          if (val) onChange(val);
         }}
         className="flex gap-2 flex-wrap p-1"
       >
@@ -42,12 +48,11 @@ function ColorToggleGroup({ value, onChange }: { value: string; onChange: (v: st
             value={color.value.toLowerCase()}
             className={clsx(
               'w-[40px] h-[40px] border border-gray-300 rounded overflow-hidden',
-              activeToggleValue === color.value.toLowerCase() &&
-                'outline outline-[3px] outline-blue-600'
+              activeToggleValue === color.value.toLowerCase() && 'outline outline-[3px] outline-blue-600'
             )}
             style={{
               background: color.value,
-              borderColor: color.value === '#ffffff' ? '#C2C7CF' : undefined
+              borderColor: color.value === '#ffffff' ? '#C2C7CF' : undefined,
             }}
             aria-label={`Color ${color.label}`}
           />
@@ -60,15 +65,14 @@ function ColorToggleGroup({ value, onChange }: { value: string; onChange: (v: st
             activeToggleValue === 'custom' && 'outline outline-[3px] outline-blue-600'
           )}
           style={{
-            background:
-              !value || isPredefined
-                ? 'conic-gradient(red, orange, yellow, lime, cyan, blue, indigo, violet, red)'
-                : value,
-            borderColor: '#C2C7CF'
+            background: !value || isPredefined
+              ? 'conic-gradient(red, orange, yellow, lime, cyan, blue, indigo, violet, red)'
+              : value,
+            borderColor: '#C2C7CF',
           }}
           aria-label="Custom Color"
         >
-          {!isPredefined && value && (
+          {(!isPredefined && value) && (
             <div
               style={{
                 position: 'absolute',
@@ -76,7 +80,7 @@ function ColorToggleGroup({ value, onChange }: { value: string; onChange: (v: st
                 backdropFilter: 'blur(2px)',
                 WebkitBackdropFilter: 'blur(2px)',
                 borderRadius: '20px',
-                pointerEvents: 'none'
+                pointerEvents: 'none',
               }}
             />
           )}
@@ -89,7 +93,7 @@ function ColorToggleGroup({ value, onChange }: { value: string; onChange: (v: st
         </ToggleGroup.Item>
       </ToggleGroup.Root>
     </div>
-  )
+  );
 }
 
-export default ColorToggleGroup
+export default ColorToggleGroup;

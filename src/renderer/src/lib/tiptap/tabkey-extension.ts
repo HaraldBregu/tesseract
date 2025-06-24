@@ -1,10 +1,10 @@
-import { Extension } from '@tiptap/core'
+import { Extension } from "@tiptap/core";
 
 // TODO
 export const TabKeyExtension = Extension.create({
-  name: 'tabKeyHandler'
+    name: 'tabKeyHandler',
 
-  // addProseMirrorPlugins() {
+   // addProseMirrorPlugins() {
   //   return [
   //     new Plugin({
   //       key: new PluginKey('handleTabIndent'),
@@ -97,12 +97,14 @@ export const TabKeyExtension = Extension.create({
   //               if (!selection.empty) {
   //                 const linesToOutdent: { start: number; canOutdent: boolean }[] = [];
 
+
   //                 doc.nodesBetween(initialFrom, initialTo, (node, pos) => {
   //                   if (node.type.name === 'paragraph' || node.type.name === 'heading') {
   //                     const content = node.content.toJSON() as any[];
   //                     if (content && Array.isArray(content)) {
 
   //                       let currentLineContentStart = pos + 1;
+
 
   //                       if (currentLineContentStart <= initialTo && (pos < initialTo && (pos + node.nodeSize) > initialFrom)) {
   //                         const charAtStart = doc.textBetween(currentLineContentStart, currentLineContentStart + 1, "", "");
@@ -146,6 +148,7 @@ export const TabKeyExtension = Extension.create({
   //                   return false;
   //                 });
 
+
   //                 const outdentableLines = linesToOutdent.filter(l => l.canOutdent);
   //                 // Sort by start position in descending order for safe deletion
   //                 outdentableLines.sort((a, b) => b.start - a.start);
@@ -182,6 +185,7 @@ export const TabKeyExtension = Extension.create({
 
   //               console.log("Tab pressed")
 
+
   //               const { selection, doc, tr: initialTr } = this.editor.state;
   //               const { from: initialFrom, to: initialTo } = selection;
 
@@ -191,7 +195,7 @@ export const TabKeyExtension = Extension.create({
   //                 doc.nodesBetween(initialFrom, initialTo, (node, pos) => {
   //                   if (node.type.name === 'paragraph' || node.type.name === 'heading') {
   //                     const content = node.content.toJSON() as any[];
-
+                      
   //                     if (content && Array.isArray(content)) {
   //                       let currentLineStartInParagraph = pos + 1;
 
@@ -226,6 +230,7 @@ export const TabKeyExtension = Extension.create({
   //                   }
   //                   return false;
   //                 });
+
 
   //                 affectedRanges.sort((a, b) => b.start - a.start);
 

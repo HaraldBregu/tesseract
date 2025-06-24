@@ -1,28 +1,24 @@
-import * as _ from 'lodash-es'
+import * as _ from 'lodash-es';
 import { promises as fs } from 'fs'
-import {
-  readLastFolderPath,
-  readRecentDocuments,
-  storeLastFolderPath,
-  storeRecentDocuments
-} from '../store'
+import { readLastFolderPath, readRecentDocuments, storeLastFolderPath, storeRecentDocuments, readFileNameDisplay, readRecentFilesCount } from '../store';
+import path from 'path';
 
 export interface DocumentMetadata {
-  title?: string
-  author?: string
-  createdAt: string
-  updatedAt: string
+    title?: string;
+    author?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface DocumentData {
-  version: string
-  createdAt: string
-  updatedAt: string
-  mainText: object | null
-  apparatuses: DocumentApparatus[]
-  annotations: object | null
-  template: object | null
-  metadata?: DocumentMetadata
+    version: string;
+    createdAt: string;
+    updatedAt: string;
+    mainText: object | null;
+    apparatuses: DocumentApparatus[];
+    annotations: object | null;
+    template: object | null;
+    metadata?: DocumentMetadata;
 }
 
 let currentMainText: object | null = null
@@ -41,7 +37,7 @@ let currentParatextual: object | null = null
  * @returns void
  */
 export const setLastFolderPath = (folderPath: string | null): void => {
-  storeLastFolderPath(folderPath)
+    storeLastFolderPath(folderPath)
 }
 
 /**
@@ -49,7 +45,7 @@ export const setLastFolderPath = (folderPath: string | null): void => {
  * @returns The last folder path
  */
 export const getLastFolderPath = (): string | null => {
-  return readLastFolderPath()
+    return readLastFolderPath()
 }
 
 /**
@@ -57,7 +53,7 @@ export const getLastFolderPath = (): string | null => {
  * @returns The recent documents list from the store
  */
 export function getRecentDocuments(): string[] {
-  return readRecentDocuments()
+    return readRecentDocuments()
 }
 
 /**
@@ -65,21 +61,25 @@ export function getRecentDocuments(): string[] {
  * @returns void
  */
 export const setRecentDocuments = async (): Promise<void> => {
-  let recentDocuments = getRecentDocuments()
+    let recentDocuments = getRecentDocuments()
 
-  recentDocuments = await Promise.all(
-    recentDocuments.map(async (filePath) => {
-      try {
-        await fs.access(filePath)
-        return filePath
-      } catch {
-        return null
-      }
-    })
-  ).then((files) => files.filter((file): file is string => file !== null))
+    recentDocuments = await Promise.all(
+        recentDocuments.map(async (filePath) => {
+            try {
+                await fs.access(filePath)
+                return filePath
+            } catch {
+                return null
+            }
+        })
+    ).then((files) => files.filter((file): file is string => file !== null))
 
-  storeRecentDocuments(recentDocuments)
-}
+    // Apply the current preference limit
+    const maxRecentFiles = readRecentFilesCount();
+    recentDocuments = recentDocuments.slice(0, maxRecentFiles);
+
+    storeRecentDocuments(recentDocuments)
+};
 
 /**
  * Updates the recent documents list
@@ -87,13 +87,14 @@ export const setRecentDocuments = async (): Promise<void> => {
  * @returns void
  */
 export const updateRecentDocuments = (filePath: string): void => {
-  let recentDocuments = getRecentDocuments()
-  recentDocuments = recentDocuments.filter((doc) => doc !== filePath)
-  recentDocuments.unshift(filePath)
-  recentDocuments = recentDocuments.slice(0, 10)
+    let recentDocuments = getRecentDocuments()
+    recentDocuments = recentDocuments.filter(doc => doc !== filePath);
+    recentDocuments.unshift(filePath);
+    const maxRecentFiles = readRecentFilesCount();
+    recentDocuments = recentDocuments.slice(0, maxRecentFiles);
 
-  storeRecentDocuments(recentDocuments)
-}
+    storeRecentDocuments(recentDocuments)
+};
 
 /**
  * Sets the current main text
@@ -101,7 +102,7 @@ export const updateRecentDocuments = (filePath: string): void => {
  * @returns void
  */
 export const setCurrentMainText = (mainText: object | null): void => {
-  currentMainText = mainText
+    currentMainText = mainText
 }
 
 /**
@@ -109,7 +110,7 @@ export const setCurrentMainText = (mainText: object | null): void => {
  * @returns The current critical text
  */
 export const getCurrentMainText = (): object | null => {
-  return currentMainText
+    return currentMainText
 }
 
 /**
@@ -118,7 +119,7 @@ export const getCurrentMainText = (): object | null => {
  * @returns void
  */
 export const setCurrentApparatuses = (apparatuses: DocumentApparatus[]): void => {
-  currentApparatuses = apparatuses
+    currentApparatuses = apparatuses
 }
 
 /**
@@ -126,7 +127,7 @@ export const setCurrentApparatuses = (apparatuses: DocumentApparatus[]): void =>
  * @returns The current apparatus text
  */
 export const getCurrentApparatuses = (): DocumentApparatus[] => {
-  return currentApparatuses
+    return currentApparatuses
 }
 
 /**
@@ -135,7 +136,7 @@ export const getCurrentApparatuses = (): DocumentApparatus[] => {
  * @returns void
  */
 export const setCurrentAnnotations = (annotations: object | null): void => {
-  currentAnnotations = annotations
+    currentAnnotations = annotations
 }
 
 /**
@@ -143,7 +144,7 @@ export const setCurrentAnnotations = (annotations: object | null): void => {
  * @returns The current annotations
  */
 export const getCurrentAnnotations = (): object | null => {
-  return currentAnnotations
+    return currentAnnotations
 }
 
 /**
@@ -151,13 +152,13 @@ export const getCurrentAnnotations = (): object | null => {
  * @returns The current template
  */
 export const getCurrentTemplate = (): object | null => {
-  return {
-    layoutTemplate: getCurrentLayoutTemplate(),
-    pageSetup: getCurrentPageSetup(),
-    sort: getCurrentSort(),
-    styles: getCurrentStyles(),
-    paratextual: getCurrentParatextual()
-  }
+    return {
+        layoutTemplate: getCurrentLayoutTemplate(),
+        pageSetup: getCurrentPageSetup(),
+        sort: getCurrentSort(),
+        styles: getCurrentStyles(),
+        paratextual: getCurrentParatextual(),
+    }
 }
 
 /**
@@ -166,7 +167,7 @@ export const getCurrentTemplate = (): object | null => {
  * @returns void
  */
 export const setCurrentDocument = (document: DocumentData | null): void => {
-  currentDocument = document
+    currentDocument = document
 }
 
 /**
@@ -174,7 +175,7 @@ export const setCurrentDocument = (document: DocumentData | null): void => {
  * @returns The current document
  */
 export const getCurrentDocument = (): DocumentData | null => {
-  return currentDocument
+    return currentDocument
 }
 
 /**
@@ -183,7 +184,7 @@ export const getCurrentDocument = (): DocumentData | null => {
  * @returns void
  */
 export const setCurrentLayoutTemplate = (layoutTemplate: object | null): void => {
-  currentLayoutTemplate = layoutTemplate
+    currentLayoutTemplate = layoutTemplate
 }
 
 /**
@@ -191,7 +192,7 @@ export const setCurrentLayoutTemplate = (layoutTemplate: object | null): void =>
  * @returns The current layout template
  */
 export const getCurrentLayoutTemplate = (): object | null => {
-  return currentLayoutTemplate
+    return currentLayoutTemplate
 }
 
 /**
@@ -200,7 +201,7 @@ export const getCurrentLayoutTemplate = (): object | null => {
  * @returns void
  */
 export const setCurrentPageSetup = (pageSetup: object | null): void => {
-  currentPageSetup = pageSetup
+    currentPageSetup = pageSetup
 }
 
 /**
@@ -208,7 +209,7 @@ export const setCurrentPageSetup = (pageSetup: object | null): void => {
  * @returns The current page setup
  */
 export const getCurrentPageSetup = (): object | null => {
-  return currentPageSetup
+    return currentPageSetup
 }
 
 /**
@@ -217,7 +218,7 @@ export const getCurrentPageSetup = (): object | null => {
  * @returns void
  */
 export const setCurrentSort = (sort: object | null): void => {
-  currentSort = sort
+    currentSort = sort
 }
 
 /**
@@ -225,7 +226,7 @@ export const setCurrentSort = (sort: object | null): void => {
  * @returns The current sort
  */
 export const getCurrentSort = (): object | null => {
-  return currentSort
+    return currentSort
 }
 
 /**
@@ -234,7 +235,7 @@ export const getCurrentSort = (): object | null => {
  * @returns void
  */
 export const setCurrentStyles = (styles: object | null): void => {
-  currentStyles = styles
+    currentStyles = styles
 }
 
 /**
@@ -242,7 +243,7 @@ export const setCurrentStyles = (styles: object | null): void => {
  * @returns The current styles
  */
 export const getCurrentStyles = (): object | null => {
-  return currentStyles
+    return currentStyles
 }
 
 /**
@@ -251,7 +252,7 @@ export const getCurrentStyles = (): object | null => {
  * @returns void
  */
 export const setCurrentParatextual = (paratextual: object | null): void => {
-  currentParatextual = paratextual
+    currentParatextual = paratextual
 }
 
 /**
@@ -259,7 +260,7 @@ export const setCurrentParatextual = (paratextual: object | null): void => {
  * @returns The current paratextual
  */
 export const getCurrentParatextual = (): object | null => {
-  return currentParatextual
+    return currentParatextual
 }
 
 /**
@@ -268,11 +269,11 @@ export const getCurrentParatextual = (): object | null => {
  * @returns The created document object
  */
 export async function createDocumentObject(document: DocumentData): Promise<object> {
-  const newDocument: DocumentData = {
-    ...document
-  }
-  const scDocument = await _.mapKeys(newDocument, (__, key) => _.snakeCase(key))
-  return scDocument
+    const newDocument: DocumentData = {
+        ...document,
+    }
+    const scDocument = await _.mapKeys(newDocument, (__, key) => _.snakeCase(key));
+    return scDocument;
 }
 
 /**
@@ -281,19 +282,37 @@ export async function createDocumentObject(document: DocumentData): Promise<obje
  * @returns The created document object
  */
 export async function createDocument(object: object): Promise<DocumentData> {
-  const document: DocumentData = {
-    ...object,
-    mainText: object['main_text'],
-    apparatuses: object['apparatuses'],
-    annotations: object['annotations'],
-    template: object['template'],
-    metadata: object['metadata'],
-    version: object['version'],
-    createdAt: object['created_at'],
-    updatedAt: object['updated_at']
-  }
+    const document: DocumentData = {
+        ...object,
+        mainText: object['main_text'],
+        apparatuses: object['apparatuses'],
+        annotations: object['annotations'],
+        template: object['template'],
+        metadata: object['metadata'],
+        version: object['version'],
+        createdAt: object['created_at'],
+        updatedAt: object['updated_at'],
+    }
 
-  const scDocument = await _.mapKeys(document, (__, key) => _.camelCase(key))
+    const scDocument = await _.mapKeys(document, (__, key) => _.camelCase(key));
 
-  return scDocument
+    return scDocument;
 }
+
+/**
+ * Formats a file path based on the file name display preference
+ * @param filePath - The full file path
+ * @returns The formatted file name
+ */
+export const formatFileName = (filePath: string): string => {
+    const displayMode = readFileNameDisplay();
+
+    if (displayMode === 'filename') {
+        return path.basename(filePath);
+    } else {
+        // For 'full' mode, show filename and last directory
+        const parsed = path.parse(filePath);
+        const parentDir = path.basename(parsed.dir);
+        return parentDir ? `${parentDir}/${parsed.base}` : parsed.base;
+    }
+};

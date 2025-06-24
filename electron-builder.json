@@ -47,7 +47,7 @@
       {
         "ext": "critx",
         "name": "Criterion Document",
-        "icon": "./buildResources/appIcons/icon.icns",
+        "icon": "./buildResources/fileIcons/mac/fileIcon.icns",
         "role": "Editor"
       }
     ]

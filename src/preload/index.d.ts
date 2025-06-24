@@ -2,15 +2,16 @@ import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
   interface Window {
-    electron?: ElectronAPI
-    api?: unknown
-    store?: unknown
-    tabs?: ITabsAPI
-    menu?: IMenuAPI
-    system?: ISystemAPI
-    application?: IApplicationAPI
-    doc?: IDocumentAPI
-    theme?: IThemeAPI
+    electron: ElectronAPI
+    api: unknown
+    store: unknown
+    tabs: ITabsAPI
+    menu: IMenuAPI
+    system: ISystemAPI,
+    application: IApplicationAPI,
+    doc: IDocumentAPI,
+    theme: IThemeAPI,
+    preferences: IPreferencesAPI,
   }
 }
 
@@ -25,9 +26,7 @@ interface ITabsAPI {
 
 interface IMenuAPI {
   disableReferencesMenuItems: (items: string[]) => Promise<void>
-  updateViewApparatusesMenuItems: (
-    items: { id: string; title: string; visible: boolean }[]
-  ) => Promise<void>
+  updateViewApparatusesMenuItems: (items: { id: string, title: string, visible: boolean }[]) => Promise<void>
   setTocVisibility: (visibility: boolean) => Promise<void>
   setTocMenuItemsEnabled: (isEnable: boolean) => Promise<void>
 }
@@ -49,16 +48,16 @@ interface IDocumentAPI {
   createStyle: (style: unknown) => Promise<void>
   importStyle: () => Promise<string>
   exportSiglumList: (siglumList: Siglum[]) => Promise<void>
-  importSiglumList: () => Promise<DocumentSiglum[]>
+  importSiglumList: () => Promise<Siglum[]>
 }
 
 interface ISystemAPI {
-  getUserInfo: () => Promise<UserInfo>
+  getUserInfo: () => Promise<void>
   getFonts: () => Promise<string[]>
   getSubsets: () => Promise<Subset[]>
   getSymbols: (fontName: string) => Promise<CharacterSet>
   getConfiguredSpcialCharactersList: () => Promise<CharacterConfiguration[]>
-  showMessageBox: (message: string) => Promise<void>
+  showMessageBox: (message: string, buttons: string[]) => Promise<Electron.MessageBoxReturnValue>
 }
 
 interface IApplicationAPI {
@@ -71,3 +70,11 @@ interface IThemeAPI {
   setTheme: (theme: 'light' | 'dark' | 'system') => Promise<void>
   getTheme: () => Promise<'light' | 'dark' | 'system'>
 }
+
+interface IPreferencesAPI {
+  getPreferences: () => Promise<Preferences>
+  savePreferences: (preferences: Preferences) => Promise<void>
+  getPageSetup: () => Promise<PageSetup>
+  savePageSetup: (pageSetup: PageSetup) => Promise<void>
+}
+

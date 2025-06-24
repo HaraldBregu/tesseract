@@ -1,16 +1,18 @@
-import * as React from 'react'
-import SvgIcon, { SvgIconProps } from '../../components/SvgIcon'
 
-type DropdownProps = Omit<SvgIconProps, 'children' | 'viewBox'>
+                import * as React from "react"
+                import SvgIcon, { SvgIconProps } from '../../components/SvgIcon';
 
-const Dropdown = React.forwardRef<SVGSVGElement, DropdownProps>((props, ref) => {
-  return (
-    <SvgIcon viewBox="0 0 24 24" {...props} ref={ref}>
-      <path d="M12 14.308 8.19 10.5h7.616z" />
-    </SvgIcon>
-  )
-})
+                type DropdownProps = Omit<SvgIconProps, 'children' | 'viewBox'>;
 
-Dropdown.displayName = 'Dropdown'
+                const Dropdown = React.forwardRef<SVGSVGElement, DropdownProps>((props, ref) => {
+                return (
+                    <SvgIcon viewBox="0 0 24 24" {...props} ref={ref}>
+                    <path d="M12 14.308 8.19 10.5h7.616z" />
+                    </SvgIcon>
+                );
+                });
 
-export default Dropdown
+                Dropdown.displayName = 'Dropdown';
+
+                export default Dropdown;
+            

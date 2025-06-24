@@ -873,6 +873,7 @@
   },
   "siglum": {
     "title": "Siglum",
+    "save": "Save",
     "create": "Create",
     "cancel": "Cancel",
     "import": "Import",
@@ -881,6 +882,17 @@
     "description": "Description",
     "empty": {
       "title": "Create siglum before adding notes"
+    },
+    "importDialog": {
+      "title": "There are {{count}} siglums that are already present in the document. Do you want to replace them?",
+      "replace": "Replace",
+      "cancel": "Cancel",
+      "keepBoth": "Keep both"
+    },
+    "insertDialog": {
+      "title": "Insert siglum",
+      "cancel": "Cancel",
+      "insert": "Insert"
     }
   }
 }

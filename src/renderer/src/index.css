@@ -29,7 +29,7 @@
 .ProseMirror pre {
   background: #0d0d0d;
   color: #fff;
-  font-family: 'JetBrainsMono', monospace;
+  font-family: "JetBrainsMono", monospace;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
 }
@@ -102,7 +102,7 @@
 }
 
 .section-divider {
-  font-family: 'SF Pro Display', sans-serif;
+  font-family: "SF Pro Display", sans-serif;
 }
 
 /* Nascondi le frecce native */
@@ -265,6 +265,7 @@
 .tiptap h3,
 .tiptap h4,
 .tiptap h5,
-.tiptap h6 {
+.tiptap h6
+ {
   margin-left: 10px;
 }

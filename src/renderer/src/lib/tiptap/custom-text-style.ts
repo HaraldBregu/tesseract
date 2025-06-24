@@ -1,5 +1,5 @@
 import TextStyle from '@tiptap/extension-text-style'
-import { Mark, mergeAttributes } from '@tiptap/core'
+import { Mark, mergeAttributes } from "@tiptap/core";
 
 const CustomTextStyle = TextStyle.extend({
   addAttributes() {
@@ -7,8 +7,8 @@ const CustomTextStyle = TextStyle.extend({
       ...this.parent?.(),
       fontSize: {
         default: '12pt',
-        parseHTML: (element) => element.style.fontSize,
-        renderHTML: (attributes) => {
+        parseHTML: element => element.style.fontSize,
+        renderHTML: attributes => {
           if (!attributes.fontSize) {
             return {}
           }
@@ -22,35 +22,35 @@ const CustomTextStyle = TextStyle.extend({
         parseHTML: (element) => element.style.fontFamily ?? null,
         renderHTML: (attributes) => {
           if (!attributes.fontFamily) {
-            return {}
+            return {};
           }
           return {
-            style: `font-family: ${attributes.fontFamily}`
-          }
-        }
+            style: `font-family: ${attributes.fontFamily}`,
+          };
+        },
       },
       color: {
         default: 'black',
         parseHTML: (element) => element.style.color ?? null,
         renderHTML: (attributes) => {
           if (!attributes.color) {
-            return {}
+            return {};
           }
           return {
-            style: `color: ${attributes.color}`
-          }
-        }
+            style: `color: ${attributes.color}`,
+          };
+        },
       },
       fontVariant: {
         default: null,
         parseHTML: (element) => element.style.fontVariant ?? null,
         renderHTML: (attributes) => {
           if (!attributes.fontVariant) {
-            return {}
+            return {};
           }
           return {
             style: `font-variant: ${attributes.fontVariant}`
-          }
+          };
         }
       },
       zoom: {
@@ -58,43 +58,43 @@ const CustomTextStyle = TextStyle.extend({
         parseHTML: (element) => element.style.zoom ?? null,
         renderHTML: (attributes) => {
           if (!attributes.zoom) {
-            return {}
+            return {};
           }
           return {
             style: `zoom: ${attributes.zoom}`
-          }
+          };
         }
-      }
+      },
     }
-  }
-})
+  },
+});
 
 const CustomLetterSpacing = Mark.create({
-  name: 'letterSpacing',
+  name: "letterSpacing",
 
   addAttributes() {
     return {
       ...this.parent?.(),
       spacing: {
-        default: 'normal',
-        parseHTML: (element) => element.style.letterSpacing || 'normal',
+        default: "normal",
+        parseHTML: (element) => element.style.letterSpacing || "normal",
         renderHTML: (attributes) => {
-          if (!attributes.spacing || attributes.spacing === 'normal') {
-            return {}
+          if (!attributes.spacing || attributes.spacing === "normal") {
+            return {};
           }
-          return { style: `letter-spacing: ${attributes.spacing}` }
-        }
-      }
-    }
+          return { style: `letter-spacing: ${attributes.spacing}` };
+        },
+      },
+    };
   },
 
   parseHTML() {
-    return [{ tag: 'span[style]' }]
+    return [{ tag: "span[style]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['span', mergeAttributes(HTMLAttributes), 0]
-  }
-})
+    return ["span", mergeAttributes(HTMLAttributes), 0];
+  },
+});
 
 export { CustomTextStyle, CustomLetterSpacing }

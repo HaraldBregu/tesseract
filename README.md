@@ -5,7 +5,6 @@ This template provides a minimal setup to get React working in Vite with HMR in 
 Copyright © 2025 FinconsGroup
 
 Resources:
-
 - https://www.youtube.com/watch?v=fP-371MN0Ck
 - electron-builder
 - ElectronJs
@@ -28,7 +27,6 @@ Resources:
 - ESLint - Code linting and formatting
 
 Development Tools:
-
 - electron-builder - Application packaging and distribution
 - electron-vite - Electron + Vite integration
 - npm-run-all - Run multiple npm scripts

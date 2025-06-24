@@ -1,12 +1,14 @@
-import { is, platform } from '@electron-toolkit/utils'
-import { app } from 'electron'
-import path from 'path'
+import { is, platform } from "@electron-toolkit/utils";
+import { app } from "electron";
+import path from "path";
 import url from 'url'
 
 // Helpers
 export const getLocalesPath = (): string => {
-  return is.dev ? path.join(app.getAppPath(), 'i18n') : path.join(process.resourcesPath, 'i18n')
-}
+  return is.dev
+    ? path.join(app.getAppPath(), "i18n")
+    : path.join(process.resourcesPath, "i18n");
+};
 
 export function getTemplatesPath(): string {
   return is.dev
@@ -15,7 +17,9 @@ export function getTemplatesPath(): string {
 }
 
 export function getCachePath(): string {
-  return is.dev ? path.join(app.getAppPath(), '.cache') : path.join(process.resourcesPath, '.cache')
+  return is.dev
+    ? path.join(app.getAppPath(), '.cache')
+    : path.join(process.resourcesPath, '.cache')
 }
 
 export function getStylesPath(): string {
@@ -49,5 +53,5 @@ export const getShortcutLabel = (shortcut: string): string => {
     .replace(/Del/g, isMacOS ? '⌫' : 'Del')
     .replace(/Enter/g, isMacOS ? '⏎' : 'Enter')
     .replace(/Fn/g, isMacOS ? 'fn' : 'Fn')
-    .replace(/\+/g, '+') // Keep "+" signs
-}
+    .replace(/\+/g, '+'); // Keep "+" signs
+};

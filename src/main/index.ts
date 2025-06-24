@@ -1,22 +1,22 @@
-import path from 'path'
-import * as _ from 'lodash-es'
-import { app, BaseWindow, dialog, ipcMain, MenuItem, net, protocol, shell } from 'electron'
-import { MenuItemId } from './shared/types'
-import i18next from 'i18next'
-import Backend from 'i18next-fs-backend'
-import { mainLogger } from './shared/logger.js'
-import fontList from 'font-list'
-import os from 'os'
+import path from "path";
+import * as _ from 'lodash-es';
+import { app, BaseWindow, dialog, ipcMain, MenuItem, net, protocol, shell } from "electron";
+import { MenuItemId } from "./shared/types";
+import i18next from "i18next";
+import Backend from "i18next-fs-backend";
+import { mainLogger } from "./shared/logger.js";
+import fontList from "font-list";
+import os from "os";
 import {
   getBaseWindow,
   getToolbarWebContentsView,
   initializeMainWindow,
   openChildWindow,
   toolbarWebContentsViewSend,
-  closeChildWindow
-} from './main-window'
-import * as fsSync from 'fs'
-import { getLocalesPath, getRootUrl, getStylesPath, getTemplatesPath } from './shared/util.js'
+  closeChildWindow,
+} from "./main-window";
+import * as fsSync from "fs";
+import { getLocalesPath, getRootUrl, getStylesPath, getTemplatesPath } from "./shared/util.js";
 import {
   closeWebContentsViewWithId,
   getWebContentsViewsIds,
@@ -27,17 +27,17 @@ import {
   selectedWebContentsViewSend,
   setSelectedWebContentsViewWithId,
   createWebContentsView,
-  showWebContentsView
-} from './content'
+  showWebContentsView,
+} from "./content";
 import {
   closeApplication,
   moveDocument,
   openDocument,
   renameDocument,
   saveDocument,
-  saveDocumentAs
-} from './document/document-manager'
-import { promises as fs } from 'fs'
+  saveDocumentAs,
+} from "./document/document-manager";
+import { promises as fs } from "fs";
 import {
   createDocument,
   getCurrentDocument,
@@ -51,22 +51,12 @@ import {
   setCurrentSort,
   setCurrentStyles,
   setRecentDocuments,
-  updateRecentDocuments
-} from './document/document'
-import { setDisabledReferencesMenuItemsIds } from './menu/items/references-menu'
-import {
-  setApparatusSubMenuObjectItems,
-  setEnableTocVisibilityMenuItem,
-  setTocVisible,
-  setToolbarVisible
-} from './menu/items/view-menu'
-import {
-  fileTypeToRouteMapping,
-  Route,
-  routeToMenuMapping,
-  typeTypeToRouteMapping
-} from './shared/constants'
-import { setFilePathForSelectedTab } from './toolbar'
+  updateRecentDocuments,
+} from "./document/document";
+import { setDisabledReferencesMenuItemsIds } from "./menu/items/references-menu";
+import { setApparatusSubMenuObjectItems, setEnableTocVisibilityMenuItem, setTocVisible, setToolbarVisible } from "./menu/items/view-menu";
+import { fileTypeToRouteMapping, Route, routeToMenuMapping, typeTypeToRouteMapping } from "./shared/constants";
+import { setFilePathForSelectedTab } from "./toolbar";
 import {
   getTabs,
   readAppLanguage,
@@ -76,23 +66,59 @@ import {
   storeAppLanguage,
   storeToolbarAdditionalItems,
   storeToolbarIsVisible,
-  updateTabFilePath
-} from './store'
-import { setEnableTocSettingsMenu } from './menu/items/format-menu'
-import { ApplicationMenu } from './menu/menu'
-import initializeFonts, { getSymbols, getFonts, getSubsets } from './shared/fonts'
-import { initializeThemeManager } from './theme-manager'
+  storeFileNameDisplay,
+  readFileNameDisplay,
+  storeRememberLayout,
+  readRememberLayout,
+  storeLastPageSetup,
+  readLastPageSetup,
+  updateTabFilePath,
+  storeRecentFilesCount,
+  readRecentFilesCount,
+  storeTheme,
+  readTheme,
+  storeCommentPreviewLimit,
+  storeBookmarkPreviewLimit,
+  readCommentPreviewLimit,
+  readBookmarkPreviewLimit,
+  storeFileSavingDirectory,
+  readFileSavingDirectory,
+  storeDefaultDirectory,
+  readDefaultDirectory,
+  storeAutomaticFileSave,
+  readAutomaticFileSave,
+  storeVersioningDirectory,
+  readVersioningDirectory,
+  storeCustomVersioningDirectory,
+  readCustomVersioningDirectory,
+  storeCriterionLanguage,
+  readCriterionLanguage,
+  storeCriterionRegion,
+  readCriterionRegion,
+  storeDateTimeFormat,
+  readDateTimeFormat,
+  storeHistoryActionsCount,
+  readHistoryActionsCount,
+} from "./store";
+import { initializeAutoSave, updateAutoSave, cleanupAutoSave } from "./auto-save";
+import { setEnableTocSettingsMenu } from "./menu/items/format-menu";
+import { ApplicationMenu } from "./menu/menu";
+import initializeFonts, { getSymbols, getFonts, getSubsets } from "./shared/fonts";
+import { initializeThemeManager } from "./theme-manager";
+import { v4 as uuidv4 } from 'uuid';
 
 // .critx protocol configuration
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('critx', process.execPath, [path.resolve(process.argv[1])])
+    app.setAsDefaultProtocolClient("critx", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
   }
 } else {
-  app.setAsDefaultProtocolClient('critx')
+  app.setAsDefaultProtocolClient("critx");
 }
 
-const protocolName = 'local-resource'
+const protocolName = "local-resource";
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -107,125 +133,144 @@ protocol.registerSchemesAsPrivileged([
   }
 ])
 
-const handleAppClose =
-  (closeFileFn: () => Promise<void>) =>
+const handleAppClose = (closeFileFn: () => Promise<void>) =>
   async (event: Electron.Event): Promise<void> => {
-    event.preventDefault()
-    await closeFileFn()
-  }
+    event.preventDefault();
+    await closeFileFn();
+  };
 
 const updateElectronLocale = async (lang: string): Promise<void> => {
-  const taskId = mainLogger.startTask('Electron', 'Changing language')
+  const taskId = mainLogger.startTask("Electron", "Changing language");
   try {
-    const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+    const baseWindow = getBaseWindow();
+    if (!baseWindow) return;
 
-    storeAppLanguage(lang)
+    storeAppLanguage(lang);
 
-    await i18next.changeLanguage(lang)
+    await i18next.changeLanguage(lang);
 
     ApplicationMenu.build(onClickMenuItem)
 
-    mainLogger.endTask(taskId, 'Electron', 'Language changed')
+    mainLogger.endTask(taskId, "Electron", "Language changed");
   } catch (err) {
-    mainLogger.error('Electron', 'Error while changing language', err as Error)
+    mainLogger.error("Electron", "Error while changing language", err as Error);
   }
-}
+};
 
 const registerIpcListeners = (): void => {
-  ipcMain.on('update-critical-text', async (_event, data: object | null) => {
-    setCurrentMainText(data)
-    const mainText = getCurrentDocument()?.mainText
-    if (!data || !mainText) return
-    const isEqual = await _.isEqual(data, mainText)
-    const changed = !isEqual
-    toolbarWebContentsViewSend('main-text-changed', changed)
-  })
-  ipcMain.on('update-annotations', (_event, data: object | null) => {
-    setCurrentAnnotations(data)
-  })
-  ipcMain.on('set-electron-language', (_event, language: string) => {
-    updateElectronLocale(language)
-  })
-  ipcMain.on('request-system-fonts', async (event) => {
+  ipcMain.on("update-critical-text", async (_event, data: object | null) => {
+    setCurrentMainText(data);
+    const mainText = getCurrentDocument()?.mainText;
+    if (!data || !mainText) return;
+    const isEqual = await _.isEqual(data, mainText);
+    const changed = !isEqual;
+    toolbarWebContentsViewSend("main-text-changed", changed);
+  });
+  ipcMain.on("update-annotations", (_event, data: object | null) => {
+    setCurrentAnnotations(data);
+  });
+  ipcMain.on("set-electron-language", (_event, language: string) => {
+    updateElectronLocale(language);
+  });
+  ipcMain.on("request-system-fonts", async (event) => {
     try {
-      const fonts = await fontList.getFonts()
-      const cleanedFonts = fonts.map((font: string) => font.replace(/"/g, ''))
-      event.reply('receive-system-fonts', cleanedFonts)
+      const fonts = await fontList.getFonts();
+      const cleanedFonts = fonts.map((font: string) => font.replace(/"/g, ""));
+      event.reply("receive-system-fonts", cleanedFonts);
     } catch (error) {
-      console.error('Error fetching system fonts:', error)
-      event.reply('receive-system-fonts', [])
+      console.error("Error fetching system fonts:", error);
+      event.reply("receive-system-fonts", []);
     }
-  })
-  ipcMain.on('open-external-file', async (_, filePath: string) => {
-    const taskId = mainLogger.startTask('Electron', 'Opening external link')
+  });
+  ipcMain.on("open-external-file", async (_, filePath: string) => {
+    const taskId = mainLogger.startTask("Electron", "Opening external link");
     try {
-      await shell.openExternal(filePath)
-      mainLogger.endTask(taskId, 'Electron', 'External link opened')
+      await shell.openExternal(filePath);
+      mainLogger.endTask(taskId, "Electron", "External link opened");
     } catch (err) {
-      mainLogger.error('Electron', 'Error while opening external link', err as Error)
+      mainLogger.error(
+        "Electron",
+        "Error while opening external link",
+        err as Error
+      );
     }
-  })
-  ipcMain.on('open-choose-layout-modal', async () => {
-    selectedWebContentsViewSend('receive-open-choose-layout-modal')
-  })
+  });
+  ipcMain.on("open-choose-layout-modal", async () => {
+    selectedWebContentsViewSend("receive-open-choose-layout-modal");
+  });
 
   // When a new tab from FrontEnd is created it sends the filepath to the main process
   // The main process reads the file and sends the document to the FrontEnd
-  ipcMain.on('document-opened-at-path', async (_, filepath: string, fileType: FileType) => {
+  ipcMain.on("document-opened-at-path", async (_, filepath: string, fileType: FileType) => {
     switch (fileType) {
-      case 'critx':
-        {
-          const fileContent = await fs.readFile(filepath, 'utf8')
-          const documentObject = JSON.parse(fileContent)
-          const document = await createDocument(documentObject)
-          setCurrentDocument(document)
-          setFilePathForSelectedTab(filepath)
-          selectedWebContentsViewSend('load-document', documentObject)
-          selectedWebContentsViewSend('load-document-apparatuses', documentObject.apparatuses)
-        }
-        break
+      case "critx": {
+        const fileContent = await fs.readFile(filepath, "utf8");
+        const documentObject = JSON.parse(fileContent);
+        const document = await createDocument(documentObject);
+        setCurrentDocument(document);
+        setFilePathForSelectedTab(filepath);
+        selectedWebContentsViewSend("load-document", documentObject);
+        selectedWebContentsViewSend("load-document-apparatuses", documentObject.apparatuses);
+      } break;
       case 'pdf':
       case 'png':
       case 'jpg':
       case 'jpeg':
-        selectedWebContentsViewSend('load-file-at-path', filepath)
-        setFilePathForSelectedTab(filepath)
-        updateRecentDocuments(filepath)
+        selectedWebContentsViewSend("load-file-at-path", filepath);
+        setFilePathForSelectedTab(filepath);
+        updateRecentDocuments(filepath);
         ApplicationMenu.build(onClickMenuItem)
-        break
+        break;
     }
-  })
+
+  });
 
   ipcMain.on('application:updateToolbarAdditionalItems', (_, items) => {
-    storeToolbarAdditionalItems(items)
+    storeToolbarAdditionalItems(items);
     getWebContentsViews().forEach((webContentView) =>
-      webContentView.webContents.send('toolbar-additional-items', readToolbarAdditionalItems())
-    )
-  })
+      webContentView.webContents.send(
+        "toolbar-additional-items",
+        readToolbarAdditionalItems()
+      )
+    );
+  });
 
-  ipcMain.on('select-folder-path', async (event) => {
-    console.log('select-folder-path')
-    const result = await dialog.showOpenDialog({
-      properties: ['openDirectory'],
-      title: 'Seleziona cartella per il versioning'
-    })
-    event.reply('receive-folder-path', result.filePaths[0])
-  })
-}
+
+  ipcMain.on("select-folder-path", async (event) => {
+    const taskId = mainLogger.startTask("Dialog", "Opening folder selection dialog");
+    try {
+      const result = await dialog.showOpenDialog({
+        properties: ['openDirectory'],
+        title: 'Seleziona cartella per il versioning',
+      });
+
+      if (!result.canceled && result.filePaths.length > 0) {
+        event.reply("receive-folder-path", result.filePaths[0]);
+        mainLogger.endTask(taskId, "Dialog", `Folder selected: ${result.filePaths[0]}`);
+      } else {
+        event.reply("receive-folder-path", null);
+        mainLogger.endTask(taskId, "Dialog", "Folder selection cancelled");
+      }
+    } catch (err) {
+      mainLogger.error("Dialog", "Error in folder selection", err as Error);
+      event.reply("receive-folder-path", null);
+    }
+  });
+
+};
 
 export function changeLanguageGlobal(lang: string): void {
-  updateElectronLocale(lang)
-  const webContentsView = getSelectedWebContentsView()
-  webContentsView?.webContents.send('language-changed', lang)
+  updateElectronLocale(lang);
+  const webContentsView = getSelectedWebContentsView();
+  webContentsView?.webContents.send("language-changed", lang);
 }
 
 const closeCurrentDocument = async (): Promise<void> => {
-  const taskId = mainLogger.startTask('Electron', 'Closing current document')
+  const taskId = mainLogger.startTask("Electron", "Closing current document");
   const toolbarWebContentsView = getToolbarWebContentsView()
   const currentWebContentsView = getSelectedWebContentsView()
   const tabId = currentWebContentsView?.webContents.id ?? -1
-  toolbarWebContentsView?.webContents.send('close-current-document', tabId)
+  toolbarWebContentsView?.webContents.send("close-current-document", tabId);
 
   const tabs = closeWebContentsViewWithId(tabId)
   const route = tabs.find((tab) => tab.selected)?.route
@@ -234,499 +279,513 @@ const closeCurrentDocument = async (): Promise<void> => {
   const selectedTab = tabs.find((tab) => tab.selected)
   const isNewDocument = !selectedTab || !selectedTab.filePath || selectedTab.filePath === null
 
-  ApplicationMenu.setIsNewDocument(isNewDocument)
+  ApplicationMenu
+    .setIsNewDocument(isNewDocument)
     .setMenuViewMode(menuViewMode)
     .build(onClickMenuItem)
 
-  mainLogger.endTask(taskId, 'Electron', 'File closed')
-}
+  mainLogger.endTask(taskId, "Electron", "File closed");
+};
 
 async function onDocumentOpened(filePath: string): Promise<void> {
-  const fileNameParsed = path.parse(filePath)
-  const fileNameBase = fileNameParsed.base
-  const fileNameExt = fileNameParsed.ext as FileNameExt
-  const fileType = fileNameExt.slice(1) as FileType
+  const fileNameParsed = path.parse(filePath);
+  const fileNameBase = fileNameParsed.base;
+  const fileNameExt = fileNameParsed.ext as FileNameExt;
+  const fileType = fileNameExt.slice(1) as FileType;
 
-  getToolbarWebContentsView()?.webContents.send('document-opened', filePath, fileNameBase, fileType)
-  updateRecentDocuments(filePath)
+  getToolbarWebContentsView()?.webContents.send(
+    "document-opened",
+    filePath,
+    fileNameBase,
+    fileType,
+  );
+  updateRecentDocuments(filePath);
 
-  ApplicationMenu.setIsNewDocument(false).build(onClickMenuItem)
+  ApplicationMenu
+    .setIsNewDocument(false)
+    .build(onClickMenuItem)
 }
 
 function onDocumentSaved(filePath: string): void {
-  const fileNameParsed = path.parse(filePath)
-  const fileNameBase = fileNameParsed.base
-  toolbarWebContentsViewSend('document-saved', fileNameBase)
-  toolbarWebContentsViewSend('main-text-changed', false)
-  updateRecentDocuments(filePath)
+  const fileNameParsed = path.parse(filePath);
+  const fileNameBase = fileNameParsed.base;
+  toolbarWebContentsViewSend("document-saved", fileNameBase);
+  toolbarWebContentsViewSend("main-text-changed", false);
+  updateRecentDocuments(filePath);
   ApplicationMenu.build(onClickMenuItem)
   const selectedContentView = getSelectedWebContentsView()
-  if (!selectedContentView) return
+  if (!selectedContentView)
+    return
 
   const selectedContentViewId = selectedContentView?.webContents.id
   updateTabFilePath(selectedContentViewId, filePath)
 
-  ApplicationMenu.setIsNewDocument(false).build(onClickMenuItem)
+  ApplicationMenu
+    .setIsNewDocument(false)
+    .build(onClickMenuItem)
 }
 
 function onDocumentRenamed(filename: string): void {
-  toolbarWebContentsViewSend('document-renamed', filename)
+  toolbarWebContentsViewSend("document-renamed", filename);
 }
 
 function onClickMenuItem(menuItem: MenuItem, data?: string): void {
-  const typeId: MenuItemId = menuItem.id as MenuItemId
+  const typeId: MenuItemId = menuItem.id as MenuItemId;
 
   switch (typeId) {
     // Settings menu
-    case MenuItemId.PREFERENCES:
-      {
-        // selectedWebContentsViewSend("open-preferences");
-        const url = getRootUrl() + 'preferences'
-        openChildWindow(url, { title: 'Criterion Preferences' })
-      }
-      break
+    case MenuItemId.PREFERENCES: {
+      // selectedWebContentsViewSend("open-preferences");
+      const url = getRootUrl() + "preferences"
+      openChildWindow(url, { title: "Criterion Preferences" })
+    }
+      break;
     // File menu
     case MenuItemId.NEW_FILE:
-      toolbarWebContentsViewSend('create-new-document')
+      toolbarWebContentsViewSend("create-new-document");
       setCurrentDocument(null)
-      ApplicationMenu.setIsNewDocument(true).build(onClickMenuItem)
-      break
+      ApplicationMenu
+        .setIsNewDocument(true)
+        .build(onClickMenuItem)
+      break;
     case MenuItemId.OPEN_FILE:
-      openDocument(null, onDocumentOpened)
-      break
+      openDocument(null, onDocumentOpened);
+      break;
     case MenuItemId.OPEN_RECENT_FILE:
-      openDocument(data, onDocumentOpened)
-      break
+      openDocument(data, onDocumentOpened);
+      break;
     case MenuItemId.IMPORT_FILE:
-      break
+      break;
     case MenuItemId.CLOSE_FILE:
-      console.log('close file from menu + shortcut')
-      closeCurrentDocument()
-      break
+      closeCurrentDocument();
+      break;
     case MenuItemId.SAVE_FILE:
-      saveDocument(onDocumentSaved)
-      break
+      saveDocument(onDocumentSaved);
+      break;
     case MenuItemId.SAVE_FILE_AS:
-      saveDocumentAs(onDocumentSaved)
-      break
+      saveDocumentAs(onDocumentSaved);
+      break;
     case MenuItemId.RENAME_FILE:
-      renameDocument(onDocumentRenamed)
-      break
+      renameDocument(onDocumentRenamed);
+      break;
     case MenuItemId.MOVE_FILE:
-      moveDocument()
-      break
+      moveDocument();
+      break;
     case MenuItemId.REVERT_FILE_TO:
-      break
+      break;
     case MenuItemId.SHARE_FOR_REVIEW:
-      break
+      break;
     case MenuItemId.LOCK_FILE:
-      break
+      break;
     case MenuItemId.UNLOCK_FILE:
-      break
+      break;
     case MenuItemId.EXPORT_TO:
-      break
+      break;
     case MenuItemId.EXPORT_TO_PDF:
-      break
+      break;
     case MenuItemId.EXPORT_TO_ODT:
-      break
+      break;
     case MenuItemId.EXPORT_TO_XML:
-      break
+      break;
     case MenuItemId.LANGUAGE_AND_REGION:
-      break
+      break;
     case MenuItemId.SAVE_AS_TEMPLATE:
-      selectedWebContentsViewSend('save-as-template')
+      selectedWebContentsViewSend('save-as-template');
       break
     case MenuItemId.METADATA:
-      break
+      break;
     case MenuItemId.PAGE_SETUP:
       selectedWebContentsViewSend('page-setup')
-      break
+      break;
     case MenuItemId.PRINT:
-      break
+      break;
 
     // Edit menu
     case MenuItemId.FIND_AND_REPLACE:
-      break
+      break;
     case MenuItemId.FIND_NEXT:
-      break
+      break;
     case MenuItemId.FIND_PREVIOUS:
-      break
+      break;
     case MenuItemId.JUMP_TO_SELECTION:
-      break
+      break;
     case MenuItemId.UNDO:
-      selectedWebContentsViewSend('trigger-undo')
+      selectedWebContentsViewSend('trigger-undo');
       break
     case MenuItemId.REDO:
-      selectedWebContentsViewSend('trigger-redo')
+      selectedWebContentsViewSend('trigger-redo');
       break
     case MenuItemId.CUT:
       // NO IMPPLEMENTATION REQUIRED
-      break
+      break;
     case MenuItemId.COPY:
       // NO IMPPLEMENTATION REQUIRED
-      break
+      break;
     case MenuItemId.COPY_STYLE:
       // NO IMPPLEMENTATION REQUIRED
-      break
+      break;
     case MenuItemId.PASTE:
       // NO IMPPLEMENTATION REQUIRED
-      break
+      break;
     case MenuItemId.PASTE_STYLE:
       // NO IMPPLEMENTATION REQUIRED
-      break
+      break;
     case MenuItemId.PASTE_AND_MATCH_STYLE:
       // NO IMPPLEMENTATION REQUIRED
-      break
+      break;
     case MenuItemId.PASTE_TEXT_WITHOUT_FORMATTING:
-      break
+      break;
     case MenuItemId.DELETE:
-      break
+      break;
     case MenuItemId.DUPLICATE_SELECTION:
-      break
+      break;
     case MenuItemId.SELECT_ALL:
-      break
+      break;
     case MenuItemId.DESELECT_ALL:
-      break
+      break;
 
     // Insert menu
     /* case MenuItemId.INSERT_SECTION:
       selectedWebContentsViewSend("insert-section");
       break */
     case MenuItemId.INSERT_COMMENT:
-      selectedWebContentsViewSend('insert-comment')
+      selectedWebContentsViewSend('insert-comment');
       break
     case MenuItemId.INSERT_BOOKMARK:
-      selectedWebContentsViewSend('insert-bookmark')
+      selectedWebContentsViewSend('insert-bookmark');
       break
     case MenuItemId.INSERT_HIGHLIGHT:
-      selectedWebContentsViewSend('insert-highlight')
+      selectedWebContentsViewSend("insert-highlight");
       break
     case MenuItemId.INSERT_LINK:
-      selectedWebContentsViewSend('insert-link')
+      selectedWebContentsViewSend("insert-link");
       break
     case MenuItemId.INSERT_IMAGE:
-      selectedWebContentsViewSend('insert-image')
+      selectedWebContentsViewSend("insert-image");
       break
     case MenuItemId.INSERT_SYMBOL:
-      selectedWebContentsViewSend('insert-symbol')
+      selectedWebContentsViewSend("insert-symbol");
       break
     case MenuItemId.INSERT_OBJECT:
-      selectedWebContentsViewSend('insert-object')
+      selectedWebContentsViewSend("insert-object");
       break
     case MenuItemId.INSERT_TABLE:
-      selectedWebContentsViewSend('insert-table')
+      selectedWebContentsViewSend("insert-table");
       break
     case MenuItemId.INSERT_SHAPES_AND_LINES:
-      selectedWebContentsViewSend('insert-shapes-and-lines')
+      selectedWebContentsViewSend("insert-shapes-and-lines");
       break
     case MenuItemId.INSERT_PAGE_BREAK:
-      selectedWebContentsViewSend('insert-page-break')
+      selectedWebContentsViewSend("insert-page-break");
       break
     case MenuItemId.INSERT_SECTION_BREAK:
-      selectedWebContentsViewSend('insert-section-break')
+      selectedWebContentsViewSend("insert-section-break");
       break
     case MenuItemId.INSERT_LINE_NUMBER_NONE:
-      selectedWebContentsViewSend('insert-line-number')
+      selectedWebContentsViewSend("insert-line-number");
       break
     case MenuItemId.INSERT_LINE_NUMBER_EACH_5_LINE:
-      selectedWebContentsViewSend('insert-line-number')
+      selectedWebContentsViewSend("insert-line-number");
       break
     case MenuItemId.INSERT_LINE_NUMBER_EACH_10_LINE:
-      selectedWebContentsViewSend('insert-line-number')
+      selectedWebContentsViewSend("insert-line-number");
       break
     case MenuItemId.INSERT_LINE_NUMBER_EACH_15_LINE:
-      selectedWebContentsViewSend('insert-line-number')
+      selectedWebContentsViewSend("insert-line-number");
       break
     case MenuItemId.INSERT_PAGE_NUMBER:
-      selectedWebContentsViewSend('insert-page-number')
+      selectedWebContentsViewSend("insert-page-number");
       break
     case MenuItemId.INSERT_DATE:
-      selectedWebContentsViewSend('insert-date')
+      selectedWebContentsViewSend("insert-date");
       break
     case MenuItemId.INSERT_DATE_AND_TIME:
-      selectedWebContentsViewSend('insert-date-and-time')
+      selectedWebContentsViewSend("insert-date-and-time");
       break
     case MenuItemId.INSERT_AUTHOR:
-      selectedWebContentsViewSend('insert-author')
+      selectedWebContentsViewSend("insert-author");
       break
     case MenuItemId.INSERT_TITLE:
-      selectedWebContentsViewSend('insert-title')
+      selectedWebContentsViewSend("insert-title");
       break
 
     // References menu
     case MenuItemId.INSERT_NOTE:
-      selectedWebContentsViewSend('add-note')
+      selectedWebContentsViewSend("add-note");
       break
     case MenuItemId.INSERT_NOTE_IN_INNER_MARGIN:
-      selectedWebContentsViewSend('add-note-in-inner-margin')
+      selectedWebContentsViewSend("add-note-in-inner-margin");
       break
     case MenuItemId.INSERT_NOTE_IN_OUTER_MARGIN:
-      selectedWebContentsViewSend('add-note-in-outer-margin')
+      selectedWebContentsViewSend("add-note-in-outer-margin");
       break
     case MenuItemId.SWAP_MARGIN:
-      selectedWebContentsViewSend('swap-margin')
+      selectedWebContentsViewSend("swap-margin");
       break
     case MenuItemId.ADD_READING_SEPARATOR:
-      selectedWebContentsViewSend('add-reading-separator')
+      selectedWebContentsViewSend("add-reading-separator");
       break
     case MenuItemId.ADD_SIGLUM:
-      selectedWebContentsViewSend('add-siglum')
+      selectedWebContentsViewSend("add-siglum");
       break
     case MenuItemId.SIGLA_SETUP:
-      selectedWebContentsViewSend('sigla-setup')
+      selectedWebContentsViewSend("sigla-setup");
       break
     case MenuItemId.ADD_CITATION:
-      selectedWebContentsViewSend('add-citation')
+      selectedWebContentsViewSend("add-citation");
       break
     case MenuItemId.ADD_BIBLIOGRAPHY:
-      selectedWebContentsViewSend('bibliography')
+      selectedWebContentsViewSend("bibliography");
       break
     case MenuItemId.REFERENCES_FORMAT:
-      selectedWebContentsViewSend('references-format')
+      selectedWebContentsViewSend("references-format");
       break
     case MenuItemId.ADD_APPARATUS_CRITICAL:
-      selectedWebContentsViewSend('add-apparatus', 'CRITICAL')
+      selectedWebContentsViewSend("add-apparatus", "CRITICAL");
       break
     case MenuItemId.ADD_APPARATUS_PAGE_NOTES:
-      selectedWebContentsViewSend('add-apparatus', 'PAGE_NOTES')
+      selectedWebContentsViewSend("add-apparatus", "PAGE_NOTES");
       break
     case MenuItemId.ADD_APPARATUS_SECTION_NOTES:
-      selectedWebContentsViewSend('add-apparatus', 'SECTION_NOTES')
+      selectedWebContentsViewSend("add-apparatus", "SECTION_NOTES");
       break
     case MenuItemId.ADD_APPARATUS_INNER_MARGIN:
-      selectedWebContentsViewSend('add-apparatus', 'INNER_MARGIN')
+      selectedWebContentsViewSend("add-apparatus", "INNER_MARGIN");
       break
     case MenuItemId.ADD_APPARATUS_OUTER_MARGIN:
-      selectedWebContentsViewSend('add-apparatus', 'OUTER_MARGIN')
+      selectedWebContentsViewSend("add-apparatus", "OUTER_MARGIN");
       break
 
     // Format menu
     case MenuItemId.FONT_BOLD:
-      selectedWebContentsViewSend('change-character-style', 'bold')
+      selectedWebContentsViewSend("change-character-style", 'bold');
       break
     case MenuItemId.FONT_ITALIC:
-      selectedWebContentsViewSend('change-character-style', 'italic')
+      selectedWebContentsViewSend("change-character-style", 'italic');
       break
     case MenuItemId.FONT_UNDERLINE:
-      selectedWebContentsViewSend('change-character-style', 'underline')
+      selectedWebContentsViewSend("change-character-style", 'underline');
       break
     case MenuItemId.FONT_STRIKETHROUGH:
-      selectedWebContentsViewSend('change-character-style', 'strikethrough')
+      selectedWebContentsViewSend("change-character-style", 'strikethrough');
       break
     case MenuItemId.FONT_SUPERSCRIPT:
-      selectedWebContentsViewSend('change-character-style', 'superscript')
+      selectedWebContentsViewSend("change-character-style", 'superscript');
       break
     case MenuItemId.FONT_SUBSCRIPT:
-      selectedWebContentsViewSend('change-character-style', 'subscript')
+      selectedWebContentsViewSend("change-character-style", 'subscript');
       break
     case MenuItemId.FONT_NPC:
-      selectedWebContentsViewSend('toggle-npc', 'npc')
+      selectedWebContentsViewSend("toggle-npc", 'npc');
       break
     case MenuItemId.FONT_CAPTALIZATION_ALL_CAPS:
-      selectedWebContentsViewSend('change-character-style', 'all-caps')
+      selectedWebContentsViewSend("change-character-style", 'all-caps');
       break
     case MenuItemId.FONT_CAPTALIZATION_SMALL_CAPS:
-      selectedWebContentsViewSend('change-character-style', 'small-caps')
+      selectedWebContentsViewSend("change-character-style", 'small-caps');
       break
     case MenuItemId.FONT_CAPTALIZATION_TITLE_CASE:
-      selectedWebContentsViewSend('change-character-style', 'title-case')
+      selectedWebContentsViewSend("change-character-style", 'title-case');
       break
     case MenuItemId.FONT_CAPTALIZATION_START_CASE:
-      selectedWebContentsViewSend('change-character-style', 'start-case')
+      selectedWebContentsViewSend("change-character-style", 'start-case');
       break
     case MenuItemId.FONT_CAPTALIZATION_NONE:
-      selectedWebContentsViewSend('change-character-style', 'none-case')
+      selectedWebContentsViewSend("change-character-style", 'none-case');
       break
     case MenuItemId.FONT_LIGATURE_DEFAULT:
-      selectedWebContentsViewSend('set-font-ligature', 'standard')
+      selectedWebContentsViewSend("set-font-ligature", "standard");
       break
     case MenuItemId.FONT_LIGATURE_NONE:
-      selectedWebContentsViewSend('set-font-ligature', 'none')
+      selectedWebContentsViewSend("set-font-ligature", "none");
       break
     case MenuItemId.FONT_LIGATURE_ALL:
-      selectedWebContentsViewSend('set-font-ligature', 'all')
+      selectedWebContentsViewSend("set-font-ligature", "all");
       break
     case MenuItemId.FONT_CHARACTER_SPACING_NORMAL:
-      selectedWebContentsViewSend('change-character-spacing', 'normal')
+      selectedWebContentsViewSend("change-character-spacing", "normal");
       break
     case MenuItemId.FONT_CHARACTER_SPACING_TIGHTEN:
-      selectedWebContentsViewSend('change-character-spacing', 'decrease')
+      selectedWebContentsViewSend("change-character-spacing", "decrease");
       break
     case MenuItemId.FONT_CHARACTER_SPACING_LOOSEN:
-      selectedWebContentsViewSend('change-character-spacing', 'increase')
+      selectedWebContentsViewSend("change-character-spacing", "increase");
       break
     case MenuItemId.TEXT_ALIGN_LEFT:
-      selectedWebContentsViewSend('change-alignment', 'left')
+      selectedWebContentsViewSend("change-alignment", "left");
       break
     case MenuItemId.TEXT_ALIGN_CENTER:
-      selectedWebContentsViewSend('change-alignment', 'center')
+      selectedWebContentsViewSend("change-alignment", "center");
       break
     case MenuItemId.TEXT_ALIGN_RIGHT:
-      selectedWebContentsViewSend('change-alignment', 'right')
+      selectedWebContentsViewSend("change-alignment", "right");
       break
     case MenuItemId.TEXT_ALIGN_JUSTIFY:
-      selectedWebContentsViewSend('change-alignment', 'justify')
+      selectedWebContentsViewSend("change-alignment", "justify");
       break
     case MenuItemId.TEXT_INCREASE_INDENT:
-      selectedWebContentsViewSend('change-indent-level', 'increase')
+      selectedWebContentsViewSend("change-indent-level", "increase");
       break
     case MenuItemId.TEXT_DECREASE_INDENT:
-      selectedWebContentsViewSend('change-indent-level', 'decrease')
+      selectedWebContentsViewSend("change-indent-level", "decrease");
       break
     case MenuItemId.TEXT_SPACING_SINGLE:
-      selectedWebContentsViewSend('set-line-spacing', '1')
+      selectedWebContentsViewSend("set-line-spacing", "1");
       break
     case MenuItemId.TEXT_SPACING_1_15:
-      selectedWebContentsViewSend('set-line-spacing', '1.15')
+      selectedWebContentsViewSend("set-line-spacing", "1.15");
       break
     case MenuItemId.TEXT_SPACING_ONE_AND_HALF:
-      selectedWebContentsViewSend('set-line-spacing', '1.5')
+      selectedWebContentsViewSend("set-line-spacing", "1.5");
       break
     case MenuItemId.TEXT_SPACING_DOUBLE:
-      selectedWebContentsViewSend('set-line-spacing', '2')
+      selectedWebContentsViewSend("set-line-spacing", "2");
       break
     case MenuItemId.CUSTOM_SPACING:
-      selectedWebContentsViewSend('show-spacing-settings')
+      selectedWebContentsViewSend("show-spacing-settings");
       break
     case MenuItemId.LAYOUT_PAGE_SETUP:
-      selectedWebContentsViewSend('show-page-setup')
+      selectedWebContentsViewSend('show-page-setup');
       break
     case MenuItemId.CHANGE_TEMPLATE:
-      selectedWebContentsViewSend('receive-open-choose-layout-modal')
+      selectedWebContentsViewSend('receive-open-choose-layout-modal');
       break
     case MenuItemId.PAGE_NUMBER:
-      selectedWebContentsViewSend('page-number-settings')
+      selectedWebContentsViewSend('page-number-settings');
       break
     case MenuItemId.OPEN_LINE_NUMBER_SETTINGS:
-      selectedWebContentsViewSend('line-numbers-settings')
+      selectedWebContentsViewSend('line-numbers-settings');
       break
     case MenuItemId.OPEN_HEADER_SETTINGS:
-      selectedWebContentsViewSend('header-settings')
+      selectedWebContentsViewSend('header-settings');
       break
     case MenuItemId.OPEN_FOOTER_SETTINGS:
-      selectedWebContentsViewSend('footer-settings')
+      selectedWebContentsViewSend('footer-settings');
       break
     case MenuItemId.OPEN_TOC_SETTINGS:
-      selectedWebContentsViewSend('toc-settings')
+      selectedWebContentsViewSend('toc-settings');
       break
     case MenuItemId.NUMBER_BULLET:
-      selectedWebContentsViewSend('number-bullet')
-      break
+      selectedWebContentsViewSend("number-bullet");
+      break;
     case MenuItemId.UPPER_LETTER_BULLET:
-      selectedWebContentsViewSend('upper-letter-bullet')
-      break
+      selectedWebContentsViewSend("upper-letter-bullet");
+      break;
     case MenuItemId.LOW_LETTER_BULLET:
-      selectedWebContentsViewSend('low-letter-bullet')
-      break
+      selectedWebContentsViewSend("low-letter-bullet");
+      break;
     case MenuItemId.POINT_BULLET:
-      selectedWebContentsViewSend('point-bullet')
-      break
+      selectedWebContentsViewSend("point-bullet");
+      break;
     case MenuItemId.CIRCLE_BULLET:
-      selectedWebContentsViewSend('circle-bullet')
-      break
+      selectedWebContentsViewSend("circle-bullet");
+      break;
     case MenuItemId.SQUARE_BULLET:
-      selectedWebContentsViewSend('square-bullet')
-      break
+      selectedWebContentsViewSend("square-bullet");
+      break;
     case MenuItemId.PREVIOUS_NUMBERING:
-      selectedWebContentsViewSend('previous-numbering')
-      break
+      selectedWebContentsViewSend("previous-numbering");
+      break;
     case MenuItemId.RESUME_NUMBERING:
-      selectedWebContentsViewSend('resume-numbering')
-      break
+      selectedWebContentsViewSend("resume-numbering");
+      break;
     case MenuItemId.SECTIONS_STYLE:
-      selectedWebContentsViewSend('show-sections-style-modal')
-      break
+      selectedWebContentsViewSend("show-sections-style-modal");
+      break;
 
     // Tools menu
     case MenuItemId.MACROS:
-      selectedWebContentsViewSend('record')
+      selectedWebContentsViewSend("record");
       break
     case MenuItemId.MACROS_RECORD:
-      selectedWebContentsViewSend('record')
+      selectedWebContentsViewSend("record");
       break
     case MenuItemId.DOCUMENT_STATISTICS:
-      selectedWebContentsViewSend('document-statistics')
+      selectedWebContentsViewSend("document-statistics");
       break
     case MenuItemId.HYPHENATION:
-      selectedWebContentsViewSend('hyphenation')
+      selectedWebContentsViewSend("hyphenation");
       break
     case MenuItemId.COMPARE_DOCUMENTS:
-      selectedWebContentsViewSend('compare-documents')
+      selectedWebContentsViewSend("compare-documents");
       break
     case MenuItemId.REVIEW:
-      selectedWebContentsViewSend('review')
+      selectedWebContentsViewSend("review");
       break
     case MenuItemId.ACCEPT_ALL_CHANGES:
-      selectedWebContentsViewSend('accept-all-changes')
+      selectedWebContentsViewSend("accept-all-changes");
       break
     case MenuItemId.REJECT_ALL_CHANGES:
-      selectedWebContentsViewSend('reject-all-changes')
+      selectedWebContentsViewSend("reject-all-changes");
       break
     case MenuItemId.ADD_ONS:
-      selectedWebContentsViewSend('addOns')
+      selectedWebContentsViewSend("addOns");
       break
 
     // Keyboard menu
     case MenuItemId.SHOW_MAP:
-      selectedWebContentsViewSend('show-map')
+      selectedWebContentsViewSend("show-map");
       break
     case MenuItemId.CUSTOMIZE_SHORTCUTS:
-      selectedWebContentsViewSend('customize-shortcuts')
+      selectedWebContentsViewSend("customize-shortcuts");
       break
     case MenuItemId.NONE:
-      selectedWebContentsViewSend('none')
+      selectedWebContentsViewSend("none");
       break
     case MenuItemId.ARABIC:
-      selectedWebContentsViewSend('language')
+      selectedWebContentsViewSend("language");
       break
     case MenuItemId.ARMENIAN:
-      selectedWebContentsViewSend('language')
+      selectedWebContentsViewSend("language");
       break
     case MenuItemId.CYRILLIC:
-      selectedWebContentsViewSend('language')
+      selectedWebContentsViewSend("language");
       break
     case MenuItemId.LATIN:
-      selectedWebContentsViewSend('language')
+      selectedWebContentsViewSend("language");
       break
 
     // View menu
     case MenuItemId.VIEW_APPARATUS:
-      selectedWebContentsViewSend('view-apparatus', data)
+      selectedWebContentsViewSend("view-apparatus", data);
       break
     case MenuItemId.HEADER_FOOTER:
-      selectedWebContentsViewSend('header-footer')
+      selectedWebContentsViewSend("header-footer");
       break
     case MenuItemId.TABLE_OF_CONTENTS:
-      selectedWebContentsViewSend('toggle-toc-visibility')
+      selectedWebContentsViewSend("toggle-toc-visibility");
       break
     case MenuItemId.TOOLBAR:
       storeToolbarIsVisible(!readToolbarIsVisible())
-      setToolbarVisible(readToolbarIsVisible())
+      setToolbarVisible(readToolbarIsVisible());
       ApplicationMenu.build(onClickMenuItem)
       getWebContentsViews().forEach((webContentView) =>
-        webContentView.webContents.send('toggle-toolbar', readToolbarIsVisible())
-      )
-      break
+        webContentView.webContents.send(
+          "toggle-toolbar",
+          readToolbarIsVisible()
+        )
+      );
+      break;
     case MenuItemId.CUSTOMIZE_TOOLBAR:
-      selectedWebContentsViewSend('customize-toolbar')
+      selectedWebContentsViewSend("customize-toolbar");
       break
     case MenuItemId.STATUS_BAR:
-      selectedWebContentsViewSend('status-bar')
+      selectedWebContentsViewSend("status-bar");
       break
     case MenuItemId.CUSTOMIZE_STATUS_BAR:
-      selectedWebContentsViewSend('customize-status-bar')
+      selectedWebContentsViewSend("customize-status-bar");
       break
     case MenuItemId.PRINT_PREVIEW:
-      selectedWebContentsViewSend('toggle-print-preview')
+      selectedWebContentsViewSend("toggle-print-preview");
       break
     case MenuItemId.SHOW_TABS_ALIGNED_HORIZONTALLY:
-      selectedWebContentsViewSend('show-tabs-aligned-horizontally')
+      selectedWebContentsViewSend("show-tabs-aligned-horizontally");
       break
     case MenuItemId.SHOW_TABS_ALIGNED_VERTICALLY:
-      selectedWebContentsViewSend('show-tabs-aligned-vertically')
+      selectedWebContentsViewSend("show-tabs-aligned-vertically");
       break
     case MenuItemId.ZOOM:
-      selectedWebContentsViewSend('zoom')
+      selectedWebContentsViewSend("zoom");
       break
     case MenuItemId.ENTER_FULL_SCREEN:
       // getBaseWindow()?.maximize()
@@ -735,102 +794,102 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       // getBaseWindow()?.setFullScreen(true)
       break
     case MenuItemId.GO_TO_NEXT_PAGE:
-      selectedWebContentsViewSend('go-to-next-page')
+      selectedWebContentsViewSend("go-to-next-page");
       break
     case MenuItemId.GO_TO_PREVIOUS_PAGE:
-      selectedWebContentsViewSend('go-to-previous-page')
+      selectedWebContentsViewSend("go-to-previous-page");
       break
     case MenuItemId.GO_TO_FIRST_PAGE:
-      selectedWebContentsViewSend('go-to-first-page')
+      selectedWebContentsViewSend("go-to-first-page");
       break
     case MenuItemId.GO_TO_LAST_PAGE:
-      selectedWebContentsViewSend('go-to-last-page')
+      selectedWebContentsViewSend("go-to-last-page");
       break
     case MenuItemId.GO_TO_PAGE:
-      selectedWebContentsViewSend('go-to-page')
+      selectedWebContentsViewSend("go-to-page");
       break
     case MenuItemId.SYNCHRONIZE_VIEWS:
-      selectedWebContentsViewSend('synchronize-views')
+      selectedWebContentsViewSend("synchronize-views");
       break
     case MenuItemId.SYNCHRONIZE_DOCUMENTS:
-      selectedWebContentsViewSend('synchronize-documents')
+      selectedWebContentsViewSend("synchronize-documents");
       break
     case MenuItemId.NON_PRINTING_CHARACTERS:
-      selectedWebContentsViewSend('non-printing-characters')
+      selectedWebContentsViewSend("non-printing-characters");
       break
     case MenuItemId.EXPAND_COLLAPSE:
-      selectedWebContentsViewSend('expand-collapse')
+      selectedWebContentsViewSend("expand-collapse");
       break
     case MenuItemId.THESAURUS:
-      selectedWebContentsViewSend('thesaurus')
+      selectedWebContentsViewSend("thesaurus");
       break
 
     // Window menu
     case MenuItemId.MINIMIZE:
-      selectedWebContentsViewSend('minimize')
+      selectedWebContentsViewSend("minimize");
       break
     case MenuItemId.ZOOM_WINDOW:
-      selectedWebContentsViewSend('zoom-window')
+      selectedWebContentsViewSend("zoom-window");
       break
     case MenuItemId.ZOOM_ALL:
-      selectedWebContentsViewSend('zoom-all')
+      selectedWebContentsViewSend("zoom-all");
       break
     case MenuItemId.FILL:
-      selectedWebContentsViewSend('fill')
+      selectedWebContentsViewSend("fill");
       break
     case MenuItemId.CENTRE:
-      selectedWebContentsViewSend('centre')
+      selectedWebContentsViewSend("centre");
       break
     case MenuItemId.MOVE_RESIZE:
-      selectedWebContentsViewSend('move-resize')
+      selectedWebContentsViewSend("move-resize");
       break
     case MenuItemId.FULL_SCREEN_TILE:
-      selectedWebContentsViewSend('full-screen-tile')
+      selectedWebContentsViewSend("full-screen-tile");
       break
     case MenuItemId.REMOVE_WINDOW_FROM_SET:
-      selectedWebContentsViewSend('remove-window-from-set')
+      selectedWebContentsViewSend("remove-window-from-set");
       break
     case MenuItemId.MOVE_TO:
-      selectedWebContentsViewSend('move-to')
+      selectedWebContentsViewSend("move-to");
       break
     case MenuItemId.BRING_ALL_TO_FRONT:
-      selectedWebContentsViewSend('bring-all-to-front')
+      selectedWebContentsViewSend("bring-all-to-front");
       break
     case MenuItemId.SHOW_PREVIOUS_TAB:
-      selectedWebContentsViewSend('show-previous-tab')
+      selectedWebContentsViewSend("show-previous-tab");
       break
     case MenuItemId.SHOW_NEXT_TAB:
-      selectedWebContentsViewSend('show-next-tab')
+      selectedWebContentsViewSend("show-next-tab");
       break
     case MenuItemId.MOVE_TAB_TO_NEW_WINDOW:
-      selectedWebContentsViewSend('move-tab-to-new-window')
+      selectedWebContentsViewSend("move-tab-to-new-window");
       break
     case MenuItemId.MERGE_ALL_WINDOWS:
-      selectedWebContentsViewSend('merge-all-windows')
+      selectedWebContentsViewSend("merge-all-windows");
       break
     case MenuItemId.UNTITLED:
-      selectedWebContentsViewSend('untitled')
+      selectedWebContentsViewSend("untitled");
       break
 
     // Help menu
     case MenuItemId.HELP:
-      selectedWebContentsViewSend('help')
+      selectedWebContentsViewSend("help");
       break
     case MenuItemId.FAQS:
-      selectedWebContentsViewSend('faqs')
+      selectedWebContentsViewSend("faqs");
       break
     case MenuItemId.FORUM:
-      selectedWebContentsViewSend('forum')
+      selectedWebContentsViewSend("forum");
       break
     case MenuItemId.WHAT_IS_NEW:
-      selectedWebContentsViewSend('what-is-new')
+      selectedWebContentsViewSend("what-is-new");
       break
     case MenuItemId.REPORT_AN_ISSUE:
-      selectedWebContentsViewSend('report-an-issue')
+      selectedWebContentsViewSend("report-an-issue");
       break
     case MenuItemId.ABOUT:
       // openChildWindow(getRootUrl() + "/about");
-      selectedWebContentsViewSend('show-about')
+      selectedWebContentsViewSend("show-about");
       break
 
     // Developer menu
@@ -843,84 +902,88 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
 
     // Language menu
     case MenuItemId.CHANGE_LANGUAGE_EN:
-      changeLanguageGlobal('en')
-      break
+      changeLanguageGlobal("en");
+      break;
     case MenuItemId.CHANGE_LANGUAGE_IT:
-      changeLanguageGlobal('it')
-      break
+      changeLanguageGlobal("it");
+      break;
     case MenuItemId.CHANGE_LANGUAGE_DE:
-      changeLanguageGlobal('de')
-      break
+      changeLanguageGlobal("de");
+      break;
     case MenuItemId.CHANGE_LANGUAGE_FR:
-      changeLanguageGlobal('fr')
-      break
+      changeLanguageGlobal("fr");
+      break;
     case MenuItemId.CHANGE_LANGUAGE_ES:
-      changeLanguageGlobal('es')
-      break
+      changeLanguageGlobal("es");
+      break;
     default:
-      break
+      break;
   }
 }
 
 const getAppLanguage = (): string => {
   const configPath = path.join(
-    app.getPath('appData'),
-    'Criterion',
-    'config-store',
-    'app-settings.json'
-  )
+    app.getPath("appData"),
+    "Criterion",
+    "config-store",
+    "app-settings.json"
+  );
   try {
     if (fsSync.existsSync(configPath)) {
-      const configData = JSON.parse(fsSync.readFileSync(configPath, 'utf8'))
-      return configData.language || 'en' // Return language or default to 'en'
+      const configData = JSON.parse(fsSync.readFileSync(configPath, "utf8"));
+      return configData.language || "en"; // Return language or default to 'en'
     }
   } catch (err) {
-    mainLogger.error('Electron', 'Error reading app settings', err as Error)
+    mainLogger.error("Electron", "Error reading app settings", err as Error);
   }
-  return 'en' // Default language if file doesn't exist or has errors
-}
+  return "en"; // Default language if file doesn't exist or has errors
+};
 
 const initializei18next = async (): Promise<void> => {
-  const langTaskId = mainLogger.startTask('Electron', 'Starting i18next')
-  const appLanguage = getAppLanguage()
+  const langTaskId = mainLogger.startTask("Electron", "Starting i18next");
+  const appLanguage = getAppLanguage();
 
   // Store in electron-store for the main process
-  storeAppLanguage(appLanguage)
+  storeAppLanguage(appLanguage);
 
-  mainLogger.info('Electron', 'App language: ' + appLanguage)
+  mainLogger.info("Electron", "App language: " + appLanguage);
   await i18next.use(Backend).init({
     lng: appLanguage, // Use the language from settings
-    fallbackLng: 'en',
+    fallbackLng: "en",
     backend: {
-      loadPath: path.join(getLocalesPath(), '{{lng}}/translations.json')
-    }
-  })
+      loadPath: path.join(getLocalesPath(), "{{lng}}/translations.json"),
+    },
+  });
 
-  mainLogger.endTask(langTaskId, 'Electron', 'i18next configured')
-}
+  mainLogger.endTask(langTaskId, "Electron", "i18next configured");
+};
 
 const onBaseWindowReady = async (baseWindow: BaseWindow): Promise<void> => {
   const route = Route.root
 
   const selectedContentView = await createWebContentsView(route)
-  if (!selectedContentView) return
+  if (!selectedContentView)
+    return
 
   const menuViewMode = routeToMenuMapping[route]
-  ApplicationMenu.setIsNewDocument(true).setMenuViewMode(menuViewMode).build(onClickMenuItem)
+  ApplicationMenu
+    .setIsNewDocument(true)
+    .setMenuViewMode(menuViewMode)
+    .build(onClickMenuItem)
 
   baseWindow.contentView.addChildView(selectedContentView)
   showWebContentsView(selectedContentView)
   selectedContentView.webContents.focus()
-  selectedWebContentsViewSend('receive-open-choose-layout-modal')
+  selectedWebContentsViewSend("receive-open-choose-layout-modal");
 }
 
 const initializeApp = async (): Promise<void> => {
-  const appTaskId = mainLogger.startTask('Electron', 'Starting application')
+  const appTaskId = mainLogger.startTask("Electron", "Starting application");
 
-  await initializei18next()
-  initializeThemeManager()
+  await initializei18next();
+  initializeThemeManager();
 
-  await app.whenReady()
+  await app.whenReady();
 
   function convertPath(originalPath): string {
     const match = originalPath.match(/^\/([a-zA-Z])\/(.*)$/)
@@ -944,19 +1007,26 @@ const initializeApp = async (): Promise<void> => {
   ipcMain.handle('tabs:new', async (_, fileType: FileType) => {
     const route = fileTypeToRouteMapping[fileType]
     const menuViewMode = routeToMenuMapping[route]
-    ApplicationMenu.setMenuViewMode(menuViewMode).build(onClickMenuItem)
+    ApplicationMenu
+      .setMenuViewMode(menuViewMode)
+      .build(onClickMenuItem)
     const webContentsView = await createWebContentsView(route)
     return webContentsView?.webContents.id
   })
   ipcMain.handle('tabs:close', (_, id: number) => {
-    console.log('close file from tabs:close')
+    const taskId = mainLogger.startTask("Tabs", `Closing tab with ID: ${id}`);
+    try {
+      const tabs = closeWebContentsViewWithId(id)
+      const route = tabs.find((tab) => tab.selected)?.route
+      const menuViewMode = routeToMenuMapping[route]
+      ApplicationMenu
+        .setMenuViewMode(menuViewMode)
+        .build(onClickMenuItem)
 
-    // Check if the current document in the current tab
-
-    const tabs = closeWebContentsViewWithId(id)
-    const route = tabs.find((tab) => tab.selected)?.route
-    const menuViewMode = routeToMenuMapping[route]
-    ApplicationMenu.setMenuViewMode(menuViewMode).build(onClickMenuItem)
+      mainLogger.endTask(taskId, "Tabs", "Tab closed successfully");
+    } catch (err) {
+      mainLogger.error("Tabs", "Error closing tab", err as Error);
+    }
   })
   ipcMain.handle('tabs:select', (_, id: number, tabType: TabType) => {
     setSelectedWebContentsViewWithId(id)
@@ -965,7 +1035,8 @@ const initializeApp = async (): Promise<void> => {
     const isNewDocument = !selectedTab || !selectedTab.filePath || selectedTab.filePath === null
     const route = typeTypeToRouteMapping[tabType]
     const menuViewMode = routeToMenuMapping[route]
-    ApplicationMenu.setIsNewDocument(isNewDocument)
+    ApplicationMenu
+      .setIsNewDocument(isNewDocument)
       .setMenuViewMode(menuViewMode)
       .build(onClickMenuItem)
   })
@@ -985,271 +1056,268 @@ const initializeApp = async (): Promise<void> => {
     ApplicationMenu.build(onClickMenuItem)
   })
   ipcMain.handle('menu:setTocVisibility', (_, isVisible: boolean) => {
-    setTocVisible(isVisible)
+    setTocVisible(isVisible);
     ApplicationMenu.build(onClickMenuItem)
-  })
+  });
   ipcMain.handle('menu:setTocMenuItemsEnabled', (_, isEnable: boolean) => {
-    setEnableTocSettingsMenu(isEnable)
-    setEnableTocVisibilityMenuItem(isEnable)
+    setEnableTocSettingsMenu(isEnable);
+    setEnableTocVisibilityMenuItem(isEnable);
     ApplicationMenu.build(onClickMenuItem)
-  })
+  });
 
   // SYSTEM API
-  ipcMain.handle('system:getUserInfo', () => os.userInfo() as UserInfo)
+  ipcMain.handle('system:getUserInfo', () => os.userInfo())
 
-  ipcMain.handle('system:getFonts', () =>
-    Object.values(getFonts())
-      .map((f) => f.name)
-      .sort((a, b) => a.localeCompare(b))
-  )
+  ipcMain.handle('system:getFonts', () => Object.values(getFonts()).map(f => f.name).sort((a, b) => a.localeCompare(b)));
 
-  ipcMain.handle('system:getSubsets', () => getSubsets())
+  ipcMain.handle('system:getSubsets', () => getSubsets());
 
-  ipcMain.handle('system:getSymbols', (_, fontName: string) => getSymbols(fontName))
+  ipcMain.handle('system:getSymbols', (_, fontName: string) => getSymbols(fontName));
 
-  ipcMain.handle('system:getConfiguredSpcialCharactersList', () => readSpecialCharacterConfig())
+  ipcMain.handle('system:getConfiguredSpcialCharactersList', () => readSpecialCharacterConfig());
 
-  ipcMain.handle('system:showMessageBox', async (_, message: string) => {
-    const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+  ipcMain.handle('system:showMessageBox', async (_, message: string, buttons: string[]) => {
+    const baseWindow = getBaseWindow();
+    if (!baseWindow) return;
 
-    // @TODO: implement buttons, message and return result
-    await dialog.showMessageBox(baseWindow, {
+    const result = await dialog.showMessageBox(baseWindow, {
       message: message,
-      buttons: ['Yes', 'No', 'Keep both']
-    })
+      buttons: buttons,
+    });
+
+    return result;
   })
 
   // APPLICATION API
   ipcMain.handle('application:toolbarIsVisible', () => {
-    return readToolbarIsVisible()
+    return readToolbarIsVisible();
   })
 
   ipcMain.handle('application:toolbarAdditionalItems', () => {
-    return readToolbarAdditionalItems()
+    return readToolbarAdditionalItems();
   })
 
   ipcMain.handle('application:closeChildWindow', () => {
-    closeChildWindow()
+    closeChildWindow();
   })
 
   // DOCUMENT API
   ipcMain.handle('document:openDocument', () => {
-    openDocument(null, onDocumentOpened)
+    openDocument(null, onDocumentOpened);
   })
   ipcMain.handle('document:getTemplates', async () => {
-    const templatesFolderPath = getTemplatesPath()
-    const templatesFilenames = fsSync.readdirSync(templatesFolderPath)
+    const templatesFolderPath = getTemplatesPath();
+    const templatesFilenames = fsSync.readdirSync(templatesFolderPath);
     const templates = templatesFilenames
-      .filter((filename) => filename.endsWith('.tml'))
+      .filter((filename) => filename.endsWith(".tml"))
       .map(async (filename) => {
-        const filePath = path.join(templatesFolderPath, filename)
-        const content = await fs.readFile(filePath, 'utf8')
-        return { filename, content }
-      })
+        const filePath = path.join(templatesFolderPath, filename);
+        const content = await fs.readFile(filePath, "utf8");
+        return { filename, content };
+      });
 
-    return Promise.all(templates)
-  })
+    return Promise.all(templates);
+  });
   ipcMain.handle('document:importTemplate', async () => {
-    const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+    const baseWindow = getBaseWindow();
+    if (!baseWindow) return;
 
     const result = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      defaultPath: path.join(app.getPath('downloads')),
-      filters: [{ name: 'Template', extensions: ['tml'] }]
-    })
+      properties: ["openFile"],
+      defaultPath: path.join(app.getPath("downloads")),
+      filters: [{ name: "Template", extensions: ["tml"] },],
+    });
 
-    if (result.canceled || result.filePaths.length === 0) return
+    if (result.canceled || result.filePaths.length === 0) return;
 
     // Selected template file path
-    const selectedFilePath = result.filePaths[0]
-    const fileNameParsed = path.parse(selectedFilePath)
-    const fileName = fileNameParsed.name
-    const fileNameWithExt = fileNameParsed.base
+    const selectedFilePath = result.filePaths[0];
+    const fileNameParsed = path.parse(selectedFilePath);
+    const fileName = fileNameParsed.name;
+    const fileNameWithExt = fileNameParsed.base;
 
     // Templates folder path
-    const templatesFolderPath = getTemplatesPath()
-    const templatesFilenames = fsSync.readdirSync(templatesFolderPath)
-    const matchFilenames = templatesFilenames.filter((filename) => filename.includes(fileName))
+    const templatesFolderPath = getTemplatesPath();
+    const templatesFilenames = fsSync.readdirSync(templatesFolderPath);
+    const matchFilenames = templatesFilenames.filter((filename) => filename.includes(fileName));
     const matchFilename = matchFilenames.length > 0
 
     if (matchFilename) {
       const confirmation = await dialog.showMessageBox(baseWindow, {
-        type: 'warning',
-        buttons: ['Replace', 'Cancel'],
+        type: "warning",
+        buttons: ["Replace", "Cancel"],
         defaultId: 1,
         noLink: true,
-        title: 'Confirm Replacement',
-        message: `A template named "${fileName}" already exists. Do you want to overwrite it?`
-      })
+        title: "Confirm Replacement",
+        message: `A template named "${fileName}" already exists. Do you want to overwrite it?`,
+      });
 
       if (confirmation.response === 1) return
     }
 
     // Copy the new file to the templates folder
-    const destinationPath = path.join(templatesFolderPath, fileNameWithExt)
-    await fs.copyFile(selectedFilePath, destinationPath)
+    const destinationPath = path.join(templatesFolderPath, fileNameWithExt);
+    await fs.copyFile(selectedFilePath, destinationPath);
   })
   ipcMain.handle('document:createTemplate', async (_, template: unknown, name: string) => {
-    const baseWindow = getBaseWindow()
+    const baseWindow = getBaseWindow();
     if (!baseWindow) return
 
-    const templatesFolderPath = getTemplatesPath()
-    const fileNameWithExt = name + '.tml'
+    const templatesFolderPath = getTemplatesPath();
+    const fileNameWithExt = name + ".tml";
 
     // Templates folder path
-    const templatesFilenames = fsSync.readdirSync(templatesFolderPath)
-    const matchFilenames = templatesFilenames.filter((filename) => filename.includes(name))
+    const templatesFilenames = fsSync.readdirSync(templatesFolderPath);
+    const matchFilenames = templatesFilenames.filter((filename) => filename.includes(name));
     const matchFilename = matchFilenames.length > 0
 
     if (matchFilename) {
       const confirmation = await dialog.showMessageBox({
-        type: 'warning',
+        type: "warning",
         buttons: [
-          'Replace', // to be translated
-          'Cancel' // to be translated
+          "Replace", // to be translated
+          "Cancel", // to be translated
         ],
         defaultId: 1,
         noLink: true,
-        title: 'Confirm Replacement', // to be translated
-        message: `A template named "${fileNameWithExt}" already exists. Do you want to overwrite it?` // to be translated
-      })
+        title: "Confirm Replacement", // to be translated
+        message: `A template named "${fileNameWithExt}" already exists. Do you want to overwrite it?`, // to be translated
+      });
 
-      if (confirmation.response === 1) return
+      if (confirmation.response === 1) return;
     }
 
     const newTemplate = {
       name: name,
-      type: 'PROPRIETARY',
+      type: "PROPRIETARY",
       createdDate: new Date(),
       updatedDate: new Date(),
-      ...(template as object)
+      ...(template as object),
     }
 
-    const stringifiedTemplate = JSON.stringify(newTemplate, null, 2)
+    const stringifiedTemplate = JSON.stringify(newTemplate, null, 2);
 
-    const destinationPath = path.join(templatesFolderPath, fileNameWithExt)
-    await fs.writeFile(destinationPath, stringifiedTemplate)
+    const destinationPath = path.join(templatesFolderPath, fileNameWithExt);
+    await fs.writeFile(destinationPath, stringifiedTemplate);
   })
   ipcMain.handle('document:getApparatuses', () => {
-    const document = getCurrentDocument()
-    const apparatuses = document?.apparatuses as DocumentApparatus[]
-    if (!apparatuses) return []
-    return apparatuses
-  })
+    const document = getCurrentDocument();
+    const apparatuses = document?.apparatuses as DocumentApparatus[];
+    if (!apparatuses) return [];
+    return apparatuses;
+  });
   ipcMain.handle('document:setApparatuses', (_, apparatuses) => {
     setCurrentApparatuses(apparatuses)
-  })
+  });
   ipcMain.handle('document:setLayoutTemplate', (_, layoutTemplate) => {
     setCurrentLayoutTemplate(layoutTemplate)
-  })
+  });
   ipcMain.handle('document:setPageSetup', (_, pageSetup) => {
     setCurrentPageSetup(pageSetup)
-  })
+  });
   ipcMain.handle('document:setSort', (_, sort) => {
     setCurrentSort(sort)
-  })
+  });
   ipcMain.handle('document:setStyles', (_, style) => {
     setCurrentStyles(style)
-  })
+  });
   ipcMain.handle('document:setParatextual', (_, paratextual) => {
     setCurrentParatextual(paratextual)
-  })
+  });
   ipcMain.handle('document:getStylesNames', () => {
-    const stylesFolderPath = getStylesPath()
-    const stylesFolderContent = fsSync.readdirSync(stylesFolderPath)
-    const filenames = stylesFolderContent.filter((filename) => filename.endsWith('.stl'))
-    return filenames
+    const stylesFolderPath = getStylesPath();
+    const stylesFolderContent = fsSync.readdirSync(stylesFolderPath);
+    const filenames = stylesFolderContent.filter((filename) => filename.endsWith(".stl"));
+    return filenames;
   })
   ipcMain.handle('document:getStyle', async (_, filename) => {
-    const stylesFolderPath = getStylesPath()
-    const stylesFolderContent = fsSync.readdirSync(stylesFolderPath)
-    const found = stylesFolderContent.find((style) => style === filename)
+    const stylesFolderPath = getStylesPath();
+    const stylesFolderContent = fsSync.readdirSync(stylesFolderPath);
+    const found = stylesFolderContent.find(style => style === filename)
     if (found) {
-      const filePath = path.join(stylesFolderPath, filename)
-      const content = await fs.readFile(filePath, 'utf8')
-      return content
+      const filePath = path.join(stylesFolderPath, filename);
+      const content = await fs.readFile(filePath, "utf8");
+      return content;
     }
     return null
   })
-  ipcMain.handle('document:createStyle', async (_, style: unknown) => {
-    const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+  ipcMain.handle("document:createStyle", async (_, style: unknown) => {
+    const baseWindow = getBaseWindow();
+    if (!baseWindow) return;
 
-    const stylesFolderPath = getStylesPath()
+    const stylesFolderPath = getStylesPath();
 
     const result = await dialog.showSaveDialog(baseWindow, {
       title: 'Export Style',
       defaultPath: path.join(stylesFolderPath, 'untitled.stl'),
-      filters: [{ name: 'Style', extensions: ['stl'] }]
-    })
+      filters: [{ name: "Style", extensions: ["stl"] }]
+    });
 
     if (!result.canceled && result.filePath) {
-      const filePath = result.filePath
+      const filePath = result.filePath;
 
-      await fs.writeFile(filePath, JSON.stringify(style, null, 2))
-      await dialog.showMessageBox(baseWindow, { message: 'Style saved successfully!' })
+      await fs.writeFile(filePath, JSON.stringify(style, null, 2));
+      await dialog.showMessageBox(baseWindow, { message: 'Style saved successfully!' });
     }
 
-    mainLogger.endTask(taskId, 'Electron', 'New style saved')
-  })
+    mainLogger.endTask(taskId, "Electron", "New style saved");
+  });
   ipcMain.handle('document:importStyle', async () => {
-    const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+    const baseWindow = getBaseWindow();
+    if (!baseWindow) return;
 
     const result = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      defaultPath: path.join(app.getPath('downloads')),
-      filters: [{ name: 'Style', extensions: ['stl'] }]
-    })
+      properties: ["openFile"],
+      defaultPath: path.join(app.getPath("downloads")),
+      filters: [{ name: "Style", extensions: ["stl"] },],
+    });
 
-    if (result.canceled || result.filePaths.length === 0) return
+    if (result.canceled || result.filePaths.length === 0) return;
 
     // Selected template file path
-    const selectedFilePath = result.filePaths[0]
-    const fileNameParsed = path.parse(selectedFilePath)
-    const fileName = fileNameParsed.name
-    const fileNameWithExt = fileNameParsed.base
+    const selectedFilePath = result.filePaths[0];
+    const fileNameParsed = path.parse(selectedFilePath);
+    const fileName = fileNameParsed.name;
+    const fileNameWithExt = fileNameParsed.base;
 
     // Templates folder path
-    const stylesFolderPath = getStylesPath()
-    const stylesFilenames = fsSync.readdirSync(stylesFolderPath)
-    const matchFilenames = stylesFilenames.filter((filename) => filename.includes(fileName))
+    const stylesFolderPath = getStylesPath();
+    const stylesFilenames = fsSync.readdirSync(stylesFolderPath);
+    const matchFilenames = stylesFilenames.filter((filename) => filename.includes(fileName));
     const matchFilename = matchFilenames.length > 0
 
     if (matchFilename) {
       const confirmation = await dialog.showMessageBox(baseWindow, {
-        type: 'warning',
-        buttons: ['Replace', 'Cancel'],
+        type: "warning",
+        buttons: ["Replace", "Cancel"],
         defaultId: 1,
         noLink: true,
-        title: 'Confirm Replacement',
-        message: `A style named "${fileName}" already exists. Do you want to overwrite it?`
-      })
+        title: "Confirm Replacement",
+        message: `A style named "${fileName}" already exists. Do you want to overwrite it?`,
+      });
 
       if (confirmation.response === 1) return
     }
 
     // Copy the new file to the templates folder
-    const destinationPath = path.join(stylesFolderPath, fileNameWithExt)
-    await fs.copyFile(selectedFilePath, destinationPath)
-    return fileNameWithExt
+    const destinationPath = path.join(stylesFolderPath, fileNameWithExt);
+    await fs.copyFile(selectedFilePath, destinationPath);
+    return fileNameWithExt;
   })
   ipcMain.handle('document:exportSiglumList', async (_event, siglumList: Siglum[]) => {
-    const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+    const baseWindow = getBaseWindow();
+    if (!baseWindow) return;
 
     const result = await dialog.showSaveDialog(baseWindow, {
       title: 'Export Siglum',
-      defaultPath: path.join(app.getPath('downloads'), `Untitled.siglum`),
-      filters: [{ name: 'Siglum', extensions: ['siglum'] }]
-    })
+      defaultPath: path.join(app.getPath("downloads"), `Untitled.siglum`),
+      filters: [{ name: "Siglum", extensions: ["siglum"] }]
+    });
 
     const userInfo = os.userInfo()
     const metadata = {
       author: userInfo.username,
-      exportDate: new Date().toISOString()
+      exportDate: new Date().toISOString(),
     } satisfies SiglumMetadata
 
     const scMetadata = await _.mapKeys(metadata, (__, key) => _.snakeCase(key))
@@ -1257,88 +1325,217 @@ const initializeApp = async (): Promise<void> => {
     const siglumListData = siglumList.map((item) => ({
       siglum: item.siglum,
       manuscripts: item.manuscripts,
-      description: item.description
+      description: item.description,
     })) satisfies DocumentSiglum[]
 
     const data = {
       metadata: scMetadata,
-      entries: siglumListData
+      entries: siglumListData,
     }
 
-    if (result.canceled || result.filePath === undefined) return
+    if (result.canceled || result.filePath === undefined) return;
 
-    const filePath = result.filePath
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2))
-    await dialog.showMessageBox(baseWindow, { message: 'Siglum saved successfully!' })
+    const filePath = result.filePath;
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    await dialog.showMessageBox(baseWindow, { message: 'Siglum saved successfully!' });
   })
   ipcMain.handle('document:importSiglumList', async () => {
-    const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+    const baseWindow = getBaseWindow();
+    if (!baseWindow) return;
 
     const result = await dialog.showOpenDialog(baseWindow, {
       title: 'Import Siglum', // @MISSING: to be translated
-      defaultPath: path.join(app.getPath('downloads')),
-      filters: [{ name: 'Siglum', extensions: ['siglum'] }]
-    })
+      defaultPath: path.join(app.getPath("downloads")),
+      filters: [{ name: "Siglum", extensions: ["siglum"] }]
+    });
 
-    if (!result.canceled && result.filePaths.length === 0) return
+    if (!result.canceled && result.filePaths.length === 0) return;
 
-    const selectedFilePath = result.filePaths[0]
-    const siglumData = await fs.readFile(selectedFilePath, 'utf8')
+    const selectedFilePath = result.filePaths[0];
+    const siglumData = await fs.readFile(selectedFilePath, "utf8");
     try {
       const siglumDataParsed = JSON.parse(siglumData)
 
       const entries = siglumDataParsed.entries.map((entry: DocumentSiglum) => ({
+        id: uuidv4(),
         siglum: entry.siglum,
         manuscripts: entry.manuscripts,
-        description: entry.description
-      })) satisfies DocumentSiglum[]
+        description: entry.description,
+      })) satisfies Siglum[]
 
-      return entries
+      return entries;
     } catch (error) {
-      await dialog.showMessageBox(baseWindow, {
-        message: 'Error parsing siglum data',
-        type: 'error'
-      })
-      mainLogger.error('Electron', 'Error parsing siglum data', error as Error)
-      return null
+      await dialog.showMessageBox(baseWindow, { message: "Error parsing siglum data", type: 'error' });
+      mainLogger.error("Electron", "Error parsing siglum data", error as Error);
+      return null;
     }
   })
 
-  const taskId = mainLogger.startTask('Electron', 'Initializing main window')
-  initializeMainWindow(onBaseWindowReady)
-  mainLogger.endTask(taskId, 'Electron', 'Main window created')
+  ipcMain.handle('preferences:get', () => {
+    const taskId = mainLogger.startTask("Preferences", "Loading preferences");
+    try {
+      const preferences = {
+        fileNameDisplay: readFileNameDisplay(),
+        rememberLayout: readRememberLayout(),
+        recentFilesCount: readRecentFilesCount(),
+        theme: readTheme(),
+        commentPreviewLimit: readCommentPreviewLimit(),
+        bookmarkPreviewLimit: readBookmarkPreviewLimit(),
+        fileSavingDirectory: readFileSavingDirectory(),
+        defaultDirectory: readDefaultDirectory(),
+        automaticFileSave: readAutomaticFileSave(),
+        versioningDirectory: readVersioningDirectory(),
+        customVersioningDirectory: readCustomVersioningDirectory(),
+        criterionLanguage: readCriterionLanguage(),
+        criterionRegion: readCriterionRegion(),
+        dateTimeFormat: readDateTimeFormat(),
+        historyActionsCount: readHistoryActionsCount(),
+      };
 
-  const fontTaskId = mainLogger.startTask('Font', 'Initializing fonts')
-  initializeFonts()
-  mainLogger.endTask(fontTaskId, 'Font', 'Font list initialized')
+      mainLogger.endTask(taskId, "Preferences", "Preferences loaded successfully");
+      return preferences;
+    } catch (err) {
+      mainLogger.error("Preferences", "Error loading preferences", err as Error);
+      return {
+        fileNameDisplay: 'full' as const,
+        rememberLayout: true,
+        recentFilesCount: 10,
+        theme: 'system',
+        commentPreviewLimit: '20',
+        bookmarkPreviewLimit: '20',
+        fileSavingDirectory: 'last',
+        defaultDirectory: '~/Username/Documents/',
+        automaticFileSave: 'never',
+        versioningDirectory: 'default',
+        customVersioningDirectory: '~/Username/Documents/',
+        criterionLanguage: 'en',
+        criterionRegion: 'IT',
+        dateTimeFormat: 'DD/MM/YYYY HH:MM:SS',
+        historyActionsCount: '10'
+      };
+    }
+  })
 
-  const baseWindow = getBaseWindow()
+  ipcMain.handle('preferences:save', (_, preferences: Preferences) => {
+    const taskId = mainLogger.startTask("Preferences", "Saving preferences");
+    try {
+      // Save the file name display preference
+      if (preferences.fileNameDisplay) {
+        storeFileNameDisplay(preferences.fileNameDisplay);
+        ApplicationMenu.build(onClickMenuItem);
+      }
+      // Save the remember layout preference
+      if (preferences.rememberLayout !== undefined) {
+        storeRememberLayout(preferences.rememberLayout);
+      }
+      if (preferences.recentFilesCount) {
+        storeRecentFilesCount(preferences.recentFilesCount);
+      }
+      if (preferences.theme) {
+        storeTheme(preferences.theme);
+        // Apply theme immediately when saved
+        const webContentsViews = getWebContentsViews();
+        webContentsViews.forEach(webContentsView => {
+          webContentsView.webContents.send('theme-changed', preferences.theme);
+        });
+        toolbarWebContentsViewSend('theme-changed', preferences.theme);
+      }
+      if (preferences.commentPreviewLimit) {
+        storeCommentPreviewLimit(preferences.commentPreviewLimit);
+      }
+      if (preferences.bookmarkPreviewLimit) {
+        storeBookmarkPreviewLimit(preferences.bookmarkPreviewLimit);
+      }
+      if (preferences.fileSavingDirectory) {
+        storeFileSavingDirectory(preferences.fileSavingDirectory);
+      }
+      if (preferences.defaultDirectory) {
+        storeDefaultDirectory(preferences.defaultDirectory);
+      }
+      if (preferences.automaticFileSave) {
+        storeAutomaticFileSave(preferences.automaticFileSave);
+        updateAutoSave(); // Update auto save intervals when preference changes
+      }
+      if (preferences.versioningDirectory) {
+        storeVersioningDirectory(preferences.versioningDirectory);
+      }
+      if (preferences.customVersioningDirectory) {
+        storeCustomVersioningDirectory(preferences.customVersioningDirectory);
+      }
+      if (preferences.criterionLanguage) {
+        storeCriterionLanguage(preferences.criterionLanguage);
+      }
+      if (preferences.criterionRegion) {
+        storeCriterionRegion(preferences.criterionRegion);
+      }
+      if (preferences.dateTimeFormat) {
+        storeDateTimeFormat(preferences.dateTimeFormat);
+      }
+      if (preferences.historyActionsCount) {
+        storeHistoryActionsCount(preferences.historyActionsCount);
+      }
+      console.log("preferences", preferences)
 
-  baseWindow?.on(
-    'close',
-    handleAppClose(() => closeApplication())
-  )
+      const webContentsViews = getSelectedWebContentsView()
+      webContentsViews?.webContents.send('preferences-changed')
+
+      mainLogger.endTask(taskId, "Preferences", "Preferences saved successfully");
+    } catch (err) {
+      mainLogger.error("Preferences", "Error saving preferences", err as Error);
+    }
+  })
+
+  ipcMain.handle('pageSetup:get', () => {
+    return readLastPageSetup();
+  })
+
+  ipcMain.handle('pageSetup:save', (_, pageSetup: PageSetup) => {
+    const taskId = mainLogger.startTask("PageSetup", "Saving page setup");
+    try {
+      storeLastPageSetup(pageSetup);
+      mainLogger.endTask(taskId, "PageSetup", "Page setup saved successfully");
+    } catch (err) {
+      mainLogger.error("PageSetup", "Error saving page setup", err as Error);
+    }
+  })
+
+  const taskId = mainLogger.startTask("Electron", "Initializing main window");
+  initializeMainWindow(onBaseWindowReady);
+  mainLogger.endTask(taskId, "Electron", "Main window created");
+
+  const fontTaskId = mainLogger.startTask("Font", "Initializing fonts");
+  initializeFonts();
+  mainLogger.endTask(fontTaskId, 'Font', 'Font list initialized');
+
+  const baseWindow = getBaseWindow();
+
+  baseWindow?.on("close", handleAppClose(() => {
+    cleanupAutoSave(); // Clean up auto save before closing
+    return closeApplication();
+  }));
 
   const language = readAppLanguage()
-  await i18next.changeLanguage(language)
+  await i18next.changeLanguage(language);
 
-  await setRecentDocuments()
+  await setRecentDocuments();
 
   ApplicationMenu.build(onClickMenuItem)
 
-  registerIpcListeners()
+  registerIpcListeners();
 
-  const webContentsView = getSelectedWebContentsView()
-  const toolbarContentView = getToolbarWebContentsView()
+  // Initialize auto save functionality
+  initializeAutoSave();
 
-  toolbarContentView?.webContents.send('language-changed', language)
-  webContentsView?.webContents.send('language-changed', language)
+  const webContentsView = getSelectedWebContentsView();
+  const toolbarContentView = getToolbarWebContentsView();
 
-  mainLogger.endTask(appTaskId, 'Electron', 'Application started')
-}
+  toolbarContentView?.webContents.send("language-changed", language);
+  webContentsView?.webContents.send("language-changed", language);
+
+  mainLogger.endTask(appTaskId, "Electron", "Application started");
+};
 
 // Application start
 initializeApp().catch((err) => {
-  mainLogger.error('Electron', 'Fatal error during startup', err as Error)
-})
+  mainLogger.error("Electron", "Fatal error during startup", err as Error);
+});

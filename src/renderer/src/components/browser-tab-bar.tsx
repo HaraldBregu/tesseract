@@ -16,12 +16,13 @@ interface Props {
 }
 
 const BrowserTab = ({ item, onClick, onRemove, isSelected }: Props) => {
+
   const handleClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     if (event.button === 1) {
-      event.preventDefault()
-      onRemove()
+      event.preventDefault();
+      onRemove();
     } else {
-      onClick()
+      onClick();
     }
   }, [])
 
@@ -61,21 +62,24 @@ const BrowserTab = ({ item, onClick, onRemove, isSelected }: Props) => {
         'rounded-t-md border-t border-l border-r',
         'titlebar-button',
         'relative cursor-pointer flex items-center overflow-hidden select-none',
-        'mr-1 h-[30px] min-w-[10px] max-w-[180px] flex-1',
+        "mr-1 h-[30px] min-w-[10px] max-w-[220px] flex-1",
         isSelected
-          ? 'selected bg-background z-[60] border-border'
-          : 'bg-muted border-b border-border z-[70]'
+          ? 'selected bg-background z-[60] border-border  dark:bg-grey-10 dark:border-grey-40'
+          : 'bg-muted border-b border-border dark:border-grey-40 z-[70]',
       )}
       onPointerDown={handleClick}
     >
-      <motion.div className="flex flex-row items-center h-full w-full border-b border-border px-2">
-        <motion.div layout className="flex align-center items-center mr-1 flex-shrink-0">
-          <Unlocked className={cn('w-4 h-4')} />
+      <motion.div className='flex flex-row items-center h-full w-full border-b border-border px-2 dark:border-grey-40'>
+        <motion.div
+          layout
+          className="flex align-center items-center mr-1 flex-shrink-0"
+        >
+          <Unlocked className={cn("w-4 h-4")} />
         </motion.div>
         <motion.span
           style={{
             maskImage: 'linear-gradient(to left, transparent 30px, #fff 60px)',
-            WebkitMaskImage: 'linear-gradient(to left, transparent 30px, #fff 60px)'
+            WebkitMaskImage: 'linear-gradient(to left, transparent 30px, #fff 60px)',
           }}
           className={cn(
             `text-xs text-left flex-shrink flex-grow leading-[18px] whitespace-nowrap block min-w-0 pr-[30px]`,
@@ -83,7 +87,9 @@ const BrowserTab = ({ item, onClick, onRemove, isSelected }: Props) => {
           )}
           layout="position"
         >
-          {isSelected ? <strong>{getTitle(item)}</strong> : getTitle(item)}
+          {isSelected
+            ? <strong>{getTitle(item)}</strong>
+            : getTitle(item)}
         </motion.span>
         <motion.div
           layout
@@ -103,8 +109,8 @@ const BrowserTab = ({ item, onClick, onRemove, isSelected }: Props) => {
               scale: 1.1,
               transition: { duration: 0.2 }
             }}
-            className="rounded-full p-[1px]"
-            children={<Close className={cn('w-4 h-4')} />}
+            className="rounded-full p-[2px]"
+            children={<Close className={cn("w-4 h-4")} />}
           />
         </motion.div>
       </motion.div>
@@ -129,11 +135,11 @@ const BrowserTabBar = ({
   onAdd,
   onSelect,
   onRemove,
-  onReorder
+  onReorder,
 }: BrowserTabBarProps) => {
   return (
-    <div className="h-[32px] w-full flex flex-row titlebar justify-end border-t relative bg-background">
-      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-border pointer-events-none"></div>
+    <div className="h-[32px] w-full flex flex-row titlebar justify-end border-t relative bg-white dark:bg-grey-10">
+      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-grey-80 dark:bg-grey-40 pointer-events-none"></div>
       <div className="flex flex-row items-start w-full overflow-hidden">
         <div className="w-full h-full">
           <div className="flex flex-row w-full flex-grow px-2 bg-muted">
@@ -143,7 +149,7 @@ const BrowserTabBar = ({
                   as="ul"
                   axis="x"
                   onReorder={onReorder}
-                  className="flex-row flex-nowrap flex justify-start items-end h-full w-full border-b border-border"
+                  className="flex-row flex-nowrap flex justify-start items-end h-full w-full border-b border-grey-80 dark:border-grey-40"
                   values={tabs}
                 >
                   <AnimatePresence initial={false}>
@@ -156,12 +162,13 @@ const BrowserTabBar = ({
                         onRemove={() => {
                           onRemove(item)
                           if (selectedTab?.id === item.id) {
-                            const currentIndex = tabs.findIndex((tab) => tab.id === item.id)
+                            const currentIndex = tabs.findIndex(tab => tab.id === item.id);
                             if (tabs.length > 1) {
                               if (currentIndex < tabs.length - 1) {
-                                onSelect(tabs[currentIndex + 1])
-                              } else if (currentIndex > 0) {
-                                onSelect(tabs[currentIndex - 1])
+                                onSelect(tabs[currentIndex + 1]);
+                              }
+                              else if (currentIndex > 0) {
+                                onSelect(tabs[currentIndex - 1]);
                               }
                             }
                           }
