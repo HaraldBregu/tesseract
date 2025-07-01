@@ -87,8 +87,10 @@
     "listBulletSquare": "Lista con viñetas cuadradas",
     "superscript": "Superíndice",
     "subscript": "Subíndice",
-    "contextMenu": "Customize Toolbar",
-    "modalTitle": "Select or remove items from the toolbar"
+    "contextMenu": "Personalizar barra de herramientas",
+    "modalTitle": "Seleccionar o eliminar elementos de la barra de herramientas",
+    "editLink": "Editar enlace",
+    "removeLink": "Eliminar enlace"
   },
   "dividerSections": {
     "toc": "Tabla de contenidos",
@@ -97,6 +99,7 @@
     "bibliography": "Bibliografía",
     "appendix": "Apéndice"
   },
+  "linkPlaceholder": "Enlace a una URL externa, por ejemplo, https://example.com o http://example.com",
   "menu": {
     "file": {
       "label": "Archivo",
@@ -350,6 +353,7 @@
   "buttons": {
     "cancel": "Cancelar",
     "ok": "Aceptar",
+    "confirm": "Confirmar",
     "save": "Guardar",
     "done": "Hecho",
     "apply": "Aplicar",
@@ -368,6 +372,69 @@
     "symbol": "Symbol",
     "character": "Character",
     "keyboardShortcut": "Keyboard Shortcut"
+  },
+  "referencesFormat": {
+    "title": "Formato de referencias",
+    "tabs": {
+      "separators": "Separadores",
+      "readingTypes": "Tipos de lectura",
+      "guideColors": "Colores guía",
+      "notes": "Notas"
+    },
+    "appearance": "Apariencia",
+    "customizeSeparators": "Personaliza los caracteres y el estilo de los separadores de notas críticas.",
+    "customizeReadingTypes": "Personaliza la redacción y el estilo de las lecturas.",
+    "highlightColor": "Color de resaltado",
+    "customizeGuideColors": "Resaltados de texto que no se incluyen en la impresión.",
+    "lemmaSeparator": "Separador de lema",
+    "fromToSeparator": "Separador de desde-hasta",
+    "readingsSeparator": "Separador de lecturas",
+    "apparatusSeparator": "Separador de aparato",
+    "addReadingType": "Agregar tipo de lectura",
+    "omReadingType": "Tipo de omisión",
+    "trReadingType": "Tipo de transposición",
+    "delReadingType": "Tipo de supresión",
+    "bold": "Negrita",
+    "italic": "Cursiva",
+    "underline": "Subrayado",
+    "separator": {
+      "none": "Ninguno",
+      "bracket": "Corchete ( ] )",
+      "dash": "Guion ( - )",
+      "colon": "Dos puntos ( : )",
+      "semicolon": "Punto y coma ( ; )"
+    },
+    "guide": {
+      "lemma": "Lema",
+      "sigla": "Sigla",
+      "readingTypeSeparator": "Tipo de lectura y separador",
+      "comments": "Comentarios",
+      "bookmarks": "Marcadores",
+      "highlights": "Resaltados"
+    },
+    "highlight": {
+      "none": "ninguno",
+      "pink": "rosa",
+      "yellow": "amarillo",
+      "blue": "azul",
+      "gray": "gris",
+      "mint": "menta"
+    },
+    "pageNotes": "Notas de página",
+    "sectionNotes": "Notas de sección",
+    "numerationTitle": "Numeración",
+    "numeration": {
+      "whole": "Todo el documento",
+      "page": "Reiniciar en cada página",
+      "section": "Reiniciar en cada sección:"
+    },
+    "sectionLevel": {
+      "1": "Nivel 1",
+      "2": "Nivel 2",
+      "3": "Nivel 3",
+      "4": "Nivel 4",
+      "5": "Nivel 5"
+    }
   },
   "customSpacing": {
     "title": "Espaciado personalizado",
@@ -468,6 +535,20 @@
     "none": "Ninguna",
     "all": "Todas",
     "default": "Predeterminado"
+  },
+  "metadata": {
+    "title": "Metadatos",
+    "license": "Licencia",
+    "creationDate": "Fecha de creación",
+    "lastSavedDate": "Fecha de última modificación",
+    "titleDoc": "Título",
+    "subject": "Asunto",
+    "author": "Autor",
+    "copyrightHolder": "Titular de los derechos de autor",
+    "keywords": "Palabras clave",
+    "status": "Estado",
+    "template": "Plantilla",
+    "language": "Idioma"
   },
   "pageSetup": {
     "title": "Elegir Diseño",
@@ -629,10 +710,19 @@
   },
   "move_comments_dialog": {
     "title": "Mover todos los comentarios",
-    "description": "Selecciona una categoría a la que mover los comentarios.",
+    "description": "Selecciona una categoría para mover los comentarios.",
     "buttons": {
       "cancel": "Cancelar",
       "move": "Mover"
+    }
+  },
+  "close_document_dialog": {
+    "title": "Este documento contiene cambios no guardados",
+    "description": "¿Quieres guardar tus cambios antes de cerrar el documento?",
+    "buttons": {
+      "cancel": "Cancelar",
+      "abort": "No guardar",
+      "save": "Guardar"
     }
   },
   "choose_template_dialog": {
@@ -769,7 +859,9 @@
     "language": {
       "criterionLanguage": "Idioma de Criterion",
       "criterionRegion": "Región de Criterion",
-      "dateTimeFormat": "Formato de Fecha y Hora"
+      "dateTimeFormat": "Formato de Fecha y Hora",
+      "dateFormat": "Formato de Fecha",
+      "timeFormat": "Formato de Hora"
     },
     "editing": {
       "showHistoryActions": {

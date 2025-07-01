@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Button from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Divider from "@/components/ui/divider";
 import Modal from "@/components/ui/modal";
 import TextField from "@/components/ui/textField";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +12,7 @@ import { levelFormat, numberSeparator, tabLeaderFormat } from "@/utils/optionsEn
 import Typography from "@/components/Typography";
 import { updateSetupPageState } from "../store/layout/layout.sclice";
 import { selectLayoutSettings } from "../store/layout/layout.selector";
+import AppSeparator from "@/components/app/app-separator";
 
 
 interface TocSetupModalProps {
@@ -59,7 +59,7 @@ const TocSettings = ({ isOpen, setIsOpen }: TocSetupModalProps) => {
             <Button key="save" className="w-full sm:w-[6em]" size="mini" intent={"primary"} onClick={() => submitHandler()}>{t('buttons.done')}</Button>
         ]}
     >
-        <div className="flex flex-col gap-4 sm:gap-6 max-h-[70vh] overflow-y-auto">
+        <div className="flex flex-col gap-4 sm:gap-6 max-h-[70vh] overflow-y-auto p-1">
             <div className="flex flex-col gap-4 sm:gap-6">
                 <Checkbox
                     label={t('tableOfContents.settings.show')}
@@ -80,7 +80,7 @@ const TocSettings = ({ isOpen, setIsOpen }: TocSetupModalProps) => {
                     }}
                 />
             </div>
-            <Divider orientation="horizontal" />
+            <AppSeparator />
             <div className="grid grid-cols-1 gap-6">
                 <div className="grid grid-cols-3 gap-6">
                     <div>
@@ -139,7 +139,7 @@ const TocSettings = ({ isOpen, setIsOpen }: TocSetupModalProps) => {
                     </Select>
                 </div>
             </div>
-            <Divider orientation="horizontal" />
+            <AppSeparator />
             <div className="grid grid-cols-1 gap-6">
                 <div className="flex flex-col gap-2">
                     <Checkbox

@@ -19,6 +19,8 @@ export const initialTocSettings: TocSettings = {
 }
 
 const initialEmphasisState: EmphasisState = {
+    link: '',
+    styleId: "13",
     headingLevel: 0,
     fontFamily: "Times New Roman",
     fontSize: "12pt",
@@ -66,8 +68,6 @@ export interface EditorState {
     bookmarkActive: boolean;
     commentActive: boolean;
     tocStructure: TreeItem[];
-    bookmarkHighlighted: boolean;
-    commentHighlighted: boolean;
     apparatuses: Apparatus[];
     documentTemplate: any
 }
@@ -91,8 +91,6 @@ const initialState: EditorState = {
     bookmarkActive: false,
     commentActive: false,
     tocStructure: [],
-    bookmarkHighlighted: true,
-    commentHighlighted: true,
     apparatuses: [
         {
             id: uuidv4(),
@@ -113,6 +111,10 @@ const editorSlice = createSlice({
             state.toolbarEmphasisState = {
                 ...emphasisState,
             };
+        },
+        setFontFamily(state, action
+            : PayloadAction<{ fontFamily: string }>) {
+            state.toolbarEmphasisState.fontFamily = action.payload.fontFamily;
         },
         setCanUndo(state, action: PayloadAction<boolean>) {
             state.canUndo = action.payload;
@@ -159,18 +161,6 @@ const editorSlice = createSlice({
         },
         setHeadingEnabled(state, action: PayloadAction<boolean>) {
             state.headingEnabled = action.payload;
-        },
-        setBookmarkHighlighted(state, action: PayloadAction<boolean>) {
-            state.bookmarkHighlighted = action.payload;
-        },
-        toggleBookmarkHighlighted(state) {
-            state.bookmarkHighlighted = !state.bookmarkHighlighted;
-        },
-        setCommentHighlighted(state, action: PayloadAction<boolean>) {
-            state.commentHighlighted = action.payload;
-        },
-        toggleCommentHighlighted(state) {
-            state.commentHighlighted = !state.commentHighlighted;
         },
         updateApparatuses(state, action: PayloadAction<Apparatus[]>) {
             state.apparatuses = action.payload;
@@ -271,10 +261,6 @@ export const {
     toggleBookmark,
     setTocStructure,
     setHeadingEnabled,
-    setBookmarkHighlighted,
-    toggleBookmarkHighlighted,
-    setCommentHighlighted,
-    toggleCommentHighlighted,
     setCanAddComment,
     setComment,
     updateApparatuses,
@@ -288,7 +274,8 @@ export const {
     removeApparatus,
     changeApparatusType,
     changeApparatusTitle,
-    setDocumentTemplate
+    setDocumentTemplate,
+    setFontFamily
 } = editorSlice.actions;
 
 export default editorSlice.reducer;

@@ -7,7 +7,7 @@ import CodeBlock from '@tiptap/extension-code-block';
 import CustomSuperscript from './custom-superscript';
 import CustomSubscript from './custom-subscript';
 import Strikethrough from '@tiptap/extension-strike';
-import ListItem from '@tiptap/extension-list-item'
+import ListItem from '@tiptap/extension-list-item';
 import { Color } from '@tiptap/extension-color';
 import { CustomTextStyle, CustomLetterSpacing } from './custom-text-style';
 import { useEditor } from '@tiptap/react';
@@ -32,6 +32,8 @@ import { ExtendedParagraph } from './extensions/paragraph-extension';
 import IndentExtension from './indent-extension';
 import { ExtendedHeading } from './heading-extension';
 import { Callout } from './callout-node';
+import { CustomStyleMark } from './extensions/custom-style-mark';
+import Link from './link-mark';
 
 
 const defaultEditorConfig = (
@@ -41,6 +43,7 @@ const defaultEditorConfig = (
 
     const editorConfig = {
         extensions: [
+            CustomStyleMark,
             Callout,
             IndentExtension.configure({
                 maxIndent: 8
@@ -70,6 +73,13 @@ const defaultEditorConfig = (
             }),
             FontFamily.configure({
                 types: ['textStyle']
+            }),
+            Link.configure({
+                openOnClick: false,
+                autolink: true,
+                defaultProtocol: 'https',
+                protocols: ['http', 'https'],
+                linkOnPaste: true,
             }),
             ExtendedHeading,
             ExtendedParagraph,

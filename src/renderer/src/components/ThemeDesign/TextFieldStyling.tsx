@@ -19,7 +19,6 @@ const TextFieldStyling = () => {
     };
 
     const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log("🚀 ~ handleBirthDateChange ~ e.target.value:", e.target.value)
         setBirthDate(e.target.value);
     };
 

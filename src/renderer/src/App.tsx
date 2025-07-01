@@ -54,12 +54,11 @@ const router = createHashRouter([
       },
     ]
   },
-  // TODO: Add a route for the about page
   {
     element: <ProtectedRoutes />,
     children: [
       {
-        element: <About isOpen={true} onClose={() => { }} />,
+        element: <About />,
         path: about,
       },
     ]
@@ -67,20 +66,7 @@ const router = createHashRouter([
 ]);
 
 const App: React.FC = () => {
-  const [showAbout, setShowAbout] = React.useState(false);
   const { i18n } = useTranslation();
-
-  useEffect(() => {
-    if (!window.electron) return;
-
-    const showAboutCleanup = window.electron.ipcRenderer.on('show-about', () => {
-      setShowAbout(true);
-    });
-
-    return () => {
-      showAboutCleanup();
-    }
-  }, [window.electron]);
 
   useEffect(() => {
     const unsubscribe = window.electron.ipcRenderer.on('language-changed', (_: unknown, lang: string) => {
@@ -100,7 +86,6 @@ const App: React.FC = () => {
   return (
     <>
       <RouterProvider router={router} />
-      <About isOpen={showAbout} onClose={() => setShowAbout(false)} />
     </>
   );
 };

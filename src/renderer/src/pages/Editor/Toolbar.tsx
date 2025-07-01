@@ -1,4 +1,4 @@
-import React, { MouseEvent, useEffect, useRef, useState } from "react";
+import React, { Fragment, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import HighlightColor from "../../components/highlight-color";
 import FormatTextColor from "../../components/format-text-color";
@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-
 import Bold from "@/components/icons/Bold";
 import Italic from "@/components/icons/Italic";
 import Underline from "@/components/icons/Underline";
@@ -27,7 +26,6 @@ import Siglum from "@/components/icons/Siglum";
 import CommentAdd from "@/components/icons/CommentAdd";
 import Bookmark from "@/components/icons/Bookmark";
 import LinkAdd from "@/components/icons/LinkAdd";
-import Divider from "@/components/ui/divider";
 import Button from "@/components/ui/button";
 import Citation from "@/components/icons/Citation";
 import Undo from "@/components/icons/Undo";
@@ -36,7 +34,6 @@ import AlignLeft from "@/components/icons/AlignLeft";
 import AlignRight from "@/components/icons/AlignRight";
 import AlignCenter from "@/components/icons/AlignCenter";
 import AlignJustify from "@/components/icons/AlignJustify";
-import List from "@/components/icons/List";
 import FormatLineSpacing from "@/components/icons/FormatLineSpacing";
 import Dropdown from "@/components/icons/Dropdown";
 import { cn } from "@/lib/utils";
@@ -64,7 +61,14 @@ import Object from "@/components/icons/Object";
 import ReadingType from "@/components/icons/ReadingType";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/use-theme";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectValue } from "@/components/ui/select";
+import { AppSelectContent, AppSelectItem, AppSelectSeparator, AppSelectTrigger } from "@/components/app/app-select";
+import AppList from "@/components/app/list";
+import ListIcon from "@/components/icons/List";
+import AppSeparator from "@/components/app/app-separator";
+import { useDispatch } from "react-redux";
+import { setFontFamily } from "./store/editor/editor.slice";
 
 export const ToolbarContainer = ({ className, children }: { children: React.ReactNode, className: string }) => {
   return (
@@ -80,8 +84,10 @@ interface ToolbarProps {
   editorIsFocused: boolean;
   emphasisState: EmphasisState;
   onEmphasisStateChange: (emphasisState: EmphasisState) => void;
-  onHeadingLevelChange: (headingLevel: number) => void;
+  onHeadingLevelChange: (level: number) => void;
+  onHeadingChange: (style: Style) => void;
   onSetBody: (style?: Style) => void;
+  onCustomStyleChange: (style: Style) => void;
   onFontFamilyChange: (fontFamily: string) => void;
   onFontSizeChange: (fontSize: string) => void;
   onBoldChange: (bold: boolean) => void;
@@ -124,6 +130,9 @@ interface ToolbarProps {
   showCustomizeToolbar: () => void;
   styles: Style[]
   showAddSymbol: () => void;
+  showLinkConfig: () => void;
+  linkActive: boolean;
+  removeLink: () => void;
   siglumList: Siglum[];
   onSelectSiglum: (siglum: Siglum) => void;
   onShowSiglumSetup: () => void;
@@ -133,8 +142,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
   editorIsFocused,
   emphasisState,
   onEmphasisStateChange,
+  // @ts-ignore
+  onHeadingChange,
   onHeadingLevelChange,
   onSetBody,
+  // @ts-ignore
+  onCustomStyleChange,
   onFontFamilyChange,
   onFontSizeChange,
   onBoldChange,
@@ -175,8 +188,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
   headingEnabled = true,
   toggleNonPrintingCharacters,
   showCustomizeToolbar,
+  // @ts-ignore
   styles,
   showAddSymbol,
+  showLinkConfig,
+  linkActive,
+  removeLink,
   siglumList,
   onSelectSiglum,
   onShowSiglumSetup,
@@ -254,32 +271,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   const sidebar = useSidebar();
 
-  const customStyleIdMap = new Map<string, number>();
-  let nextCustomId = -1;
+  // move to a selector
 
-  function getStyleNumericId(
-    style: string
-  ): string {
-    switch (style) {
-      case "H1": return "1";
-      case "H2": return "2";
-      case "H3": return "3";
-      case "H4": return "4";
-      case "H5": return "5";
-      case "H6": return "6";
-      case "P": return "0";
-      default: {
-        // per CUSTOM o altri stili non standard
-        if (!customStyleIdMap.has(style)) {
-          customStyleIdMap.set(style, nextCustomId--); // assegna e decrementa
-        }
-        return customStyleIdMap.get(style)!.toString();
-      }
-    }
-  }
+  // const stylesOptions = styles.map(({ name, id, level }) => {
+  //   return {
+  //     label: name,
+  //     value: level?.toString() ?? id,
+  //   }
+  // });
 
-  const stylesOptions = styles?.map(({ name, type }) => ({ label: name, value: getStyleNumericId(type) }));
-
+  const dispatch = useDispatch();
 
   // HANDLE IPC EVENTS
   useIpcRenderer((ipc) => {
@@ -295,7 +296,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   }, [window.electron.ipcRenderer]);
 
-  const hideGroups = () => {
+  const hideGroups = useCallback(() => {
     if (!toolbarContainer.current) return;
 
     let availableWidth = toolbarContainer.current.offsetWidth
@@ -330,7 +331,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
         ref.current?.classList.add("hidden");
       }
     }
-  }
+  }, [alignmentWidth, findPreviewWidth, fontFamilyWidth, fontSizeWidth,
+    fontStylingWidth, linkingWidth, sectionWidth, sidebarButtonWidth, spacingWidth, undoRedoWidth]);
 
   useEffect(() => {
     if (viewToolbar) {
@@ -338,22 +340,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
         hideGroups();
       }, 300);
     }
-  }, [
-    sidebar.open,
-    windowWidth,
-    hasInProgressAnimation,
-    viewToolbar,
-    alignmentWidth,
-    undoRedoWidth,
-    sectionWidth,
-    fontFamilyWidth,
-    fontSizeWidth,
-    fontStylingWidth,
-    spacingWidth,
-    linkingWidth,
-    findPreviewWidth,
-    sidebarButtonWidth,
-  ]);
+  }, [sidebar.open, windowWidth, hasInProgressAnimation, viewToolbar, alignmentWidth, undoRedoWidth,
+    sectionWidth, fontFamilyWidth, fontSizeWidth, fontStylingWidth, spacingWidth, linkingWidth,
+    findPreviewWidth, sidebarButtonWidth, hideGroups]);
 
   useEffect(() => {
     setAlignmentWidth((alignmentWidth) => {
@@ -439,7 +428,33 @@ const Toolbar: React.FC<ToolbarProps> = ({
     setTimeout(() => {
       hideGroups();
     }, 500);
-  }, [toolbarContainer, includeOptionals]);
+  }, [toolbarContainer, includeOptionals, hideGroups]);
+
+  const fontFamilies = useMemo((() => systemFonts.map(font => ({
+    value: font,
+    label: <span style={{ fontFamily: font }}>{font}</span>,
+    style: { fontFamily: font }
+  }))), [systemFonts]);
+
+  const handleFontFamilyChange = useCallback((value: string) => {
+    dispatch(setFontFamily({ fontFamily: value }));
+    onFontFamilyChange(value);
+  }, [dispatch, onFontFamilyChange]);
+
+  const FontFamilySelect = useMemo(() => {
+    return <CustomSelect
+      minWidth="150px"
+      value={emphasisState.fontFamily ?? 'Times New Roman'}
+      onValueChange={handleFontFamilyChange
+      }
+      ariaLabel="Font Family"
+      tooltip={t('toolbar.fontFamily')}
+      tabIndex={5}
+      triggerClassName="min-w-[140px]"
+      placeholder={emphasisState.fontFamily}
+      items={fontFamilies}
+    />
+  }, [emphasisState.fontFamily, handleFontFamilyChange, t, fontFamilies]);
 
   return (
     <TooltipProvider>
@@ -456,6 +471,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
               pointerEvents: "none",
             }}
           >
+            {/* POPOVER FOR EDIT */}
             <Popover open={showContextMenu} onOpenChange={setShowContextMenu}>
               <PopoverTrigger asChild>
                 <div className="w-1 h-1" />
@@ -496,9 +512,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
             </Button>
             <div
               ref={undoRedoGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild className="p-0 m-0">
                   <Button
@@ -550,12 +566,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
             {/* HEADING SELECT */}
             <div
               ref={sectionGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
-              <CustomSelect
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
+              <Select
                 disabled={!headingEnabled}
-                value={emphasisState.headingLevel?.toString() || ''}
+                value={emphasisState.headingLevel?.toString() ?? ''}
                 onValueChange={(value) => {
                   if (value > '0') {
                     onHeadingLevelChange(+value)
@@ -564,66 +580,52 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       headingLevel: +value
                     })
                   } else if (value === '0') {
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      headingLevel: +value
-                    })
                     onSetBody()
-                  } else {
-                    const selected = stylesOptions.find(option => option.value === value);
-                    const label = selected?.label ?? null;
-                    const selectedStyle = styles.find(s => s.name === label);
-
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      headingLevel: +value
-                    })
-
-                    onSetBody(selectedStyle)
                   }
-                }}
-                ariaLabel="Select text style"
-                tooltip={t('toolbar.headingStyle')}
-                tabIndex={4}
-                triggerClassName="min-w-[91px]"
-                showSeparators={true}
-                items={stylesOptions}
-              />
+                }}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AppSelectTrigger >
+                      <SelectValue />
+                    </AppSelectTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('toolbar.headingStyle')}</p>
+                  </TooltipContent>
+                </Tooltip>
+                <AppSelectContent>
+                  <AppList
+                    data={sectionTypes}
+                    renderItem={(type, index) => (
+                      <Fragment
+                        key={`section-style-${index}`}>
+                        {!index ? null : <AppSelectSeparator />}
+                        {type && <AppSelectItem
+                          value={type?.value?.toString()}>
+                          {t(type.label)}
+                        </AppSelectItem>}
+                      </Fragment>
+                    )}
+                  />
+                </AppSelectContent>
+              </Select>
             </div>
+
             {/* FONT FAMILY SELECT */}
             <div
               ref={fontFamilyGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
-              <CustomSelect
-                minWidth="150px"
-                value={emphasisState.fontFamily ?? 'Times New Roman'}
-                onValueChange={(value) => {
-                  onFontFamilyChange(value)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    fontFamily: value
-                  })
-                }}
-                ariaLabel="Font Family"
-                tooltip={t('toolbar.fontFamily')}
-                tabIndex={5}
-                triggerClassName="min-w-[140px]"
-                placeholder={emphasisState.fontFamily}
-                items={systemFonts.map(font => ({
-                  value: font,
-                  label: <span style={{ fontFamily: font }}>{font}</span>,
-                  style: { fontFamily: font }
-                }))}
-              />
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
+              {FontFamilySelect}
             </div>
+
             {/* FONT SIZE SELECT */}
             <div
               ref={fontSizeGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
               <CustomSelect
                 // disabled={emphasisState.headingLevel > 0}
                 minWidth="50px"
@@ -648,9 +650,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
             </div>
             <div
               ref={fontStylingGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
               {/* Superscript CONTROL */}
               {
                 includeOptionals.includes('superscript') &&
@@ -799,9 +801,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
             </div>
             <div
               ref={spacingGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
               <Button
                 intent="secondary"
                 variant={emphasisState.blockquote ? "tonal" : "icon"}
@@ -906,9 +908,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
             </div>
             <div
               ref={linkingGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
               {/* COMMENT ADD */}
               {(commentCategories.length === 0 || (commentActive && commentCategories.length > 0)) && <Button
                 intent="secondary"
@@ -926,6 +928,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 }}
                 aria-label="Insert comment"
                 className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
+                disabled={!canAddComment}
               />}
               {!commentActive && commentCategories.length > 0 && <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1015,19 +1018,41 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 />
               }
               {/* LINK ADD */}
-              <Button
-                intent="secondary"
-                variant="icon"
-                size="iconSm"
-                tabIndex={20}
-                tooltip={t('toolbar.link')}
-                icon={<LinkAdd intent='secondary' variant='tonal' size='small' />}
-                onClick={() => {
-                  // TODO: add identified text
-                  //addIdentifiedText()
-                }}
-                aria-label="Insert link"
-              />
+              {
+                !linkActive && <Button
+                  intent="secondary"
+                  variant={linkActive ? "tonal" : "icon"}
+                  size="iconSm"
+                  tabIndex={20}
+                  tooltip={t('toolbar.link')}
+                  icon={<LinkAdd intent='secondary' variant='tonal' size='small' />}
+                  onClick={showLinkConfig}
+                  aria-label="Insert link"
+                />
+              }
+              {linkActive && <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    intent="secondary"
+                    variant={linkActive ? "tonal" : "icon"}
+                    size="iconSm"
+                    tabIndex={20}
+                    tooltip={t('toolbar.link')}
+                    icon={<LinkAdd intent='secondary' variant='tonal' size='small' />}
+                    aria-label="Insert link"
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-40">
+                  <DropdownMenuItem
+                    onClick={showLinkConfig}
+                  >
+                    {t('toolbar.editLink')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={removeLink}>
+                    {t('toolbar.removeLink')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>}
               {
                 includeOptionals.includes('object') &&
                 <Button
@@ -1045,9 +1070,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
             </div>
             <div
               ref={alignmentGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300`}
+              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
             >
-              <Divider className="px-0" />
+              <AppSeparator orientation="vertical" className="max-h-[70%]" />
               {/* Alignment */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1237,7 +1262,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                     tooltip={t('toolbar.list')}
                     className="border-none shadow-none gap-0 focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary hover:text-white px-[.25rem] py-[0]"
                     leftIcon={
-                      <List intent="secondary" inheritColor={!isDark} variant={emphasisState.bulletStyle.type !== '' ? "tonal" : "icon"} size="small" />
+                      <ListIcon intent="secondary" inheritColor={!isDark} variant={emphasisState.bulletStyle.type !== '' ? "tonal" : "icon"} size="small" />
                     }
                     rightIcon={
                       <Dropdown intent='secondary' inheritColor={!isDark} variant={emphasisState.bulletStyle.type !== '' ? 'tonal' : "icon"} size='small' />
@@ -1459,7 +1484,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
               icon={<Print intent='secondary' variant='tonal' size='small' />}
               onClick={() => null}
             />
-            <Divider className="px-0" />
+            <AppSeparator orientation="vertical" className="max-h-[70%]" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -1522,7 +1547,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       </ToolbarContainer>
     </TooltipProvider>
-
   );
 };
 

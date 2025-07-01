@@ -1,4 +1,4 @@
-import { Editor, EditorContent, generateJSON, useEditor } from '@tiptap/react';
+import { Editor, EditorContent, generateHTML, generateJSON, useEditor } from '@tiptap/react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import Button from './ui/button';
 import { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
@@ -14,6 +14,7 @@ import { Mark } from 'prosemirror-model';
 import { textTemplate } from '@/lib/tiptap/templates-mock';
 import { Node } from 'prosemirror-model';
 
+
 export interface EditorData {
   json: object;
   html: string;
@@ -23,8 +24,11 @@ export interface EditorData {
 }
 
 export interface HTMLTextEditorElement {
-  setHeadingLevel: (level: number) => TTextPosition | undefined;
-  setBody: (style?: Style) => void;
+  setHeading: (level: number) => TTextPosition | undefined;
+  // setCustomHeading: (style: Style) => TTextPosition | undefined;
+  setBody: () => void;
+  // setCustomBody: (style: Style) => void;
+  setCustomStyle: (style: Style) => void;
   setFontFamily: (fontFamily: string) => void;
   setFontSize: (fontSize: string) => void;
   setBold: (bold: boolean) => void;
@@ -49,11 +53,11 @@ export interface HTMLTextEditorElement {
   unsetSubscript: () => void;
   undo: (action?: HistoryAction) => void;
   redo: () => void;
-  addBookmark: () => void;
+  addBookmark: (color: string) => void;
   unsetBookmark: () => void;
   deleteBookmarks: (bookmarks: Bookmark[]) => void;
   scrollToBookmark: (id: string) => void;
-  addComment: () => void;
+  addComment: (color: string) => void;
   unsetComment: () => void;
   deleteComments: (comments: AppComment[]) => void;
   scrollToComment: (id: string) => void;
@@ -71,6 +75,13 @@ export interface HTMLTextEditorElement {
   insertCharacter: (character: number) => void;
   insertContent: (content: string) => void;
   insertNodeContentsFromContent: (content: string) => void;
+  setLink: (url: string) => void;
+  selectedInnerHtmlString: () => string;
+  selectedText: () => string;
+  selectedContentJSON: () => any;
+  selectedContentString: () => string;
+  deleteSelection: () => void;
+  removeLink: () => void;
   unsetAllMarks: () => void;
   chain: () => any;
   getState: () => any;
@@ -92,13 +103,13 @@ interface TextEditorProps {
   onCanUndo?: (value: boolean) => void;
   onCanRedo?: (value: boolean) => void;
   onSelectionMarks?: (selectedMarks: any[]) => void;
-  bookmarkHighlightColor?: string;
-  bookmarkHighlighted?: boolean;
+  bookmarkHighlightColor: string;
+  bookmarkHighlighted: boolean;
   onChangeBookmarks?: (bookmarks: any[]) => void;
   onChangeComments?: (comments: any[]) => void;
   onChangeBookmark?: (bookmark: any) => void;
-  commentHighlightColor?: string;
-  commentHighlighted?: boolean;
+  commentHighlightColor: string;
+  commentHighlighted: boolean;
   onChangeComment?: (comment: any) => void;
   onSelectedContent?: (selectedContent: string) => void;
   onFocusEditor?: () => void;
@@ -120,13 +131,13 @@ const TextEditor = forwardRef(({
   onSelectedContentChange,
   onCanUndo,
   onCanRedo,
-  bookmarkHighlightColor = '#E5E5E5',
+  bookmarkHighlightColor,
   bookmarkHighlighted,
   onChangeBookmarks,
   onChangeComments,
   onSelectionMarks,
   onChangeBookmark,
-  commentHighlightColor = '#A9BFFF',
+  commentHighlightColor,
   commentHighlighted,
   onChangeComment,
   onSelectedContent,
@@ -140,12 +151,218 @@ const TextEditor = forwardRef(({
   ref: ForwardedRef<HTMLTextEditorElement>) => {
   const { t } = useTranslation()
 
+  const withSectionDividers: boolean = isMainText;
+  const withEditableFilter: boolean = isMainText;
+
+  const content = useMemo(() => {
+    if (isMainText) {
+      return {
+        type: "doc",
+        content: [
+          ...textTemplate(t("dividerSections.mainText")),
+        ]
+      }
+    }
+
+    return {
+      type: "doc",
+      content: []
+    }
+  }, [isMainText])
+
+  const editor = useEditor({
+    ...defaultEditorConfig(
+      withSectionDividers,
+      withEditableFilter,
+    ),
+    content: content,
+    editorProps: {
+      handleKeyDown: (view, event) => {
+        if (event.key === 'Enter') {
+          // @WARNING : Check if this is the best way to unset all marks
+          view.dispatch(view.state.tr.setStoredMarks([]));
+        }
+        const isMacOS = /Mac/.test(navigator.userAgent);
+
+        if (isMacOS) {
+          // Gestione per Cmd+V su macOS
+          if (event.metaKey && event.key === 'v' && editor?.isFocused) {
+            event.preventDefault();
+            handlePaste();
+          }
+
+          // Gestione per Cmd+C su macOS
+          if (event.metaKey && event.key === 'c' && editor?.isFocused) {
+            event.preventDefault();
+            handleCopy();
+          }
+
+          if (event.metaKey && event.key === 'x' && editor?.isFocused) {
+            event.preventDefault();
+            handleCut();
+          }
+        }
+        return false
+      },
+    },
+    onUpdate: ({ editor }) => handleOnUpdate(editor),
+    onSelectionUpdate: ({ editor }) => {
+      const state = editor.state;
+      const { selection } = state;
+      const { from, to } = selection;
+      const selectedContent = state.doc.textBetween(from, to, ' ');
+
+      // POPOVER
+      if (from === to)
+        setPopoverOpen(false)
+
+      // SECTIONS
+      let sections: string[] = [];
+      editor.state.doc.nodesBetween(0, from, (node, _) => {
+        if (node.type.name === 'sectionDivider') {
+          sections.push(node.attrs.sectionType);
+          return false;
+        }
+        return true;
+      });
+      const currentSection = sections[sections.length - 1]
+      onCurrentSection?.(sections.length > 0 ? currentSection : undefined)
+
+      // SELECTION MARKS
+      const selectedMarks = getSelectionMarks(editor);
+      if (selectedContent.length === 0) {
+        const hasBookmark = selectedMarks.some(mark => mark.type === 'bookmark')
+        const hasComment = selectedMarks.some(mark => mark.type === 'comment')
+        if (hasComment && commentHighlighted) {
+          onSelectionMarks?.(selectedMarks.filter(mark => mark.type === 'comment'))
+        } else if (hasBookmark && bookmarkHighlighted) {
+          onSelectionMarks?.(selectedMarks.filter(mark => mark.type === 'bookmark'))
+        } else {
+          onSelectionMarks?.([])
+        }
+      } else {
+        onSelectionMarks?.(selectedMarks);
+      }
+
+      const comments = handleMarks(editor, 'comment')
+      onChangeComments?.(comments)
+      const bookmarks = handleMarks(editor, 'bookmark')
+      onChangeBookmarks?.(bookmarks)
+
+      // SELECT COMMENT
+      const selectedComment = comments.find(comment => {
+        return selectedMarks.some(mark =>
+          mark.type === 'comment' &&
+          mark.attrs?.id === comment.id
+        );
+      })
+      if (selectedComment) onChangeComment?.(selectedComment)
+
+      // SELECT BOOKMARK
+      const selectedBookmark = bookmarks.find(bookmark => {
+        return selectedMarks.some(mark =>
+          mark.type === 'bookmark' &&
+          mark.attrs?.id === bookmark.id
+        );
+      })
+      if (selectedBookmark) onChangeBookmark?.(selectedBookmark)
+
+      onSelectedContent?.(selectedContent)
+      onSelectedContentChange?.(selectedContent)
+      onCanUndo?.(editor.can().undo());
+      onCanRedo?.(editor.can().redo());
+      updateEmphasisState(editor);
+      onBookmarkStateChange?.(editor.isActive("bookmark"))
+      onCommentStateChange?.(editor.isActive("comment"))
+    },
+    onTransaction: ({ editor, transaction }) => {
+      onHistoryStateChange?.(editorHistory.current);
+
+      const selectionStart = transaction.getMeta("selectionStart")
+      const selectionEnd = transaction.getMeta("selectionEnd")
+
+      // const isCut = transaction.getMeta("uiEvent") === "cut"
+      // const isCopy = transaction.getMeta("uiEvent") === "copy"
+      // if (isCut || isCopy) {
+      //   const { from, to } = editor.state.selection;
+      //   if (from !== to) {
+      //     const text = editor.state.doc.textBetween(from, to, ' ');
+      //     navigator.clipboard.writeText(text).then(() => {
+      //       if (isCut) {
+      //         editor.commands.deleteRange({ from, to });
+      //       }
+      //     });
+      //   }
+      // }
+
+      if (selectionStart) {
+        setPopoverOpen(false)
+      }
+
+      if (selectionEnd) {
+        updateEmphasisState(editor);
+        setTimeout(() => {
+          positionPopover()
+        }, 0)
+      }
+    },
+    onFocus: (data) => {
+      const editor = data.editor;
+      onFocusEditor?.();
+      onCanUndo?.(editor.can().undo());
+      onCanRedo?.(editor.can().redo());
+    },
+    //@ts-ignore
+    onPaste: (event, slice) => {
+      // editor?.commands.insertContentAt(0, {
+      //   type: 'paragraph',
+      //   content: [
+      //     {
+      //       type: 'text',
+      //       text: 'Hello, world!'
+      //     }
+      //   ]
+      // });
+
+      if (!editor) return;
+
+      const { clipboardData } = event;
+
+      if (!clipboardData) return;
+
+      // const text = clipboardData.getData('text/plain');
+      // const html = clipboardData.getData('text/html');
+      // const rtf = clipboardData.getData('text/rtf');
+      // const json = clipboardData.getData('text/json');
+
+      // console.log('text', text)
+      // console.log('html', html)
+      // console.log('rtf', rtf)
+      // console.log('json', json)
+
+      // You can handle the pasted content here
+      // For example, you could insert it with specific formatting:
+      // if (text) {
+      //   editor.commands.insertContent(text);
+      // }
+    }
+  })
+
+  if (!editor)
+    throw new Error("Editor not found")
+
   useImperativeHandle(ref, () => {
     return {
-      setHeadingLevel: (level: number) => {
-        if (!editor) return;
-
+      setHeading: (level: number) => {
         const { from, to } = editor.state.selection;
+        // editor?.chain()
+        //   .focus()
+        //   .selectParentNode()
+        //   .unsetAllMarks()
+        //   .setHeading({ level: level as 1 | 2 | 3 | 4 | 5 | 6 })
+        //   .run();
+        // editorHistory.trackHistoryActions("headingStyle", `Changed heading level to ${level}`);
+
         editor?.chain()
           .focus()
           .selectParentNode()
@@ -153,23 +370,95 @@ const TextEditor = forwardRef(({
           .setHeading({ level: level as 1 | 2 | 3 | 4 | 5 | 6 })
           .run();
         editorHistory.trackHistoryActions("headingStyle", `Changed heading level to ${level}`);
+
         return { from, to } as TTextPosition;
       },
-      setBody: (style?: Style) => {
-        // editor?.commands.setCallout({ type: 'warning' })
+      // setCustomHeading: (style: Style) => {
+      //   const { from, to } = editor.state.selection;
+      //   console.log("custom style ADDED", style)
+
+      //   editor
+      //     .chain()
+      //     .focus()
+      //     .selectParentNode()
+      //     .unsetAllMarks()
+      //     .setHeading({
+      //       level: style.level as 1 | 2 | 3 | 4 | 5 | 6,
+      //       styleId: style.id,
+      //       fontSize: style.fontSize,
+      //       fontWeight: style.fontWeight,
+      //       fontFamily: style.fontFamily,
+      //       color: style.color,
+      //       textAlign: style.align,
+      //       lineHeight: style.lineHeight,
+      //       marginTop: "0",
+      //       marginBottom: "0",
+      //     } as any)
+      //     .run();
+
+      //   editorHistory.trackHistoryActions("headingStyle", `Changed heading level to ${style.level}`);
+
+      //   return { from, to } as TTextPosition;
+      // },
+      setBody: () => {
+        // editor
+        //   .chain()
+        //   .focus()
+        //   .setParagraph()
+        //   .run();
+
+        editor.chain()
+          .focus()
+          .selectParentNode()
+          .unsetAllMarks()
+          .setParagraph()
+          .run();
+        editorHistory.trackHistoryActions("paragraphStyle", `Changed heading level to paragraph`);
+      },
+      // @ts-ignore
+      // setCustomBody: (style: Style) => {
+      //   editor.chain()
+      //     .focus()
+      //     .selectParentNode()
+      //     .unsetAllMarks()
+      //     .setParagraph()
+      //     // .setCustomParagraph({
+      //     //   fontSize: style.fontSize,
+      //     //   fontWeight: style.fontWeight,
+      //     //   fontFamily: style.fontFamily,
+      //     //   textAlign: style.align,
+      //     //   lineHeight: style.lineHeight,
+      //     //   marginTop: style.marginTop,
+      //     //   marginBottom: style.marginBottom,
+      //     //   color: style.color,
+      //     //   styleId: style.id,
+      //     // })
+      //     .run();
+
+      //   editorHistory.trackHistoryActions("paragraphStyle", `Changed heading level to paragraph`);
+      // },
+      setCustomStyle: (style: Style) => {
         if (!editor) return;
 
-        const command = editor.chain().focus().setParagraph()
+        editor
+          .chain()
+          .focus()
+          .setCustomStyleMark({
+            fontSize: style.fontSize,
+            fontWeight: style.fontWeight,
+            fontFamily: style.fontFamily,
+            textAlign: style.align,
+            lineHeight: style.lineHeight,
+            marginLeft: "0",
+            marginRight: "0",
+            marginTop: style.marginTop,
+            marginBottom: style.marginBottom,
+            color: style.color,
+            styleId: style.id,
+          })
+          .run()
 
-        if (!style) {
-          command.run()
-        } else {
-          command
-            .setMark("textStyle", style)
-            .run()
-        }
-
-        editorHistory.trackHistoryActions("paragraphStyle", `Changed heading level to paragraph`);
+        editorHistory.trackHistoryActions("customStyle", `Changed current style to custom style`);
       },
       setFontFamily: (fontFamily: string) => {
         if (!editor) return;
@@ -251,15 +540,17 @@ const TextEditor = forwardRef(({
         editorHistory.trackHistoryActions("characterStyle", `Applied blockquote style`);
       },
       setTextAlignment: (alignment: string) => {
-        if (!editor) return;
-        editor.chain().focus()
+        editor
+          .chain()
+          .focus()
           .setTextAlign(alignment)
           .run();
         editorHistory.trackHistoryActions("characterStyle", `Applied font alignment`);
       },
       setLineSpacing: (lineSpacing: Spacing) => {
-        if (!editor) return;
-        editor.chain().focus()
+        editor
+          .chain()
+          .focus()
           .setLineSpacing(lineSpacing)
           .run();
         editorHistory.trackHistoryActions("characterStyle", `Applied line spacing`);
@@ -311,11 +602,12 @@ const TextEditor = forwardRef(({
         editorHistory.trackHistoryActions("characterStyle", `Applied ${type.toLowerCase()} list with ${style} style`);
       },
       toggleNonPrintingCharacters: () => {
-        editor?.chain().focus().toggleNonPrintingCharacters();
+        editor
+          .chain()
+          .focus()
+          .toggleNonPrintingCharacters();
       },
       setListNumbering: (numbering: number) => {
-        if (!editor) return;
-
         if (editor.isActive('orderList')) {
           editor.chain().focus().updateAttributes('orderList', { start: numbering }).run();
         } else {
@@ -324,8 +616,6 @@ const TextEditor = forwardRef(({
         editorHistory.trackHistoryActions("characterStyle", `Applied list numbering resuming from ${numbering}`);
       },
       continuePreviousNumbering: () => {
-        if (!editor) return;
-
         editor.chain().focus().continueFromPreviousNumber().run();
         editorHistory.trackHistoryActions("characterStyle", `Continued previous numbering`);
       },
@@ -379,14 +669,26 @@ const TextEditor = forwardRef(({
         if (!canRedo) return;
         editor?.chain().focus().redo().run()
       },
-      addBookmark: () => {
+      addBookmark: (color: string) => {
         if (!editor) return;
 
-        editor.chain().focus().unsetHighlight().run();
+        editor
+          .chain()
+          .focus()
+          .unsetHighlight()
+          .run();
 
-        const bookmarkColor = bookmarkHighlighted ? bookmarkHighlightColor : '#ffffff';
+        const bookmarkColor = bookmarkHighlighted ? color : '#ffffff';
         const id = uuidv4();
-        editor.chain().focus().setBookmark({ id: id, color: bookmarkColor }).run();
+        editor
+          .chain()
+          .focus()
+          .setBookmark({
+            id: id,
+            color: bookmarkColor
+
+          })
+          .run();
 
         const { from, to } = editor.state.selection;
         const selectedContent = editor.state.doc.textBetween(from, to, ' ');
@@ -442,12 +744,12 @@ const TextEditor = forwardRef(({
         }, 600);
 
       },
-      addComment: () => {
+      addComment: (color: string) => {
         if (!editor) return;
 
         editor.chain().focus().unsetHighlight().run();
 
-        const commentColor = commentHighlighted ? commentHighlightColor : '#ffffff';
+        const commentColor = commentHighlighted ? color : '#ffffff';
 
         const id = uuidv4();
         editor.chain().focus().setComment({ id: id, color: commentColor }).run();
@@ -655,6 +957,41 @@ const TextEditor = forwardRef(({
           behavior: 'smooth'
         })
       },
+      selectedInnerHtmlString: () => {
+        const { from, to } = editor.state.selection;
+        if (from === to)
+          return "";
+
+        const fragment = editor.state.selection.content();
+        const domSerializer = editor.schema.cached.domSerializer;
+        const temp = document.createElement('div');
+        const slice = fragment.content;
+        domSerializer.serializeFragment(slice, { document }, temp);
+        const selectedHtml = temp.innerHTML;
+
+        return selectedHtml
+      },
+      selectedText: () => {
+        const from = editor.state.selection.from
+        const to = editor.state.selection.to
+        const text = editor.state.doc.textBetween(from, to, ' ');
+        return text
+      },
+      selectedContentJSON: () => {
+        const from = editor.state.selection.from
+        const to = editor.state.selection.to
+        const selectedContent = editor.state.doc.cut(from, to).toJSON();
+        return selectedContent
+      },
+      selectedContentString: () => {
+        const from = editor.state.selection.from
+        const to = editor.state.selection.to
+        const selectedContent = editor.state.doc.cut(from, to).toString()
+        return selectedContent
+      },
+      deleteSelection: () => {
+        editor.commands.deleteSelection()
+      },
       focus: () => {
         editor?.commands.focus()
       },
@@ -692,13 +1029,47 @@ const TextEditor = forwardRef(({
           .run()
       },
       insertContent: (content: string) => {
-        if (!editor) return;
-
         editor
           .chain()
           .focus()
           .insertContent(content)
           .run();
+
+        const testText = `
+{"content":[{"type":"heading","attrs":{"indent":0,"textAlign":"left","lineHeight":"1","marginTop":"0","marginBottom":"0","styleId":"7","level":1,"fontSize":"18pt","fontWeight":"bold","fontStyle":"normal","color":"#000000","fontFamily":"Times New Roman"},"content":[{"type":"text","text":"ertgretg"}]}],"openStart":1,"openEnd":1}`
+
+        const extensions = editor.extensionManager.extensions
+
+
+        const json = generateJSON(testText, extensions);
+        const html = generateHTML(json, extensions);
+        console.log("html: ", html)
+        // const json = generateJSON(testText, extensions);
+        // const html = generateHTML(testText, extensions)
+        // const contentList = json.content
+        // const flatContent = contentList.flat()
+
+      },
+      setLink: (url: string) => {
+        if (!editor) return;
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+        setTimeout(() => {
+          if (editor) {
+            updateEmphasisState(editor);
+          }
+        });
+        editorHistory.trackHistoryActions("characterStyle", `Applied link to ${url}`);
+      },
+      removeLink: () => {
+        if (!editor) return;
+        const currentLink = editor.getAttributes('link').href;
+        editor.chain().focus().extendMarkRange('link').unsetLink().run();
+        setTimeout(() => {
+          if (editor) {
+            updateEmphasisState(editor);
+          }
+        });
+        editorHistory.trackHistoryActions("characterStyle", `Removed link from ${currentLink}`);
       },
       unsetAllMarks: () => {
         if (!editor) return;
@@ -733,7 +1104,7 @@ const TextEditor = forwardRef(({
   const [selectionRange, setSelectionRange] = useState<{ from: number; to: number } | null>(null)
 
   // GET NODES FROM PARENT NODE TYPE
-  const dataForNodeType = useCallback((editor: Editor, type: string) => {
+  const dataForNodeType = (editor: Editor, type: string) => {
     const { state } = editor
     const { from, to } = state.selection;
 
@@ -751,7 +1122,24 @@ const TextEditor = forwardRef(({
     const childNodes: Node[] = []
     const marks: Mark[] = []
 
-    editor.state.doc.nodesBetween(from, to, (node: Node, _pos, parent: Node | null, _index) => {
+    const hasUnmarkedText = (() => {
+      let foundUnmarkedText = false;
+
+      editor.state.doc.nodesBetween(from, to, (node: Node, _pos: number) => {
+        if (node.isText && node.text) {
+          if (node.marks.length === 0) {
+            foundUnmarkedText = true;
+            return false;
+          }
+        }
+        return true;
+      });
+
+      return foundUnmarkedText;
+    })();
+
+    // let hasUnmarkedText = false;
+    editor.state.doc.nodesBetween(from, to, (node: Node, _pos: number, parent: Node | null, _index) => {
       if (parent?.type.name === type) {
         nodes.push(parent)
         childNodes.push(node)
@@ -775,74 +1163,96 @@ const TextEditor = forwardRef(({
       uniqueChildNodes,
       marks,
       uniqueMarks,
+      hasUnmarkedText,
     }
-  }, [])
+  }
 
-  const handleHeadingData = useCallback((editor: Editor) => {
+  const handleHeadingData = (editor: Editor) => {
     const {
       uniqueNodes,
       uniqueMarks,
+      hasUnmarkedText,
     } = dataForNodeType(editor, 'heading')
 
     const attributes = uniqueNodes.map(node => node.attrs)
-
-    const fontFamilies = attributes.map(attr => attr.fontFamily)
-    const fontSizes = attributes.map(attr => attr.fontSize)
-
     const marksTextStyle = uniqueMarks.filter(data => data.type.name === "textStyle")
 
+    const fontFamilies = attributes.map(attr => attr.fontFamily)
     const marksFontFamilies = marksTextStyle.flatMap(data => data.attrs.fontFamily)
-    const marksFontSizes = marksTextStyle.flatMap(data => data.attrs.fontSize)
-
     const allFontFamilies = new Set([...fontFamilies, ...marksFontFamilies])
+
+    const fontSizes = attributes.map(attr => attr.fontSize)
+    const marksFontSizes = marksTextStyle.flatMap(data => data.attrs.fontSize)
     const allFontSizes = new Set([...fontSizes, ...marksFontSizes])
+
+    const tmpFontFamilies = hasUnmarkedText ? allFontFamilies : new Set(marksFontFamilies)
+    const tmpFontSizes = hasUnmarkedText ? allFontSizes : new Set(marksFontSizes)
 
     return {
       headingsTypes: uniqueNodes.length,
       hasHeadings: uniqueNodes.length > 0,
       hasOneHeading: uniqueNodes.length === 1,
       hasMultipleHeadingTypes: uniqueNodes.length > 1,
-      headingFontFamilies: allFontFamilies,
-      hasMultipleHeadingFontFamilies: allFontFamilies.size > 1,
-      headingFontSizes: allFontSizes,
-      hasMultipleHeadingFontSizes: allFontSizes.size > 1,
-      headingFontSize: allFontSizes[0],
+      headingFontFamilies: tmpFontFamilies,
+      hasMultipleHeadingFontFamilies: tmpFontFamilies.size > 1,
+      headingFontSizes: tmpFontSizes,
+      hasMultipleHeadingFontSizes: tmpFontSizes.size > 1,
     }
-  }, [])
+  }
 
-  const handleParagraphData = useCallback((editor: Editor) => {
+  const handleParagraphData = (editor: Editor) => {
     const {
       nodes,
       uniqueNodes,
       uniqueMarks,
+      hasUnmarkedText,
     } = dataForNodeType(editor, 'paragraph')
 
     const attributes = uniqueNodes.map(node => node.attrs)
-
-    const fontFamilies = attributes.map(attr => attr.fontFamily)
-    const fontSizes = attributes.map(attr => attr.fontSize)
-
     const marksTextStyle = uniqueMarks.filter(data => data.type.name === "textStyle")
 
+    const fontFamilies = attributes.map(attr => attr.fontFamily)
     const marksFontFamilies = marksTextStyle.flatMap(data => data.attrs.fontFamily)
-    const marksFontSizes = marksTextStyle.flatMap(data => data.attrs.fontSize)
-
+    console.log("marksTextStyle:: ", marksTextStyle)
     const allFontFamilies = new Set([...fontFamilies, ...marksFontFamilies])
-    const allFontSizes = new Set([...fontSizes, ...marksFontSizes])
+
+    const fontSizes = attributes.map(attr => attr.fontSize)
+    const marksFontSizes = marksTextStyle.flatMap(data => data.attrs.fontSize)
+    const allFontSizes = new Set([...fontSizes, ...marksFontSizes,])
+
+    const tmpFontFamilies = hasUnmarkedText ? allFontFamilies : new Set(marksFontFamilies)
+    const tmpFontSizes = hasUnmarkedText ? allFontSizes : new Set(marksFontSizes)
+
+    // console.log(
+    //   "hasunmarkedtext:: ", hasUnmarkedText,
+    //   "fontFamilies:: ", fontFamilies,
+    //   "marksFontFamilies:: ", marksFontFamilies,
+    //   "fontSizes:: ", fontSizes,
+    //   "marksFontSizes:: ", marksFontSizes)
 
     return {
       paragraphLength: nodes.length,
       hasParagraphs: nodes.length > 0,
-      paragraphFontFamilies: allFontFamilies,
-      hasMultipleParagraphFontFamilies: allFontFamilies.size > 1,
-      paragraphFontSizes: allFontSizes,
-      hasMultipleParagraphFontSizes: allFontSizes.size > 1,
+      paragraphFontFamilies: tmpFontFamilies,
+      hasMultipleParagraphFontFamilies: tmpFontFamilies.size > 1,
+      paragraphFontSizes: tmpFontSizes,
+      hasMultipleParagraphFontSizes: tmpFontSizes.size > 1,
     }
-  }, [])
+  }
 
   const updateEmphasisState = useCallback((editor: Editor) => {
-    const { hasHeadings, hasOneHeading, hasMultipleHeadingTypes, hasMultipleHeadingFontFamilies, hasMultipleHeadingFontSizes } = handleHeadingData(editor)
-    const { hasParagraphs, hasMultipleParagraphFontFamilies, hasMultipleParagraphFontSizes } = handleParagraphData(editor)
+    const {
+      hasHeadings,
+      hasOneHeading,
+      hasMultipleHeadingTypes,
+      hasMultipleHeadingFontFamilies,
+      hasMultipleHeadingFontSizes,
+    } = handleHeadingData(editor)
+    const {
+      hasParagraphs,
+      hasMultipleParagraphFontFamilies,
+      hasMultipleParagraphFontSizes,
+    } = handleParagraphData(editor)
 
     // Attributes
     const textStyle = editor.getAttributes("textStyle")
@@ -860,12 +1270,12 @@ const TextEditor = forwardRef(({
     const currHeadingLevel = heading?.level ?? '0'
     const headingLevel = noHeadingLevel ? '-99' : currHeadingLevel
 
-    // FONT FAMILY
+    // FONT FAMILY 
     const noFontFamily = hasMultipleHeadingFontFamilies || hasMultipleParagraphFontFamilies
     const currFontFamily = textStyle?.fontFamily
     const fontFamily = noFontFamily ? '' : currFontFamily
 
-    // FONT SIZE TODO: REFACTOR THIS PART (ADD GLOBAL FONT SIZE)
+    // @REFACTOR: ADD GLOBAL FONT SIZE
     const currTextFontSize = textStyle?.fontSize ?? '12pt'
     let currHeadingFontSize = '18pt'
     switch (heading.level) {
@@ -889,9 +1299,11 @@ const TextEditor = forwardRef(({
     const textFontSize = isHeading
       ? currHeadingFontSize
       : currTextFontSize
-    const fontSize = (hasMultipleHeadingFontSizes || hasMultipleParagraphFontSizes || (hasHeadings && hasParagraphs)) ? '0pt' : textFontSize
+    const fontSize = hasMultipleHeadingFontSizes
+      || hasMultipleParagraphFontSizes
+      || (hasHeadings && hasParagraphs) ? '0pt' : textFontSize
 
-    // TODO: REFACTOR THIS FUNCTION
+    // @REFACTOR: REFACTOR THIS HUGE FUNCTION
     const { state } = editor
     const { from, to } = state.selection;
     const getUniqueAttribute = <T extends number | string | null>(type: string, attributeName: string, defaultValue: T, nullReplacement: any = null): T => {
@@ -927,6 +1339,7 @@ const TextEditor = forwardRef(({
     const orderListStyle = editor.getAttributes("orderList")?.listStyle || '';
 
     const newEmphasisState: EmphasisState = {
+      styleId: '',
       headingLevel: headingLevel,
       fontFamily: fontFamily,
       fontSize: fontSize,
@@ -956,217 +1369,12 @@ const TextEditor = forwardRef(({
         after: getUniqueAttribute<number | null>("paragraph", 'marginBottom', null, null),
         line: getUniqueAttribute<number>("paragraph", 'lineHeight', 1, null),
       },
+      link: getUniqueAttribute<string>("link", 'href', 'http://'),
     };
 
     onEmphasisStateChange?.(newEmphasisState);
   }, [])
 
-  const withSectionDividers: boolean = isMainText;
-  const withEditableFilter: boolean = isMainText;
-
-  const content = useMemo(() => {
-    if (isMainText) {
-      return {
-        type: "doc",
-        content: [
-          ...textTemplate(t("dividerSections.mainText")),
-        ]
-      }
-    }
-
-    return {
-      type: "doc",
-      content: []
-    }
-  }, [isMainText])
-
-  const editor = useEditor({
-    ...defaultEditorConfig(
-      withSectionDividers,
-      withEditableFilter,
-    ),
-    content: content,
-    editorProps: {
-      // attributes: {
-      //   style: 'font-family: "Times New Roman", Arial, sans-serif;'
-      // },
-      handleKeyDown: (view, event) => {
-        if (event.key === 'Enter') {
-          const { state } = view
-          const { selection } = state
-          const { $from } = selection
-
-          if ($from.parent.type.name.startsWith('heading')) {
-          }
-        }
-        const isMacOS = /Mac/.test(navigator.userAgent);
-
-        if (isMacOS) {
-          // Gestione per Cmd+V su macOS
-          if (event.metaKey && event.key === 'v' && editor?.isFocused) {
-            event.preventDefault();
-            handlePaste();
-          }
-
-          // Gestione per Cmd+C su macOS
-          if (event.metaKey && event.key === 'c' && editor?.isFocused) {
-            event.preventDefault();
-            handleCopy();
-          }
-
-          if (event.metaKey && event.key === 'x' && editor?.isFocused) {
-            event.preventDefault();
-            handleCut();
-          }
-        }
-        return false
-      },
-    },
-    onUpdate: ({ editor }) => handleOnUpdate(editor),
-    onSelectionUpdate: ({ editor }) => {
-      const state = editor.state;
-      const { selection } = state;
-      const { from, to } = selection;
-      const selectedContent = state.doc.textBetween(from, to, ' ');
-
-      // POPOVER
-      if (from === to) setPopoverOpen(false)
-
-      // SECTIONS
-      let sections: string[] = [];
-      editor.state.doc.nodesBetween(0, from, (node, _) => {
-        if (node.type.name === 'sectionDivider') {
-          sections.push(node.attrs.sectionType);
-          return false;
-        }
-        return true;
-      });
-      const currentSection = sections[sections.length - 1]
-      onCurrentSection?.(sections.length > 0 ? currentSection : undefined)
-
-      // SELECTION MARKS
-      const selectedMarks = getSelectionMarks(editor);
-      if (selectedContent.length === 0) {
-        const hasBookmark = selectedMarks.some(mark => mark.type === 'bookmark')
-        const hasComment = selectedMarks.some(mark => mark.type === 'comment')
-        if (hasComment && commentHighlighted) {
-          onSelectionMarks?.(selectedMarks.filter(mark => mark.type === 'comment'))
-        } else if (hasBookmark && bookmarkHighlighted) {
-          onSelectionMarks?.(selectedMarks.filter(mark => mark.type === 'bookmark'))
-        } else {
-          onSelectionMarks?.([])
-        }
-      } else {
-        onSelectionMarks?.(selectedMarks);
-      }
-
-      const comments = handleMarks(editor, 'comment')
-      onChangeComments?.(comments)
-      const bookmarks = handleMarks(editor, 'bookmark')
-      onChangeBookmarks?.(bookmarks)
-
-      // SELECT COMMENT
-      const selectedComment = comments.find(comment => {
-        return selectedMarks.some(mark =>
-          mark.type === 'comment' &&
-          mark.attrs?.id === comment.id
-        );
-      })
-      if (selectedComment) onChangeComment?.(selectedComment)
-
-      // SELECT BOOKMARK
-      const selectedBookmark = bookmarks.find(bookmark => {
-        return selectedMarks.some(mark =>
-          mark.type === 'bookmark' &&
-          mark.attrs?.id === bookmark.id
-        );
-      })
-      if (selectedBookmark) onChangeBookmark?.(selectedBookmark)
-
-      onSelectedContent?.(selectedContent)
-      onSelectedContentChange?.(selectedContent)
-      onCanUndo?.(editor.can().undo());
-      onCanRedo?.(editor.can().redo());
-      updateEmphasisState(editor);
-      onBookmarkStateChange?.(editor.isActive("bookmark"))
-      onCommentStateChange?.(editor.isActive("comment"))
-    },
-    onTransaction: ({ editor, transaction }) => {
-      onHistoryStateChange?.(editorHistory.current);
-
-      const selectionStart = transaction.getMeta("selectionStart")
-      const selectionEnd = transaction.getMeta("selectionEnd")
-
-      // const isCut = transaction.getMeta("uiEvent") === "cut"
-      // const isCopy = transaction.getMeta("uiEvent") === "copy"
-      // if (isCut || isCopy) {
-      //   const { from, to } = editor.state.selection;
-      //   if (from !== to) {
-      //     const text = editor.state.doc.textBetween(from, to, ' ');
-      //     navigator.clipboard.writeText(text).then(() => {
-      //       if (isCut) {
-      //         editor.commands.deleteRange({ from, to });
-      //       }
-      //     });
-      //   }
-      // }
-
-      if (selectionStart) {
-        setPopoverOpen(false)
-      }
-
-      if (selectionEnd) {
-        updateEmphasisState(editor);
-        setTimeout(() => {
-          positionPopover()
-        }, 0)
-      }
-    },
-    onFocus: (data) => {
-      const editor = data.editor;
-      onFocusEditor?.();
-      onCanUndo?.(editor.can().undo());
-      onCanRedo?.(editor.can().redo());
-    },
-    // onBlur: (data) => {
-    //   const editor = data.editor;
-    //   onBlurEditor?.();
-    // },
-    //@ts-ignore
-    onPaste: (event, slice) => {
-      // editor?.commands.insertContentAt(0, {
-      //   type: 'paragraph',
-      //   content: [
-      //     {
-      //       type: 'text',
-      //       text: 'Hello, world!'
-      //     }
-      //   ]
-      // });
-
-      if (!editor) return;
-
-      const { clipboardData } = event;
-
-      if (!clipboardData) return;
-
-      // const text = clipboardData.getData('text/plain');
-      // const html = clipboardData.getData('text/html');
-      // const rtf = clipboardData.getData('text/rtf');
-      // const json = clipboardData.getData('text/json');
-
-      // console.log('text', text)
-      // console.log('html', html)
-      // console.log('rtf', rtf)
-      // console.log('json', json)
-
-      // You can handle the pasted content here
-      // For example, you could insert it with specific formatting:
-      // if (text) {
-      //   editor.commands.insertContent(text);
-      // }
-    }
-  })
 
   const handleOnUpdate = useCallback((editor: Editor) => {
     const newState = currentEditorState(editor)
@@ -1203,7 +1411,6 @@ const TextEditor = forwardRef(({
   //     console.log('Cut operation - DOM after:', editor.view.dom.innerHTML)
   //   }, 0)
   // })
-
 
 
   const currentEditorState = useCallback((editor: Editor) => {
@@ -1404,27 +1611,42 @@ const TextEditor = forwardRef(({
     }
   }, [popoverOpen, editor])
 
-
   useEffect(() => {
-    if (!editor) return;
-
     editor.state.doc.descendants((node, pos) => {
       if (node.marks) {
         node.marks.forEach((mark) => {
           if (mark.type.name == 'comment') {
             const commentColor = commentHighlighted ? commentHighlightColor : 'transparent';
-            editor.chain().setTextSelection({ from: pos, to: pos + node.nodeSize }).updateCommentColor({ color: commentColor }).run()
+            editor
+              .chain()
+              .setTextSelection({
+                from: pos,
+                to: pos + node.nodeSize
+              })
+              .updateCommentColor({
+                color: commentColor
+              })
+              .run()
           }
           if (mark.type.name == 'bookmark') {
             const bookmarkColor = bookmarkHighlighted ? bookmarkHighlightColor : 'transparent';
-            editor.chain().setTextSelection({ from: pos, to: pos + node.nodeSize }).updateBookmarkColor({ color: bookmarkColor }).run()
+            editor
+              .chain()
+              .setTextSelection({
+                from: pos,
+                to: pos + node.nodeSize
+              })
+              .updateBookmarkColor({
+                color: bookmarkColor
+              })
+              .run()
           }
 
         });
       }
       return true;
     });
-  }, [commentHighlighted, bookmarkHighlighted, editor])
+  }, [commentHighlighted, bookmarkHighlighted, editor, commentHighlightColor, bookmarkHighlightColor])
 
   return (
     <>

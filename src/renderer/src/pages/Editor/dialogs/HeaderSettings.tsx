@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import PaginationSetup from "../../../components/pagination-form";
 import { selectHeaderSettings } from "@/pages/editor/store/pagination/pagination.selector";
 import { type HeaderSettings, updateHeaderSettings } from "@/pages/editor/store/pagination/pagination.slice";
+import { HeaderDisplayMode, HeaderContentType } from "@/utils/headerEnums";
 
-// Definizione dell'interfaccia per le impostazioni
 interface HeaderModalProps {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
@@ -18,19 +18,19 @@ const HeaderSettings = ({ isOpen, setIsOpen }: HeaderModalProps) => {
     const dispatch = useDispatch();
     const headerSettings = useSelector(selectHeaderSettings);
 
-    // Inizializza lo stato direttamente dal selettore Redux
     const [settings, setSettings] = useState<HeaderSettings>(() => ({
-        displayMode: headerSettings.displayMode,
-        startFromPage: headerSettings.startFromPage,
-        sectionsToShow: headerSettings.sectionsToShow,
-        leftContent: headerSettings.leftContent,
-        centerContent: headerSettings.centerContent,
-        rightContent: headerSettings.rightContent,
+        displayMode: headerSettings?.displayMode || HeaderDisplayMode.NONE,
+        startFromPage: headerSettings?.startFromPage || 1,
+        sectionsToShow: headerSettings?.sectionsToShow || [],
+        leftContent: headerSettings?.leftContent || HeaderContentType.NONE,
+        centerContent: headerSettings?.centerContent || HeaderContentType.NONE,
+        rightContent: headerSettings?.rightContent || HeaderContentType.NONE,
     }));
 
-    // Aggiorna lo stato locale quando cambiano le impostazioni Redux
     useEffect(() => {
-        setSettings({ ...headerSettings });
+        if (headerSettings) {
+            setSettings({ ...headerSettings });
+        }
     }, [headerSettings]);
 
     const submitHandler = useCallback(() => {

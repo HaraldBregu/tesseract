@@ -1,3 +1,22 @@
+
+export const defaultConfigs: ReferencesFormat = {
+    lemma_separator: { value: " ]", bold: false, italic: false, underline: false },
+    from_to_separator: { value: " -", bold: false, italic: false, underline: false },
+    readings_separator: { value: " :", bold: false, italic: false, underline: false },
+    apparatus_separator: { value: " ;", bold: false, italic: false, underline: false },
+    add_reading_type: { value: "add.", bold: false, italic: false, underline: false },
+    om_reading_type: { value: "om.", bold: false, italic: false, underline: false },
+    tr_reading_type: { value: "tr.", bold: false, italic: false, underline: false },
+    del_reading_type: { value: "del.", bold: false, italic: false, underline: false },
+    lemma_color: "#ffc7ff",
+    sigla_color: "#fbffb3",
+    reading_type_separator_color: "#fafafa",
+    comments_color: "#98a5ff",
+    bookmarks_color: "#e5e5e5",
+    page_note: { numeration: "whole", sectionLevel: "1", numberFormat: "1" },
+    section_note: { numeration: "whole", sectionLevel: "1", numberFormat: "1" },
+};
+
 export type EditorContextState = {
     selectedSideviewTabIndex: number;
     contentTocVisible: boolean;
@@ -19,11 +38,10 @@ export type EditorContextState = {
     addSymbolVisible: boolean;
     referenceFormatVisible: boolean;
     printPreviewVisible: boolean;
-    lemmataHighlightColor: string;
-    siglumHighlightColor: string;
-    readingTypeAndSeparatorHighlightColor: string;
-    bookmarkHighlightColor: string;
-    commentHighlightColor: string;
+    referenceFormat: ReferencesFormat;
+    bookmarkHighlighted: boolean;
+    commentHighlighted: boolean;
+    linkConfigVisible: boolean;
 }
 
 export const initialState: EditorContextState = {
@@ -47,9 +65,8 @@ export const initialState: EditorContextState = {
     addSymbolVisible: false,
     referenceFormatVisible: false,
     printPreviewVisible: false,
-    lemmataHighlightColor: "#FF0000",
-    siglumHighlightColor: "#FF0000",
-    readingTypeAndSeparatorHighlightColor: "#FF0000",
-    bookmarkHighlightColor: "#E5E5E5",
-    commentHighlightColor: "#A9BFFF",
+    referenceFormat: defaultConfigs,
+    bookmarkHighlighted: true,
+    commentHighlighted: true,
+    linkConfigVisible: false,
 }

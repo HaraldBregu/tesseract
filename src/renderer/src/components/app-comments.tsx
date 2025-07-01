@@ -59,7 +59,6 @@ const AppComments = forwardRef(({
     onClickComment,
     onMoveCommentToCategory
 }: CommentsProps, ref: ForwardedRef<unknown>) => {
-    console.log("AppComments rendered")
 
     useImperativeHandle(ref, () => {
         return {

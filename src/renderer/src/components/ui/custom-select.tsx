@@ -93,7 +93,6 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                             value={item.value}
                             style={item.style}
                             onClick={() => {
-                                console.log("click item")
                             }}
                         >
                             {item.label}
@@ -106,3 +105,5 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 };
 
 export default CustomSelect;
+
+

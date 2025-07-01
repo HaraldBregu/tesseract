@@ -2,6 +2,7 @@ import BrowserTabBar from "@/components/browser-tab-bar"
 import { memo, useEffect, useMemo, useReducer } from "react"
 import { useIpcRenderer } from "../hooks/use-ipc-renderer"
 import { ThemeProvider } from "../providers/theme-provider"
+import { useTranslation } from "react-i18next"
 
 type TabsState = {
   tabs: TabInfo[];
@@ -151,6 +152,7 @@ const actions: Record<string, (...args: any[]) => TabsActions> = {
 
 const AppTabs = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const { t } = useTranslation();
 
   const contentViewsIds = useMemo(() => {
     return window.tabs.getAllContentViewsIds()
@@ -161,6 +163,40 @@ const AppTabs = () => {
       dispatch(actions.addTabsWithIds(ids))
     })
   }, [contentViewsIds])
+
+  const handleTabSelectionBeforeRemoval = (tabToRemove: TabInfo) => {
+    if (state.selectedTab?.id === tabToRemove.id) {
+      const currentIndex = state.tabs.findIndex(t => t.id === tabToRemove.id);
+      if (state.tabs.length > 1) {
+        if (currentIndex < state.tabs.length - 1) {
+          const nextTab = state.tabs[currentIndex + 1];
+          window.tabs.select(nextTab.id, nextTab.type);
+          dispatch(actions.selectTab(nextTab));
+        }
+        else if (currentIndex > 0) {
+          const prevTab = state.tabs[currentIndex - 1];
+          window.tabs.select(prevTab.id, prevTab.type);
+          dispatch(actions.selectTab(prevTab));
+        }
+      }
+    }
+  };
+
+  const performTabClose = async (tab: TabInfo) => {
+    handleTabSelectionBeforeRemoval(tab);
+    await window.tabs.close(tab.id);
+    dispatch(actions.removeTab(tab));
+  };
+
+  const showCloseConfirmation = async (): Promise<number> => {
+    const showMessageBox = await window.system.showMessageBox(
+      t('close_document_dialog.title'),
+      t('close_document_dialog.description'),
+      [t('close_document_dialog.buttons.save'), t('close_document_dialog.buttons.abort'), t('close_document_dialog.buttons.cancel')]
+    );
+
+    return showMessageBox.response;
+  };
 
   useIpcRenderer((ipc) => {
 
@@ -196,7 +232,7 @@ const AppTabs = () => {
     return () => {
       ipc.cleanup()
     }
-  }, [window.electron.ipcRenderer]);
+  }, [window.electron.ipcRenderer, state.tabs]);
 
   return (
     <BrowserTabBar
@@ -210,8 +246,26 @@ const AppTabs = () => {
         dispatch(actions.selectTab(tab))
       }}
       onRemove={async (tab) => {
-        await window.tabs.close(tab.id)
-        dispatch(actions.removeTab(tab))
+        if (tab.changed) {
+          const shouldClose = await showCloseConfirmation();
+          switch (shouldClose) {
+            case 0:
+              const saveSuccessful = await window.doc.saveDocument();
+              if (saveSuccessful) {
+                await performTabClose(tab);
+              }
+              break;
+            case 1:
+              await performTabClose(tab);
+              break;
+            case 2:
+              break;
+            default:
+              break;
+          }
+        } else {
+          await performTabClose(tab);
+        }
       }}
       onReorder={(tabs) => {
         dispatch(actions.reorderTabs(tabs))

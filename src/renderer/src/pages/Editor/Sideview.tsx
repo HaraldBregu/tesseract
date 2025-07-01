@@ -42,7 +42,6 @@ const Sideview = forwardRef(({
     onDeleteBookmarks,
     onDeleteComments,
 }: ESidebarProps, ref: ForwardedRef<unknown>) => {
-    console.log("Sideview rendered")
 
     useImperativeHandle(ref, () => {
         return {
@@ -78,14 +77,13 @@ const Sideview = forwardRef(({
     const tocStructure = useSelector(selectTocStructure)
     const tocSettings = useSelector(selectTocSettings);
 
-
     // VISIBLE BOOKMARKS
     const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
     const visibleBookmarks = useSelector(visibleBookmarksSelector);
     useEffect(() => {
         setBookmarks(visibleBookmarks)
     }, [visibleBookmarks])
-    const bookmarksMemo = useMemo(() => bookmarks, [bookmarks, visibleBookmarks]) // @FIXME: handle memo
+    const bookmarksMemo = useMemo(() => bookmarks, [bookmarks, visibleBookmarks]) 
 
     // SELECTED BOOKMARK
     const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | null>(null);
@@ -93,7 +91,7 @@ const Sideview = forwardRef(({
     useEffect(() => {
         setSelectedBookmark(selectedBookmarkSL)
     }, [selectedBookmarkSL])
-    const selectedBookmarkMemo = useMemo(() => selectedBookmark, [selectedBookmarkSL, selectedBookmark]) // @FIXME: handle memo
+    const selectedBookmarkMemo = useMemo(() => selectedBookmark, [selectedBookmarkSL, selectedBookmark]) 
 
 
     const bookmarkCategories = useSelector(bookmarkCategoriesSelector);

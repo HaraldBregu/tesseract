@@ -20,8 +20,11 @@ const store = new Store({
         customVersioningDirectory: '~/Username/Documents/',
         criterionLanguage: 'en',
         criterionRegion: 'IT',
-        dateTimeFormat: 'DD/MM/YYYY HH:MM:SS',
-        historyActionsCount: '10'
+        dateTimeFormat: 'DD/MM/YYYY HH:MM:SS', // Keep for backwards compatibility
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: 'HH:MM',
+        historyActionsCount: '10',
+        layoutTabs: []
     },
 });
 
@@ -30,6 +33,13 @@ export const setTabs = (tabs: Tab[]): void => store.set('tabs', tabs)
 export const getTabs = (): Tab[] => store.get('tabs', []) as Tab[]
 
 export const resetTabs = (): void => store.set('tabs', [])
+
+// New simplified layout tab structure for better persistence
+export const setSimplifiedLayoutTabs = (tabs: SimplifiedTab[]): void => store.set('simplifiedLayoutTabs', tabs)
+
+export const getSimplifiedLayoutTabs = (): SimplifiedTab[] => store.get('simplifiedLayoutTabs', []) as SimplifiedTab[]
+
+export const resetSimplifiedLayoutTabs = (): void => store.set('simplifiedLayoutTabs', [])
 
 export const updateTabFilePath = (id: number, filePath: string): void => {
     const tabs = getTabs()
@@ -123,6 +133,14 @@ export const readCriterionRegion = (): string => store.get('criterionRegion', 'I
 export const storeDateTimeFormat = (format: string): void => store.set('dateTimeFormat', format)
 
 export const readDateTimeFormat = (): string => store.get('dateTimeFormat', 'DD/MM/YYYY HH:MM:SS') as string
+
+export const storeDateFormat = (format: string): void => store.set('dateFormat', format)
+
+export const readDateFormat = (): string => store.get('dateFormat', 'DD/MM/YYYY') as string
+
+export const storeTimeFormat = (format: string): void => store.set('timeFormat', format)
+
+export const readTimeFormat = (): string => store.get('timeFormat', 'HH:MM') as string
 
 export const storeHistoryActionsCount = (count: string): void => store.set('historyActionsCount', count)
 

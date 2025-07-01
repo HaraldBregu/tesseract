@@ -1,15 +1,10 @@
 import Button from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import Modal from '@/components/ui/modal';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import appIcon from '@resources/appIcons/icon_512.png';
 import appInfo from '@resources/appInfo.json';
-
-interface AboutProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
+import { ThemeProvider } from '@/providers/theme-provider';
 
 // TODO need to place proper links for license and acknowledgement
 const filePaths = {
@@ -17,39 +12,21 @@ const filePaths = {
     acknowledgement: 'https://docs.github.com/en/site-policy/github-terms/github-terms-of-service'
 }
 
-const About: React.FC<AboutProps> = ({
-    isOpen,
-    onClose,
-}) => {
+const About: React.FC = () => {
 
     const { t } = useTranslation();
 
     const { name, copyright, license, version } = appInfo;
 
-    const navigateTo = (path: string) => {
-        window.electron.ipcRenderer.send('open-external-file', filePaths[path]);
-    }
+    const navigateTo = useCallback((path: string) => {
+        return useCallback(() => {
+            window.electron.ipcRenderer.send('open-external-file', filePaths[path]);
+        }, [path]);
+    }, []);
 
     return (
-        <Modal
-            key={"about-modal"}
-            isOpen={isOpen}
-            onOpenChange={onClose}
-            title={t('about.label')}
-            className="w-[440px] border-none gap-0"
-            contentClassName="flex flex-col gap-8"
-            footerClassName='p-4 h-auto'
-            showCloseIcon={true}
-            actions={[
-                <Button key="cancel" className="text-secondary-30 text-[13px] font-semibold border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" size="mini" intent="secondary" variant="tonal" onClick={() => navigateTo('acknowledgement')}>
-                    {t('buttons.acknowledgements')}
-                </Button>,
-                <Button key="save" className="text-secondary-30 text-[13px] font-semibold border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" size="mini" intent="secondary" variant="tonal" onClick={() => navigateTo('license')}>
-                    {t('buttons.licenseAgreement')}
-                </Button>
-            ]}
-        >
-            <div className="flex flex-row gap-4 items-start">
+        <div className="flex flex-col">
+            <div className="flex flex-row gap-4 items-start p-4">
                 <div className="flex items-center justify-center p-3">
                     <img className='w-[120px] rounded-3xl' src={appIcon} alt={name} />
                 </div>
@@ -68,8 +45,24 @@ const About: React.FC<AboutProps> = ({
                     </div>
                 </div>
             </div>
-        </Modal>
+            <div className="border-t border-grey-80 dark:border-grey-50 p-4 h-auto max-h-16 flex flex-row gap-2 justify-end">
+                <Button key="cancel" className="text-secondary-30 text-[13px] font-semibold border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" size="mini" intent="secondary" variant="tonal" onClick={navigateTo('acknowledgement')}>
+                    {t('buttons.acknowledgements')}
+                </Button>
+                <Button key="save" className="text-secondary-30 text-[13px] font-semibold border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" size="mini" intent="secondary" variant="tonal" onClick={navigateTo('license')}>
+                    {t('buttons.licenseAgreement')}
+                </Button>
+            </div>
+        </div>
     );
 };
 
-export default About;
+const AboutWithTheme: React.FC = () => {
+    return (
+        <ThemeProvider>
+            <About />
+        </ThemeProvider>
+    )
+}
+
+export default AboutWithTheme;

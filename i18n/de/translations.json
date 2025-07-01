@@ -87,8 +87,10 @@
     "listBulletSquare": "Quadratische Aufzählung",
     "superscript": "Hochgestellt",
     "subscript": "Tiefgestellt",
-    "contextMenu": "Customize Toolbar",
-    "modalTitle": "Select or remove items from the toolbar"
+    "contextMenu": "Symbolleiste anpassen",
+    "modalTitle": "Elemente in der Symbolleiste auswählen oder entfernen",
+    "editLink": "Link bearbeiten",
+    "removeLink": "Link entfernen"
   },
   "dividerSections": {
     "toc": "Inhaltsverzeichnis",
@@ -97,6 +99,7 @@
     "bibliography": "Bibliografie",
     "appendix": "Anhang"
   },
+  "linkPlaceholder": "Link zu einer externen URL, z. B. https://example.com oder http://example.com",
   "menu": {
     "file": {
       "label": "Datei",
@@ -350,6 +353,7 @@
   "buttons": {
     "cancel": "Abbrechen",
     "ok": "OK",
+    "confirm": "Bestätigen",
     "save": "Speichern",
     "done": "Fertig",
     "apply": "Anwenden",
@@ -368,6 +372,69 @@
     "symbol": "Symbol",
     "character": "Character",
     "keyboardShortcut": "Keyboard Shortcut"
+  },
+  "referencesFormat": {
+    "title": "Referenz format",
+    "tabs": {
+      "separators": "Trennzeichen",
+      "readingTypes": "Lesetypen",
+      "guideColors": "Leitfarben",
+      "notes": "Notizen"
+    },
+    "appearance": "Erscheinungsbild",
+    "customizeSeparators": "Trennzeichen und Stil der kritischen Notizen anpassen.",
+    "customizeReadingTypes": "Lesetypen und Stil anpassen.",
+    "highlightColor": "Hervorhebungsfarbe",
+    "customizeGuideColors": "Texthervorhebungen, die nicht im Druck enthalten sind.",
+    "lemmaSeparator": "Lemma-Trennzeichen",
+    "fromToSeparator": "Von-Bis-Trennzeichen",
+    "readingsSeparator": "Lesetrennzeichen",
+    "apparatusSeparator": "Apparat-Trennzeichen",
+    "addReadingType": "Lesetyp hinzufügen",
+    "omReadingType": "Auslassungs-Lesetyp",
+    "trReadingType": "Transpositions-Lesetyp",
+    "delReadingType": "Löschungs-Lesetyp",
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "underline": "Unterstrichen",
+    "separator": {
+      "none": "Kein",
+      "bracket": "Klammer ( ] )",
+      "dash": "Bindestrich ( - )",
+      "colon": "Doppelpunkt ( : )",
+      "semicolon": "Semikolon ( ; )"
+    },
+    "guide": {
+      "lemma": "Lemma",
+      "sigla": "Sigle",
+      "readingTypeSeparator": "Lesetyp & Trennzeichen",
+      "comments": "Kommentare",
+      "bookmarks": "Lesezeichen",
+      "highlights": "Hervorhebungen"
+    },
+    "highlight": {
+      "none": "keine",
+      "pink": "rosa",
+      "yellow": "gelb",
+      "blue": "blau",
+      "gray": "grau",
+      "mint": "mint"
+    },
+    "pageNotes": "Seitennotizen",
+    "sectionNotes": "Abschnittnotizen",
+    "numerationTitle": "Nummerierung",
+    "numeration": {
+      "whole": "Gesamtes Dokument",
+      "page": "Beginnt auf jeder Seite neu",
+      "section": "Beginnt in jedem Abschnitt neu:"
+    },
+    "sectionLevel": {
+      "1": "Ebene 1",
+      "2": "Ebene 2",
+      "3": "Ebene 3",
+      "4": "Ebene 4",
+      "5": "Ebene 5"
+    }
   },
   "customSpacing": {
     "title": "Benutzerdefinierter Abstand",
@@ -468,6 +535,20 @@
     "none": "Keine",
     "all": "Alle",
     "default": "Standard"
+  },
+  "metadata": {
+    "title": "Metadaten",
+    "license": "Lizenz",
+    "creationDate": "Erstellungsdatum",
+    "lastSavedDate": "Datum der letzten Speicherung",
+    "titleDoc": "Titel",
+    "subject": "Betreff",
+    "author": "Autor",
+    "copyrightHolder": "Urheberrechtsinhaber",
+    "keywords": "Schlüsselwörter",
+    "status": "Status",
+    "template": "Vorlage",
+    "language": "Sprache"
   },
   "pageSetup": {
     "title": "Layout wählen",
@@ -629,10 +710,19 @@
   },
   "move_comments_dialog": {
     "title": "Alle Kommentare verschieben",
-    "description": "Wählen Sie eine Kategorie aus, in die die Kommentare verschoben werden sollen.",
+    "description": "Wählen Sie eine Kategorie aus, um die Kommentare zu verschieben.",
     "buttons": {
       "cancel": "Abbrechen",
       "move": "Verschieben"
+    }
+  },
+  "close_document_dialog": {
+    "title": "Dieses Dokument enthält ungespeicherte Änderungen",
+    "description": "Möchten Sie Ihre Änderungen vor dem Schließen des Dokuments speichern?",
+    "buttons": {
+      "cancel": "Abbrechen",
+      "abort": "Nicht speichern",
+      "save": "Speichern"
     }
   },
   "choose_template_dialog": {
@@ -769,7 +859,9 @@
     "language": {
       "criterionLanguage": "Criterion-Sprache",
       "criterionRegion": "Criterion-Region",
-      "dateTimeFormat": "Datum- und Zeitformat"
+      "dateTimeFormat": "Datum- und Zeitformat",
+      "dateFormat": "Datumsformat",
+      "timeFormat": "Zeitformat"
     },
     "editing": {
       "showHistoryActions": {

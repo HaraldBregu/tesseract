@@ -58,35 +58,70 @@ const SectionDividerProtection = Extension.create({
                 key: new PluginKey('sectionDividerProtection'),
                 props: {
                     handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
-                        const { state } = view;
+                        const { state, dispatch } = view;
                         const { selection, doc } = state;
                         const { $from, $to } = selection;
 
-                        // Funzione per controllare se un nodo è un divider
                         const isDivider = (node: ProseMirrorNode | null | undefined) =>
-                          //  node?.type.name === 'horizontalRule' ||
                             node?.type.name === 'sectionDivider';
 
-                        // Se abbiamo una selezione non-vuota
+                        // Handle Delete/Backspace with any selection that contains sectionDividers
                         if ($from.pos !== $to.pos && (event.key === 'Delete' || event.key === 'Backspace')) {
-                            // Controlla se la selezione contiene un divider
-                            let hasSelectedDivider = false;
+                            // Check if selection contains sectionDividers
+                            let hasSectionDividers = false;
                             doc.nodesBetween($from.pos, $to.pos, (node) => {
                                 if (isDivider(node)) {
-                                    hasSelectedDivider = true;
+                                    hasSectionDividers = true;
                                     return false;
                                 }
-                                return !hasSelectedDivider;
+                                return true;
                             });
 
-                            // Se la selezione contiene un divider, blocca la cancellazione
-                            if (hasSelectedDivider) {
-                                return true; // Blocca l'evento
+                            if (hasSectionDividers) {
+                                // Collect sectionDividers within the selection to preserve them
+                                let tr = state.tr;
+                                let preservedDividers: any[] = [];
+
+                                // Collect sectionDividers that are within the selection
+                                // @ts-ignore
+                                doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+                                    if (isDivider(node)) {
+                                        preservedDividers.push(node);
+                                    }
+                                    return true;
+                                });
+
+                                // Delete the entire selection
+                                tr = tr.delete($from.pos, $to.pos);
+
+                                // Re-insert sectionDividers with empty paragraphs
+                                let insertPos = $from.pos;
+                                for (const dividerNode of preservedDividers) {
+                                    // Insert the sectionDivider
+                                    tr = tr.insert(insertPos, dividerNode);
+                                    insertPos += dividerNode.nodeSize;
+
+                                    // Insert an empty paragraph after each sectionDivider
+                                    const paragraphNode = state.schema.nodes.paragraph.create({
+                                        level: 1,
+                                        indent: 0,
+                                        styleId: "13"
+                                    });
+                                    tr = tr.insert(insertPos, paragraphNode);
+                                    insertPos += paragraphNode.nodeSize;
+                                }
+
+                                if (tr.docChanged) {
+                                    dispatch(tr);
+                                }
+                                return true;
                             }
 
-                            // Altrimenti, consenti la cancellazione del testo selezionato
+                            // If no sectionDividers in selection, allow normal deletion
                             return false;
                         }
+
+
 
                         // Gestione della cancellazione con cursore (senza selezione)
                         if (event.key === 'Delete' || event.key === 'Backspace') {
@@ -119,6 +154,141 @@ const SectionDividerProtection = Extension.create({
                         }
 
                         return false; // Lascia che altri gestori trattino l'evento
+                    },
+
+                    // Prevent copying sectionDividers
+                    handleDOMEvents: {
+                        copy: (view, event) => {
+                            const { state } = view;
+                            const { selection, doc } = state;
+                            const { $from, $to } = selection;
+
+                            // Check if selection contains sectionDividers
+                            let hasSectionDividers = false;
+                            doc.nodesBetween($from.pos, $to.pos, (node) => {
+                                if (node.type.name === 'sectionDivider') {
+                                    hasSectionDividers = true;
+                                    return false;
+                                }
+                                return true;
+                            });
+
+                            if (hasSectionDividers) {
+                                // Create a custom selection without sectionDividers
+                                const fragment = doc.slice($from.pos, $to.pos);
+                                const filteredContent: any[] = [];
+
+                                fragment.content.forEach((node) => {
+                                    if (node.type.name !== 'sectionDivider') {
+                                        filteredContent.push(node);
+                                    }
+                                });
+
+                                if (filteredContent.length > 0) {
+                                    // Create a temporary div to hold the filtered content
+                                    const tempDiv = document.createElement('div');
+                                    let textContent = '';
+
+                                    // Extract text content from filtered nodes
+                                    filteredContent.forEach(node => {
+                                        if (node.textContent) {
+                                            textContent += node.textContent;
+                                            tempDiv.appendChild(document.createTextNode(node.textContent));
+                                        }
+                                    });
+
+                                    // Set clipboard data
+                                    event.clipboardData?.setData('text/html', tempDiv.innerHTML);
+                                    event.clipboardData?.setData('text/plain', textContent);
+                                    event.preventDefault();
+                                    return true;
+                                } else {
+                                    // If only sectionDividers were selected, prevent copy
+                                    event.preventDefault();
+                                    return true;
+                                }
+                            }
+
+                            return false; // Allow normal copy
+                        },
+
+                        cut: (view, event) => {
+                            const { state } = view;
+                            const { selection, doc } = state;
+                            const { $from, $to } = selection;
+
+                            // Check if selection contains sectionDividers
+                            let hasSectionDividers = false;
+                            doc.nodesBetween($from.pos, $to.pos, (node) => {
+                                if (node.type.name === 'sectionDivider') {
+                                    hasSectionDividers = true;
+                                    return false;
+                                }
+                                return true;
+                            });
+
+                            if (hasSectionDividers) {
+                                // First handle the copy part (without sectionDividers)
+                                const fragment = doc.slice($from.pos, $to.pos);
+                                const filteredContent: any[] = [];
+
+                                fragment.content.forEach((node) => {
+                                    if (node.type.name !== 'sectionDivider') {
+                                        filteredContent.push(node);
+                                    }
+                                });
+
+                                if (filteredContent.length > 0) {
+                                    // Copy filtered content to clipboard
+                                    const tempDiv = document.createElement('div');
+                                    filteredContent.forEach(node => {
+                                        if (node.textContent) {
+                                            tempDiv.appendChild(document.createTextNode(node.textContent));
+                                        }
+                                    });
+                                    event.clipboardData?.setData('text/html', tempDiv.innerHTML);
+                                    event.clipboardData?.setData('text/plain', tempDiv.textContent || '');
+                                }
+
+                                // Then handle the deletion part (preserve sectionDividers)
+                                // This will use the same logic as our delete handler
+                                let tr = state.tr;
+                                let preservedDividers: any[] = [];
+
+                                // @ts-ignore
+                                doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+                                    if (node.type.name === 'sectionDivider') {
+                                        preservedDividers.push(node);
+                                    }
+                                    return true;
+                                });
+
+                                tr = tr.delete($from.pos, $to.pos);
+
+                                let insertPos = $from.pos;
+                                for (const dividerNode of preservedDividers) {
+                                    tr = tr.insert(insertPos, dividerNode);
+                                    insertPos += dividerNode.nodeSize;
+
+                                    const paragraphNode = state.schema.nodes.paragraph.create({
+                                        level: 1,
+                                        indent: 0,
+                                        styleId: "13"
+                                    });
+                                    tr = tr.insert(insertPos, paragraphNode);
+                                    insertPos += paragraphNode.nodeSize;
+                                }
+
+                                if (tr.docChanged) {
+                                    view.dispatch(tr);
+                                }
+
+                                event.preventDefault();
+                                return true;
+                            }
+
+                            return false; // Allow normal cut
+                        }
                     },
 
                     // Impedisci il trascinamento attraverso i divider

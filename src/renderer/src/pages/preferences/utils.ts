@@ -139,13 +139,27 @@ const regionOptions = [
     { value: 'ES', label: 'Spain' }
 ];
 
-const dateTimeFormatOptions = [
-    { value: 'DD/MM/YYYY HH:MM:SS', label: 'DD/MM/YYYY HH:MM:SS' },
-    { value: 'MM/DD/YYYY HH:MM:SS', label: 'MM/DD/YYYY HH:MM:SS' },
-    { value: 'YYYY-MM-DD HH:MM:SS', label: 'YYYY-MM-DD HH:MM:SS' },
-    { value: 'DD.MM.YYYY HH:MM:SS', label: 'DD.MM.YYYY HH:MM:SS' },
-    { value: 'DD/MM/YYYY h:MM:SS A', label: 'DD/MM/YYYY h:MM:SS AM/PM' },
-    { value: 'MM/DD/YYYY h:MM:SS A', label: 'MM/DD/YYYY h:MM:SS AM/PM' }
+const dateFormatOptions = [
+    { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (US format): 12/25/2023' },
+    { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (European format): 25/12/2023' },
+    { value: 'YYYY/MM/DD', label: 'YYYY/MM/DD (ISO format): 2023/12/25' },
+    { value: 'MM-DD-YYYY', label: 'MM-DD-YYYY: 12-25-2023' },
+    { value: 'DD-MM-YYYY', label: 'DD-MM-YYYY: 25-12-2023' },
+    { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD: 2023-12-25' },
+    { value: 'MM.DD.YYYY', label: 'MM.DD.YYYY: 12.25.2023' },
+    { value: 'DD.MM.YYYY', label: 'DD.MM.YYYY: 25.12.2023' }
+];
+
+const timeFormatOptions = [
+    { value: 'HH:MM', label: 'HH:MM: 14:30' },
+    { value: 'H:MM', label: 'H:MM: 14:30' },
+    { value: 'HH:MM:SS', label: 'HH:MM:SS: 14:30:45' },
+    { value: 'HHMM', label: 'HHMM: 1430' },
+    { value: 'HHMMSS', label: 'HHMMSS: 143045' },
+    { value: 'HH:MM:SS.mmm', label: 'HH:MM:SS.mmm: 14:30:45.123' },
+    { value: 'HH:MM:SS,mmm', label: 'HH:MM:SS,mmm: 14:30:45,123' },
+    { value: 'h:MM A', label: '12-hour format (h:MM AM/PM): 2:30 PM' },
+    { value: 'h:MM:SS A', label: '12-hour format (h:MM:SS AM/PM): 2:30:45 PM' }
 ];
 
 export {
@@ -159,6 +173,7 @@ export {
     getVersioningOptions,
     languageOptions,
     regionOptions,
-    dateTimeFormatOptions
+    dateFormatOptions,
+    timeFormatOptions
 };
 

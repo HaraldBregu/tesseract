@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "@/components/ui/modal"
 import Button from "@/components/ui/button";
@@ -20,8 +20,7 @@ const SaveAsTemplateModal: React.FC<SaveAsTemplateModalProps> = ({
 
   const { t } = useTranslation();
 
-  // @REFACTOR: useCallback and try catch is not needed here
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const templatesResponse = await window.doc.getTemplates();
       const templates = templatesResponse.map(
@@ -35,17 +34,18 @@ const SaveAsTemplateModal: React.FC<SaveAsTemplateModalProps> = ({
       console.error("Error fetching templates:", error);
       setTemplates([]);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTemplates()
-  }, [])
+  }, [fetchTemplates])
 
   const publishersTemplates = useMemo(() => {
     const filtered = templates?.filter((template) => template.type === "COMMUNITY")
       .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
     return filtered;
   }, [templates]);
+
   const recentTemplates = useMemo(() => {
     if (!templates) return [];
 

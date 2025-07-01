@@ -8,6 +8,7 @@ import { SortableArea } from "@/components/drag-drop-area";
 import { useCounter } from "@/hooks/use-counter";
 import { PlusCircle } from "lucide-react";
 import {
+  apparatusTypes,
   ApparatusTypes,
   ColDetailsType,
   TElement,
@@ -53,6 +54,7 @@ const TextContentManagement = ({
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [apparatusSectionTypes, setApparatusSectionTypes] = useState(apparatusTypes)
 
   useEffect(() => {
     setApparatus.replace(apparatusDetails);
@@ -138,6 +140,8 @@ const TextContentManagement = ({
                 sectionTypes={availableApparatusTypes}
                 dragHandler={drag}
                 curSection={curSection}
+                apparatusSectionTypes={apparatusSectionTypes}
+                setApparatusSectionTypes={setApparatusSectionTypes}
               />
             )}
             readSorted={(result) =>

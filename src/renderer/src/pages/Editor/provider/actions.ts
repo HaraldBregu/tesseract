@@ -30,6 +30,12 @@ export type EditorAction =
     | { type: 'SET_REFERENCE_FORMAT_VISIBLE'; payload: boolean }
     | { type: 'SET_PRINT_PREVIEW_VISIBLE'; payload: boolean }
     | { type: 'TOGGLE_PRINT_PREVIEW_VISIBLE' }
+    | { type: 'SET_REFERENCE_FORMAT'; payload: ReferencesFormat }
+    | { type: 'SET_BOOKMARK_HIGHLIGHTED'; payload: boolean }
+    | { type: 'SET_COMMENT_HIGHLIGHTED'; payload: boolean }
+    | { type: 'SET_LINK_CONFIG_VISIBLE'; payload: boolean }
+    | { type: 'TOGGLE_BOOKMARK_HIGHLIGHTED' }
+    | { type: 'TOGGLE_COMMENT_HIGHLIGHTED' }
 
 
 export const setSelectedSideviewTabIndex = (tab: number): EditorAction => ({
@@ -163,4 +169,32 @@ export const setPrintPreviewVisible = (visible: boolean): EditorAction => ({
 
 export const togglePrintPreviewVisible = (): EditorAction => ({
     type: 'TOGGLE_PRINT_PREVIEW_VISIBLE',
+})
+
+export const setReferenceFormat = (referenceFormat: ReferencesFormat): EditorAction => ({
+    type: 'SET_REFERENCE_FORMAT',
+    payload: referenceFormat
+})
+
+export const setBookmarkHighlighted = (highlighted: boolean): EditorAction => ({
+    type: 'SET_BOOKMARK_HIGHLIGHTED',
+    payload: highlighted
+})
+
+export const setCommentHighlighted = (highlighted: boolean): EditorAction => ({
+    type: 'SET_COMMENT_HIGHLIGHTED',
+    payload: highlighted
+})
+
+export const toggleBookmarkHighlighted = (): EditorAction => ({
+    type: 'TOGGLE_BOOKMARK_HIGHLIGHTED',
+})
+
+export const toggleCommentHighlighted = (): EditorAction => ({
+    type: 'TOGGLE_COMMENT_HIGHLIGHTED',
+})
+
+export const setLinkConfigVisible = (visible: boolean): EditorAction => ({
+    type: 'SET_LINK_CONFIG_VISIBLE',
+    payload: visible
 })

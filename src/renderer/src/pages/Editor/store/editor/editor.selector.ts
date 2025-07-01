@@ -13,6 +13,11 @@ export const selectToolbarEmphasisState = createSelector(
   (editor) => editor.toolbarEmphasisState
 );
 
+export const selectLinkActive = createSelector(
+  selectToolbarEmphasisState,
+  (toolbarEmphasisState) => toolbarEmphasisState.link !== 'http://'
+);
+
 export const selectApparatuses = createSelector(
   editorState,
   (editor) => editor.apparatuses
@@ -101,16 +106,6 @@ export const selectTocStructure = createSelector(
 export const selectHeadingEnabled = createSelector(
   editorState,
   (editor) => editor?.headingEnabled || false
-);
-
-export const selectBookmarkHighlighted = createSelector(
-  editorState,
-  (editor) => editor?.bookmarkHighlighted || false
-);
-
-export const selectCommentHighlighted = createSelector(
-  editorState,
-  (editor) => editor?.commentHighlighted || false
 );
 
 // APPARATUSES SELECTORS

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import Modal from "@/components/ui/modal";
@@ -39,8 +39,7 @@ const ChooseTemplateModal: React.FC<ChooseTemplateModalProps> = ({
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  // @REFACTOR: useCallback and try catch is not needed here
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const templatesResponse = await window.doc.getTemplates();
       const templates = templatesResponse.map(
@@ -54,11 +53,12 @@ const ChooseTemplateModal: React.FC<ChooseTemplateModalProps> = ({
       console.error("Error fetching templates:", error);
       setTemplates([]);
     }
-  };
+  }, [])
 
   useEffect(() => {
     fetchTemplates();
-  }, [])
+  }, [fetchTemplates])
+  
   const recentTemplates = useMemo(() => {
     if (!templates) return [];
 
@@ -87,49 +87,28 @@ const ChooseTemplateModal: React.FC<ChooseTemplateModalProps> = ({
     }
   }, [recentTemplates])
 
-  const handleTemplateSelect = (filename: string) => {
+  const handleTemplateSelect = useCallback((filename: string) => {
     const found = [...recentTemplates, ...publishersTemplates].find(t => t.filename === filename);
     if (found) { setSelectedTemplate(found) };
-  };
+  }, [recentTemplates, publishersTemplates]);
 
-
-  const handleContinue = async () => {
+  const handleContinue = useCallback(async () => {
     if (selectedTemplate) {
-      let finalTemplate = selectedTemplate;
-
-      // Check if rememberLayout is enabled and if template doesn't have complete page setup
-      try {
-        const preferences = await window.electron.ipcRenderer.invoke('preferences:get');
-        if (preferences.rememberLayout && (!selectedTemplate.pageSetup || !selectedTemplate.layoutTemplate || !selectedTemplate.sort)) {
-          const savedPageSetup = await window.electron.ipcRenderer.invoke('pageSetup:get');
-          if (savedPageSetup) {
-            console.log('Loading saved page setup for template without complete page setup:', savedPageSetup);
-            // Merge saved page setup with selected template
-            finalTemplate = {
-              ...selectedTemplate,
-              pageSetup: selectedTemplate.pageSetup || savedPageSetup.pageSetup,
-              layoutTemplate: selectedTemplate.layoutTemplate || savedPageSetup.layoutTemplate,
-              sort: selectedTemplate.sort || savedPageSetup.sort,
-            };
-          }
-        }
-      } catch (error) {
-        console.error('Error loading saved page setup for template:', error);
-      }
+      const finalTemplate = selectedTemplate;
 
       dispatch(setDocumentTemplate(finalTemplate))
       onContinue(finalTemplate);
     }
-  };
+  }, [dispatch, onContinue, selectedTemplate]);
 
-  const handleImport = async () => {
+  const handleImport = useCallback(async () => {
     try {
       await window.doc.importTemplate()
       await fetchTemplates()
     } catch (err) {
-      console.log("err:", err)
+      console.warn("err:", err)
     }
-  }
+  }, [fetchTemplates]);
 
   return (
     <Modal

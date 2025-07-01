@@ -33,6 +33,8 @@ interface IMenuAPI {
 
 interface IDocumentAPI {
   openDocument: () => Promise<void>
+  saveDocument: () => Promise<boolean>
+  getMainText: () => Promise<object>
   getTemplates: () => Promise<string[]>
   importTemplate: () => Promise<void>
   createTemplate: (template: unknown, name: string) => Promise<void>
@@ -49,6 +51,10 @@ interface IDocumentAPI {
   importStyle: () => Promise<string>
   exportSiglumList: (siglumList: Siglum[]) => Promise<void>
   importSiglumList: () => Promise<Siglum[]>
+  setReferencesFormat: (referencesFormat: ReferencesFormat) => Promise<void>
+  getReferencesFormat: () => Promise<ReferencesFormat>
+  setMetadata: (metadata: DocumentMetadata[]) => Promise<void>
+  getMetadata: () => Promise<DocumentMetadata[]>
 }
 
 interface ISystemAPI {
@@ -57,7 +63,7 @@ interface ISystemAPI {
   getSubsets: () => Promise<Subset[]>
   getSymbols: (fontName: string) => Promise<CharacterSet>
   getConfiguredSpcialCharactersList: () => Promise<CharacterConfiguration[]>
-  showMessageBox: (message: string, buttons: string[]) => Promise<Electron.MessageBoxReturnValue>
+  showMessageBox: (title: string, message: string, buttons: string[], type?: string) => Promise<Electron.MessageBoxReturnValue>
 }
 
 interface IApplicationAPI {

@@ -353,9 +353,6 @@ const IndentExtension = Extension.create<IndentOptions>({
               } else {
                 event.preventDefault();
 
-                console.log("Tab pressed")
-
-
                 const { selection, doc, tr: initialTr } = this.editor.state;
                 const { from: initialFrom, to: initialTo } = selection;
 
@@ -426,7 +423,6 @@ const IndentExtension = Extension.create<IndentOptions>({
                     return true;
                   }
                 } else {
-                  console.log("Tab pressed 2")
                   return this.editor.chain()
                     .focus()
                     .insertContent('\t')

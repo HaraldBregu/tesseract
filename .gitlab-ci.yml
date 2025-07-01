@@ -1,5 +1,5 @@
 default:
-  timeout: 1 hours # Timeout predefinito per tutti i job
+  timeout: 1 hours # Timeout developdefinito per tutti i job
 
 stages:
   - build-check
@@ -110,31 +110,33 @@ build-redhat-linux:
   tags:
     - docker
 
-build-macos-intel:
-  stage: Build-macOS
-  timeout: 3 hours # Timeout specifico per questo job
-  script:
-    # Install dependencies
-    - npm install -g yarn
-    - yarn install
-    # Build for macOS Intel (x64)
-    - yarn dist-mac-intel
-    - echo "Checking dist folder..."
-    - ls -lh dist || echo "dist not found"
-  artifacts:
-    name: "macos-intel-builds-${CI_COMMIT_REF_NAME}"
-    expire_in: 2 weeks
-    paths:
-      - dist/*.dmg
-      - dist/*.zip
-    when: on_success
-  only:
-    - pre
-  tags:
-    - macos
+# build-macos-intel:
+#   stage: Build-macOS
+#   image: electronuserland/builder
+#   timeout: 3 hours # Timeout specifico per questo job
+#   script:
+#     # Install dependencies
+#     - npm install -g yarn
+#     - yarn install
+#     # Build for macOS Intel (x64)
+#     - yarn dist-mac-intel
+#     - echo "Checking dist folder..."
+#     - ls -lh dist || echo "dist not found"
+#   artifacts:
+#     name: "macos-intel-builds-${CI_COMMIT_REF_NAME}"
+#     expire_in: 2 weeks
+#     paths:
+#       - dist/*.dmg
+#       - dist/*.zip
+#     when: on_success
+#   only:
+#     - pre
+#   tags:
+#     - docker
 
 build-macos-apple-silicon:
   stage: Build-macOS
+  image: electronuserland/builder
   timeout: 3 hours # Timeout specifico per questo job
   script:
     # Install dependencies
@@ -154,4 +156,4 @@ build-macos-apple-silicon:
   only:
     - pre
   tags:
-    - macos
+    - docker

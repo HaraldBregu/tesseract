@@ -88,7 +88,9 @@
     "superscript": "Superscript",
     "subscript": "Subscript",
     "contextMenu": "Customize Toolbar",
-    "modalTitle": "Select or remove items from the toolbar"
+    "modalTitle": "Select or remove items from the toolbar",
+    "editLink": "Edit Link",
+    "removeLink": "Remove Link"
   },
   "dividerSections": {
     "toc": "Table of Contents",
@@ -97,6 +99,7 @@
     "bibliography": "Bibliography",
     "appendix": "Appendix"
   },
+  "linkPlaceholder": "Link to an external URL eg. https://example.com or http://example.com",
   "menu": {
     "file": {
       "label": "File",
@@ -417,6 +420,7 @@
   "buttons": {
     "cancel": "Cancel",
     "ok": "Ok",
+    "confirm": "Confirm",
     "save": "Save",
     "done": "Done",
     "apply": "Apply",
@@ -435,6 +439,69 @@
     "symbol": "Symbol",
     "character": "Character",
     "keyboardShortcut": "Keyboard Shortcut"
+  },
+  "referencesFormat": {
+    "title": "References Format",
+    "tabs": {
+      "separators": "Separators",
+      "readingTypes": "Reading Types",
+      "guideColors": "Guide Colors",
+      "notes": "Notes"
+    },
+    "appearance": "Appearance",
+    "customizeSeparators": "Customize critical notes separators characters and style.",
+    "customizeReadingTypes": "Customize readings wording and style.",
+    "highlightColor": "Highlights Color",
+    "customizeGuideColors": "Text highlights that are not included in print.",
+    "lemmaSeparator": "Lemma Separator",
+    "fromToSeparator": "From-To Separator",
+    "readingsSeparator": "Readings Separator",
+    "apparatusSeparator": "Apparatus Separator",
+    "addReadingType": "Add Reading Type",
+    "omReadingType": "Omission Reading Type",
+    "trReadingType": "Transposition Reading Type",
+    "delReadingType": "Deletion Reading Type",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "separator": {
+      "none": "None",
+      "bracket": "Bracket ( ] )",
+      "dash": "Dash ( - )",
+      "colon": "Colon ( : )",
+      "semicolon": "Semicolon ( ; )"
+    },
+    "guide": {
+      "lemma": "Lemma",
+      "sigla": "Sigla",
+      "readingTypeSeparator": "Reading Type & Separator",
+      "comments": "Comments",
+      "bookmarks": "Bookmarks",
+      "highlights": "Highlights"
+    },
+    "highlight": {
+      "none": "none",
+      "pink": "pink",
+      "yellow": "yellow",
+      "blue": "blue",
+      "gray": "gray",
+      "mint": "mint"
+    },
+    "pageNotes": "Page Notes",
+    "sectionNotes": "Section Notes",
+    "numerationTitle": "Numeration",
+    "numeration": {
+      "whole": "Whole document",
+      "page": "Restarts at every page",
+      "section": "Restarts at every section:"
+    },
+    "sectionLevel": {
+      "1": "Level 1",
+      "2": "Level 2",
+      "3": "Level 3",
+      "4": "Level 4",
+      "5": "Level 5"
+    }
   },
   "customSpacing": {
     "title": "Custom Spacing",
@@ -536,6 +603,20 @@
     "all": "All",
     "default": "Default"
   },
+  "metadata":{
+    "title":"Metadata",
+    "license":"License",
+    "creationDate":"Creation date",
+    "lastSavedDate":"Last saved date",
+    "titleDoc":"Title",
+    "subject":"Subject",
+    "author":"Author",
+    "copyrightHolder":"Copyright Holder",
+    "keywords":"Keywords",
+    "status":"Status",
+    "template":"Template",
+    "language":"Language"
+  },
   "pageSetup": {
     "title": "Choose Layout",
     "confirmationModal": {
@@ -631,7 +712,7 @@
   },
   "delete_bookmark_dialog": {
     "title": "If you continue, you will delete the bookmark",
-    "description": "If you continue, you will delete the bookmark. Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively.",
+    "description": "If you continue, you will delete the bookmark. Do you want to continue? If yes please click on \"Delete\" button, if no click on \"Cancel\" button; alternatively.",
     "buttons": {
       "cancel": "Cancel",
       "delete": "Delete",
@@ -640,7 +721,7 @@
   },
   "delete_bookmark_category_dialog": {
     "title": "If you continue, you will delete every bookmarks in the category",
-    "description": "Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively move the all bookmarks to another caregory created with the “Move” button",
+    "description": "Do you want to continue? If yes please click on \"Delete\" button, if no click on \"Cancel\" button; alternatively move the all bookmarks to another caregory created with the \"Move\" button",
     "buttons": {
       "cancel": "Cancel",
       "delete": "Delete",
@@ -671,7 +752,7 @@
   },
   "delete_comment_dialog": {
     "title": "If you continue, you will delete the comment",
-    "description": "If you continue, you will delete the comment. Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively.",
+    "description": "If you continue, you will delete the comment. Do you want to continue? If yes please click on \"Delete\" button, if no click on \"Cancel\" button; alternatively.",
     "buttons": {
       "cancel": "Cancel",
       "delete": "Delete",
@@ -680,7 +761,7 @@
   },
   "delete_comment_category_dialog": {
     "title": "If you continue, you will delete every comments in the category",
-    "description": "Do you want to continue? If yes please click on “Delete” button, if no click on “Cancel” button; alternatively move the all comments to another caregory created with the “Move” button",
+    "description": "Do you want to continue? If yes please click on \"Delete\" button, if no click on \"Cancel\" button; alternatively move the all comments to another caregory created with the \"Move\" button",
     "buttons": {
       "cancel": "Cancel",
       "delete": "Delete",
@@ -701,6 +782,15 @@
     "buttons": {
       "cancel": "Cancel",
       "move": "Move"
+    }
+  },
+  "close_document_dialog": {
+    "title": "This document contains unsaved changes",
+    "description": "Do you want to save your changes before closing the document?",
+    "buttons": {
+      "cancel": "Cancel",
+      "abort": "Don't save",
+      "save": "Save"
     }
   },
   "choose_template_dialog": {
@@ -856,7 +946,9 @@
     "language": {
       "criterionLanguage": "Criterion Language",
       "criterionRegion": "Criterion Region",
-      "dateTimeFormat": "Date & Time format"
+      "dateTimeFormat": "Date & Time format",
+      "dateFormat": "Date format",
+      "timeFormat": "Time format"
     },
     "editing": {
       "showHistoryActions": {
@@ -878,7 +970,7 @@
     "cancel": "Cancel",
     "import": "Import",
     "export": "Export",
-    "manuscripts": "Manuscripts",
+    "manuscripts": "Manuscripts*",
     "description": "Description",
     "empty": {
       "title": "Create siglum before adding notes"

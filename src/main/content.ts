@@ -47,6 +47,7 @@ export function createWebContentsView(route: WebContentsRoute): Promise<WebConte
     //   resolve(webContentsView)
     // })
 
+    // const startTime = performance.now();
     webContentsView.webContents.on('did-finish-load', () => {
       showWebContentsView(webContentsView)
       updateTabs(webContentViews)
@@ -235,15 +236,16 @@ const updateTabs = (webContentViews: WebContentsView[], onUpdate?: UpdateTabsCal
     })
 
   const currentTabs = getTabs()
+  const currentSelectedId = currentWebContentsView?.webContents.id
 
   const newTabs = webContentViewsData
-    .map((webContentView, index) => {
+    .map((webContentView) => {
       const currentTab = currentTabs?.find((tab) => tab.id === webContentView.id)
 
       const tab = {
         id: webContentView.id,
         route: webContentView.path,
-        selected: index === webContentViewsData.length - 1,
+        selected: webContentView.id === currentSelectedId,
         filePath: currentTab?.filePath,
       } as Tab
 

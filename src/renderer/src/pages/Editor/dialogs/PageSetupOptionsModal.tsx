@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { StandardPageDimensionsState } from "@/pages/editor/store/layout/layout.state";
 import { selectLayoutSettings, selectLayoutStandardPageDimensions } from "@/pages/editor/store/layout/layout.selector";
 import { useDispatch, useSelector } from "react-redux";
-import Divider from "@/components/ui/divider";
 import PageOrientation from "@/components/page-orientation";
 import PaperSize from "@/components/paper-size";
 import { t } from "i18next";
@@ -12,6 +11,7 @@ import SelectMarginBox from "@/components/select-margin-box";
 import { Label } from "@/components/ui/label";
 import { updatePageSetupOptions } from "@/pages/editor/store/layout/layout.sclice";
 import CustomWidthHeightModal from "./PageSetupDialog/components/custom-width-height-modal";
+import AppSeparator from "@/components/app/app-separator";
 
 
 interface IPageSetupOptionsModal {
@@ -45,7 +45,6 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
 
     // @REFACTOR: useCallback
     const handleSubmit = () => {
-        console.log({ paperSizeData })
         const optionPayload = {
             ...setupOption,
             paperSize_name: paperSizeData,
@@ -98,7 +97,7 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
         <Modal
             title={t("pageSetup.component.accordionSetup.title")}
             isOpen={isOpen}
-            className="w-[50rem]"
+            className="w-[50rem] h-[90%] overflow-hidden"
             onOpenChange={() => { }}
             actions={[
                 <Button
@@ -106,8 +105,8 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
                     onClick={handleClose}
                     className="w-24 items-center justify-center"
                     size="mini"
-                    intent={"secondary"}
-                    variant={"tonal"}
+                    intent="secondary"
+                    variant="tonal"
                 >
                     {t("buttons.cancel")}
                 </Button>,
@@ -121,9 +120,10 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
                     {t("buttons.save")}
                 </Button>,
             ]}
-            footerClassName="!flex-1 items-center h-[8vh]"
+            footerClassName="!flex-1 items-center !max-h-5/6"
+            contentClassName="overflow-y-auto h-full"
         >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 h-full">
                 <PaperSize
                     label={t("pageSetup.component.accordionSetup.title")}
                     setOpenCustomWidthHeight={setOpenCustomWidthHeight}
@@ -132,7 +132,7 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
                     standardPageDimensions={[...standardPageDimensions, { name: 'custom', height: 0, width: 0 }]}
                     setPaperSizeDataCustom={setPaperSizeDataCustom}
                 />
-                <Divider orientation="horizontal" />
+                <AppSeparator />
                 <PageOrientation
                     label={t("pageSetup.component.accordionSetup.size")}
                     selectedOrientation={selectedOrientation}
@@ -141,7 +141,7 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
                     paperSizeData={paperSizeData}
                     paperSizeDataCustom={paperSizeDataCustom}
                 />
-                <Divider orientation="horizontal" />
+                <AppSeparator />
                 <div className="flex flex-row gap-14">
                     <SelectMarginBox
                         id="header"
@@ -164,7 +164,7 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
 
                     />
                 </div>
-                <Divider orientation="horizontal" />
+                <AppSeparator />
                 <div className="flex flex-col gap-2">
                     <Label>{t("pageSetup.areas.documentMargin")}</Label>
                     <div className="flex flex-row gap-4">
@@ -207,7 +207,7 @@ const PageSetupOptionsModal = ({ isOpen, setIsOpen }: IPageSetupOptionsModal) =>
 
                     </div>
                 </div>
-                <Divider orientation="horizontal" />
+                <AppSeparator />
                 <div className="flex flex-row  gap-6">
                     <SelectMarginBox
                         id="innermargin"

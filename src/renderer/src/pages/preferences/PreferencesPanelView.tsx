@@ -5,7 +5,6 @@ import Typography from "@/components/Typography";
 import AppRadioGroup from "@/components/app-radiogroup";
 import AppCheckbox from "@/components/app-checkbox";
 import CustomSelect from "@/components/ui/custom-select";
-import Divider from '@/components/ui/divider';
 import TextField from "@/components/ui/textField";
 import Folder from '@/components/icons/Folder';
 import { Sidebar, SidebarContent, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
@@ -15,8 +14,9 @@ import {
     // getLinksOptions,
     getThemeOptions,
     // characterLimitOptions,
-    getFileSavingOptions, getAutomaticSaveOptions, getVersioningOptions, languageOptions, regionOptions, dateTimeFormatOptions
+    getFileSavingOptions, getAutomaticSaveOptions, getVersioningOptions, languageOptions, regionOptions, dateFormatOptions, timeFormatOptions
 } from './utils';
+import AppSeparator from '@/components/app/app-separator';
 
 const PreferencesPanelView = () => {
     const { t } = useTranslation();
@@ -49,7 +49,8 @@ const PreferencesPanelView = () => {
     // Stati per le preferenze Language & Region
     const [criterionLanguage, setCriterionLanguage] = useState('en');
     const [criterionRegion, setCriterionRegion] = useState('IT');
-    const [dateTimeFormat, setDateTimeFormat] = useState('DD/MM/YYYY HH:MM:SS');
+    const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
+    const [timeFormat, setTimeFormat] = useState('HH:MM');
 
     // Stati per le preferenze Editing
     const [historyActionsCount, setHistoryActionsCount] = useState('10');
@@ -98,8 +99,17 @@ const PreferencesPanelView = () => {
                 if (preferences.criterionRegion !== undefined) {
                     setCriterionRegion(preferences.criterionRegion);
                 }
-                if (preferences.dateTimeFormat !== undefined) {
-                    setDateTimeFormat(preferences.dateTimeFormat);
+                if (preferences.dateFormat !== undefined) {
+                    setDateFormat(preferences.dateFormat);
+                }
+                if (preferences.timeFormat !== undefined) {
+                    setTimeFormat(preferences.timeFormat);
+                }
+                // Handle legacy dateTimeFormat for backwards compatibility
+                if (preferences.dateTimeFormat !== undefined && !preferences.dateFormat && !preferences.timeFormat) {
+                    const [date, time] = preferences.dateTimeFormat.split(' ');
+                    if (date) setDateFormat(date);
+                    if (time) setTimeFormat(time);
                 }
                 if (preferences.historyActionsCount !== undefined) {
                     setHistoryActionsCount(preferences.historyActionsCount);
@@ -129,7 +139,8 @@ const PreferencesPanelView = () => {
             customVersioningDirectory,
             criterionLanguage,
             criterionRegion,
-            dateTimeFormat,
+            dateFormat,
+            timeFormat,
             historyActionsCount
         };
 
@@ -152,7 +163,8 @@ const PreferencesPanelView = () => {
         customVersioningDirectory,
         criterionLanguage,
         criterionRegion,
-        dateTimeFormat,
+        dateFormat,
+        timeFormat,
         historyActionsCount,
         setTheme
     ]);
@@ -176,7 +188,8 @@ const PreferencesPanelView = () => {
         // setRestoreLayout(true);
         setCriterionLanguage('en-UK');
         setCriterionRegion('IT');
-        setDateTimeFormat('DD/MM/YYYY HH:MM:SS');
+        setDateFormat('DD/MM/YYYY');
+        setTimeFormat('HH:MM');
         setHistoryActionsCount('10');
     }, []);
 
@@ -202,7 +215,7 @@ const PreferencesPanelView = () => {
                     />
                 </div>
             </div>
-            <Divider orientation='horizontal' className="my-2" />
+            <AppSeparator />
             {/* Restore Criterion layout */}
             <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-4 flex justify-end">
@@ -224,7 +237,7 @@ const PreferencesPanelView = () => {
                     </div>
                 </div>
             </div>
-            <Divider orientation='horizontal' className="my-2" />
+            <AppSeparator />
             {/* Recent files to open */}
             <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-4 flex justify-end">
@@ -249,7 +262,6 @@ const PreferencesPanelView = () => {
                     </Typography>
                 </div>
             </div>
-            {/* <Divider orientation='horizontal' className="my-2" /> */}
 
             {/* Links */}
             {/* <div className="grid grid-cols-12 gap-4">
@@ -295,7 +307,7 @@ const PreferencesPanelView = () => {
                 </div>
             </div>
 
-            <Divider orientation='horizontal' className="my-2" />
+            <AppSeparator />
 
             {/* Comment preview character limit */}
             <div className="grid grid-cols-12 gap-4">
@@ -322,7 +334,7 @@ const PreferencesPanelView = () => {
                 </div>
             </div>
 
-            <Divider orientation='horizontal' className="my-2" />
+            <AppSeparator />
 
             {/* Bookmark preview character limit */}
             <div className="grid grid-cols-12 gap-4">
@@ -405,7 +417,7 @@ const PreferencesPanelView = () => {
                 </div>
             </div>
 
-            <Divider orientation='horizontal' className="my-2" />
+            <AppSeparator />
 
             {/* Automatic file save */}
             <div className="grid grid-cols-12 gap-4">
@@ -427,7 +439,8 @@ const PreferencesPanelView = () => {
                 </div>
             </div>
 
-            <Divider orientation='horizontal' className="my-2" />
+
+            <AppSeparator />
 
             {/* Versioning directory */}
             <div className="grid grid-cols-12 gap-4">
@@ -473,7 +486,6 @@ const PreferencesPanelView = () => {
                 </div>
             </div>
 
-            {/* <Divider orientation='horizontal' className="my-2" /> */}
 
             {/* Default encoding */}
             {/* <div className="grid grid-cols-12 gap-4">
@@ -495,7 +507,6 @@ const PreferencesPanelView = () => {
                 </div>
             </div> */}
 
-            {/* <Divider orientation='horizontal' className="my-2" /> */}
 
             {/* Encoding detection */}
             {/* <div className="grid grid-cols-12 gap-4">
@@ -514,7 +525,6 @@ const PreferencesPanelView = () => {
                 </div>
             </div> */}
 
-            {/* <Divider orientation='horizontal' className="my-2" /> */}
 
             {/* Restore layout */}
             {/* <div className="grid grid-cols-12 gap-4">
@@ -589,19 +599,38 @@ const PreferencesPanelView = () => {
                     </div>
                 </div>
             </div>
-            {/* Date & Time format */}
+            {/* Date format */}
             <div className="grid grid-cols-12 gap-4 items-center">
                 <div className="col-span-4 flex justify-end">
                     <Typography component="h3" className="text-[13px] font-semibold">
-                        {t('preferences.language.dateTimeFormat')}
+                        {t('preferences.language.dateFormat')}
                     </Typography>
                 </div>
                 <div className="col-span-8">
-                    <div className="w-60 border border-grey-70 rounded-md ">
+                    <div className="w-60 border border-grey-70 rounded-md">
                         <CustomSelect
-                            value={dateTimeFormat}
-                            onValueChange={setDateTimeFormat}
-                            items={dateTimeFormatOptions}
+                            value={dateFormat}
+                            onValueChange={setDateFormat}
+                            items={dateFormatOptions}
+                            minWidth="192px"
+                            triggerClassName="w-full border-none bg-transparent p-1"
+                        />
+                    </div>
+                </div>
+            </div>
+            {/* Time format */}
+            <div className="grid grid-cols-12 gap-4 items-center">
+                <div className="col-span-4 flex justify-end">
+                    <Typography component="h3" className="text-[13px] font-semibold">
+                        {t('preferences.language.timeFormat')}
+                    </Typography>
+                </div>
+                <div className="col-span-8">
+                    <div className="w-60 border border-grey-70 rounded-md">
+                        <CustomSelect
+                            value={timeFormat}
+                            onValueChange={setTimeFormat}
+                            items={timeFormatOptions}
                             minWidth="192px"
                             triggerClassName="w-full border-none bg-transparent p-1"
                         />
@@ -680,8 +709,10 @@ const PreferencesPanelView = () => {
                                             onClick={() => setActiveSection(item.id)}
                                         >
                                             {item.label}
-                                            {activeSection !== item.id && (
-                                                <span className="float-right text-gray-400">›</span>
+                                            {activeSection !== item.id ? (
+                                                <span className="float-right text-grey-60">›</span>
+                                            ) : (
+                                                <span className="float-right text-grey-80">›</span>
                                             )}
                                         </div>
                                     ))}

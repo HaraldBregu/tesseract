@@ -1,7 +1,7 @@
 import { mainLogger } from "./shared/logger";
 import { readAutomaticFileSave } from "./store";
 import { getTabs } from "./store";
-import { getWebContentsViews, setSelectedWebContentsViewWithId } from "./content";
+import { getWebContentsViews } from "./content";
 import { saveDocument } from "./document/document-manager";
 import { Route } from "./shared/constants";
 
@@ -47,59 +47,55 @@ export const initializeAutoSave = (): void => {
 };
 
 const performAutoSave = async (): Promise<void> => {
-    const taskId = mainLogger.startTask("AutoSave", "Starting auto save of all documents");
+    const taskId = mainLogger.startTask("AutoSave", "Starting auto save of selected document");
 
     try {
         const tabs = getTabs();
 
         if (!tabs || tabs.length === 0) {
-            mainLogger.info("AutoSave", "No tabs to auto save");
+            mainLogger.info("AutoSave", "No tabs available for auto save");
             return;
         }
 
-        const documentsToSave = tabs.filter(tab =>
-            tab.filePath && // Only save documents that have been saved before (not new documents)
-            tab.route === Route.root // Only save criterion documents, not file viewers
-        );
+        // Find the currently selected tab
+        const selectedTab = tabs.find(tab => tab.selected);
 
-        if (documentsToSave.length === 0) {
-            mainLogger.info("AutoSave", "No documents to auto save");
+        if (!selectedTab) {
+            mainLogger.info("AutoSave", "No tab is currently selected");
             return;
         }
 
-        mainLogger.info("AutoSave", `Auto saving ${documentsToSave.length} documents`);
+        // Only save if the selected tab has a file path and is a criterion document
+        if (!selectedTab.filePath) {
+            mainLogger.info("AutoSave", "Selected tab has no file path (new document), skipping auto save");
+            return;
+        }
 
-        // Save each document
-        for (const tab of documentsToSave) {
-            try {
-                // Temporarily select the tab to save it
-                const originalSelectedTab = tabs.find(t => t.selected);
-                const webContentsView = getWebContentsViews().find(view => view.webContents.id === tab.id);
+        if (selectedTab.route !== Route.root) {
+            mainLogger.info("AutoSave", "Selected tab is not a criterion document, skipping auto save");
+            return;
+        }
 
-                if (!webContentsView) {
-                    mainLogger.error("AutoSave", `Could not find web contents view for tab ${tab.id}`);
-                    continue;
-                }
+        mainLogger.info("AutoSave", `Auto saving selected document: ${selectedTab.filePath}`);
 
-                // Set the tab as selected temporarily for saving
-                setSelectedWebContentsViewWithId(tab.id);
+        try {
+            const webContentsView = getWebContentsViews().find(view => view.webContents.id === selectedTab.id);
 
-                // Perform the save operation
-                await new Promise<void>((resolve, reject) => {
-                    saveDocument((filePath: string) => {
-                        mainLogger.info("AutoSave", `Auto saved document: ${filePath}`);
-                        resolve();
-                    }).catch(reject);
-                });
-
-                // Restore original selection if it was different
-                if (originalSelectedTab && originalSelectedTab.id !== tab.id) {
-                    setSelectedWebContentsViewWithId(originalSelectedTab.id);
-                }
-
-            } catch (error) {
-                mainLogger.error("AutoSave", `Failed to auto save document with tab ID ${tab.id}`, error as Error);
+            if (!webContentsView) {
+                mainLogger.error("AutoSave", `Could not find web contents view for selected tab ${selectedTab.id}`);
+                return;
             }
+
+            // Perform the save operation on the selected tab
+            await new Promise<void>((resolve, reject) => {
+                saveDocument((filePath: string) => {
+                    mainLogger.info("AutoSave", `Auto saved document: ${filePath}`);
+                    resolve();
+                }, selectedTab, true).catch(reject);
+            });
+
+        } catch (error) {
+            mainLogger.error("AutoSave", `Failed to auto save selected document with tab ID ${selectedTab.id}`, error as Error);
         }
 
         mainLogger.endTask(taskId, "AutoSave", "Auto save completed successfully");

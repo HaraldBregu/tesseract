@@ -6,7 +6,7 @@ import { mainLogger } from "./shared/logger";
 import { OnBaseWindowReady } from "./shared/types";
 import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
 import { createToolbarWebContentsView } from "./toolbar";
-import { resetTabs } from "./store";
+// import { resetTabs } from "./store";
 
 let baseWindow: BaseWindow | null = null
 let childWindow: BrowserWindow | null = null
@@ -16,14 +16,10 @@ export const getBaseWindow = (): BaseWindow | null => baseWindow
 export const getToolbarWebContentsView = (): WebContentsView | null => toolbarWebContentsView
 export const getChildWindow = (): BrowserWindow | null => childWindow
 
-export async function initializeMainWindow(onDone: OnBaseWindowReady): Promise<void> {
-
-    resetTabs()
-
+const getIconPath = (): string => {
     let iconPath = is.dev
         ? path.join(app.getAppPath(), 'buildResources', 'appIcons', 'icon.ico')
         : path.join(process.resourcesPath, 'buildResources', 'appIcons', 'app.ico');
-
     if (fs.existsSync(iconPath) === false) {
         mainLogger.error('------', '----------------------------------------------------------')
         mainLogger.error('DEBUG', `Icon path does not exist: ${iconPath}`)
@@ -39,11 +35,19 @@ export async function initializeMainWindow(onDone: OnBaseWindowReady): Promise<v
     } else {
         mainLogger.info('DEBUG', `Icon found at: ${iconPath}`)
     }
+    return iconPath;
+}
+
+export async function initializeMainWindow(onDone: OnBaseWindowReady): Promise<void> {
+
+    // resetTabs()
 
     baseWindow = new BaseWindow({
         width: 1500,
         height: 1000,
-        icon: iconPath,
+        minWidth: 1000,
+        minHeight: 700,
+        icon: getIconPath(),
         show: false,
         trafficLightPosition: {
             x: 9,
@@ -128,6 +132,7 @@ export const openChildWindow = async (pageUrl: string, options: BrowserWindowCon
         minimizable: false,
         maximizable: false,
         title: options.title || "Preferences", // Use title from options or default
+        icon: getIconPath(), // Use the same icon as the main window
         ...options
     });
     childWindow.setMenu(null);

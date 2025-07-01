@@ -8,7 +8,7 @@
     "email": "andrea.milella@finconsgroup.com"
   },
   "private": true,
-  "version": "0.6.5",
+  "version": "0.7.2",
   "copyright": "© 2025 ITSERR. All rights reserved.",
   "type": "module",
   "license": "Open",
@@ -35,10 +35,14 @@
     "dist-mac-intel": "npm run build && electron-builder --mac --x64",
     "dist-mac-arm": "npm run build && electron-builder --mac --arm64",
     "dist-linux": "npm run build && electron-builder --linux --x64",
+    "dist-linux-appimage": "npm run build && electron-builder --linux --x64 --config.linux.target=AppImage",
+    "dist-linux-deb": "npm run build && electron-builder --linux --x64 --config.linux.target=deb",
+    "dist-linux-rpm": "npm run build && electron-builder --linux --x64 --config.linux.target=rpm",
     "build:electron": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "clean": "rimraf dist out && rimraf node_modules/.cache/electron && rimraf node_modules/.cache/electron-builder",
     "generate-icons": "electron-icon-builder --input=buildResources/appIcons/icon_512.png --output=./buildResources",
+    "update-version": "node scripts/update-version.js",
     "test": "jest"
   },
   "dependencies": {

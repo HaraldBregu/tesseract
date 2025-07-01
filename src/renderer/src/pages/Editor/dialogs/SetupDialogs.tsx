@@ -1,6 +1,6 @@
-import { memo, useCallback, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo } from "react"
 import { useEditor } from "../hooks/useEditor"
-import { addSiglumListFromFile, duplicateSiglumListFromFile, replaceSiglumListFromFile, setFontFamilySymbols, setFooterSetupDialogVisible, setHeaderSetupDialogVisible, setLineNumberSetupDialogVisible, setPageNumberSetupDialogVisible, setPageSetupOptDialogVisible, setReferenceFormatVisible, setSiglumSetupDialogVisible, setTocSetupDialogVisible } from "../provider"
+import { addSiglumListFromFile, duplicateSiglumListFromFile, replaceSiglumListFromFile, setFontFamilySymbols, setFooterSetupDialogVisible, setHeaderSetupDialogVisible, setLineNumberSetupDialogVisible, setPageNumberSetupDialogVisible, setPageSetupOptDialogVisible, setReferenceFormat, setReferenceFormatVisible, setSiglumSetupDialogVisible, setTocSetupDialogVisible } from "../provider"
 import { SiglumSetup } from "./SiglumSetup"
 import { useTranslation } from "react-i18next"
 import LineNumberSettings from "./LineNumberSettings"
@@ -9,7 +9,6 @@ import HeaderSettings from "./HeaderSettings"
 import FooterSettings from "./FooterSettings"
 import PageSetupOptionsModal from "./PageSetupOptionsModal"
 import TocSettings from "./TocSettings"
-import { ReferencesFormatState } from "./ReferencesFormat/types"
 import ReferencesFormatModal from "./ReferencesFormat"
 
 export const SetupDialogs = () => {
@@ -24,12 +23,11 @@ export const SetupDialogs = () => {
     const pageSetupOptDialogVisible = useMemo(() => state.pageSetupOptDialogVisible, [state.pageSetupOptDialogVisible]);
     const tocSetupDialogVisible = useMemo(() => state.tocSetupDialogVisible, [state.tocSetupDialogVisible]);
     const referenceFormatVisible = useMemo(() => state.referenceFormatVisible, [state.referenceFormatVisible]);
-    // TODO: this is just a sample state, you should implement the actual logic to handle the reference format
-    const [referenceFormatData, setReferenceFormatData] = useState<ReferencesFormatState | undefined>();
 
     const siglumList = useMemo(() => state.siglumList, [state.siglumList]);
     const fontFamilyList = useMemo(() => state.fontFamilyList, [state.fontFamilyList]);
     const fontFamilySymbols = useMemo(() => state.fontFamilySymbols, [state.fontFamilySymbols]);
+    const referenceFormat = useMemo(() => state.referenceFormat, [state.referenceFormat]);
 
     const handleImportSiglum = useCallback(async () => {
         const importedSiglum = await window.doc.importSiglumList()
@@ -45,6 +43,7 @@ export const SetupDialogs = () => {
 
         const result = await window.system.showMessageBox(
             t("siglum.importDialog.title", { count: duplicateCount }),
+            '',
             [
                 t("siglum.importDialog.replace", "###Replace###"),
                 t("siglum.importDialog.cancel", "###Cancel###"),
@@ -59,12 +58,26 @@ export const SetupDialogs = () => {
 
     }, [siglumList])
 
-    // TODO: store the reference format data in a proper place, like a global state or a context
-    const handleReferenceFormatSave = useCallback((data: any) => {
-        setReferenceFormatData(data);
+    const handleReferenceFormatSave = useCallback((data: ReferencesFormat) => {
+        dispatch(setReferenceFormat(data))
         dispatch(setReferenceFormatVisible(false));
+        window.doc.setReferencesFormat(data)
     }, []);
 
+    useEffect(() => {
+        window.doc
+            .getReferencesFormat()
+            .then((referencesFormat) => {
+                if (!referencesFormat) return
+                dispatch(setReferenceFormat(referencesFormat))
+            })
+    }, [window.doc])
+
+    const handleExportSiglumList = useCallback(() => {
+        window.doc.exportSiglumList(state.siglumList)
+    }, [window.doc, state.siglumList])
+
+    
     return (
         <>
 
@@ -115,15 +128,16 @@ export const SetupDialogs = () => {
                     dispatch(setFontFamilySymbols(symbols))
                 }}
                 onImportSiglum={handleImportSiglum}
-                onExportSiglumList={() => {
-                    window.doc.exportSiglumList(state.siglumList)
-                }}
+                onExportSiglumList={handleExportSiglumList}
             />}
 
             {/* References Format SETUP DIALOG */}
-            {
-                referenceFormatVisible &&
-                <ReferencesFormatModal isOpen={referenceFormatVisible} onCancel={() => dispatch(setReferenceFormatVisible(false))} handleSave={handleReferenceFormatSave} initialConfigs={referenceFormatData} />
+            {referenceFormatVisible && <ReferencesFormatModal
+                initialConfigs={referenceFormat}
+                isOpen={referenceFormatVisible}
+                onCancel={() => dispatch(setReferenceFormatVisible(false))}
+                handleSave={handleReferenceFormatSave}
+            />
             }
         </>
     )

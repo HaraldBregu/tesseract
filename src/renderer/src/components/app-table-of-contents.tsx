@@ -1,5 +1,5 @@
 import { TreeView } from "./tree-view";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import TextField from "./ui/textField";
 import { useTranslation } from "react-i18next";
 import DragHandle from './icons/DragHandle';
@@ -49,18 +49,17 @@ export default function TableOfContents({
     templateOrder,
     onClickHeadingIndex
 }: TableOfContentsProps) {
-    console.log("TableOfContents rendered")
     const { t } = useTranslation();
     const [isEditing, setIsEditing] = useState(false);
     const [tempTitle, setTempTitle] = useState(tocSettings.title ?? "");
 
-    const [currentTocStructure, setCurrentTocStructure] = useState<TreeItem[] | null>(null);
-    const [currentTocSettings, setCurrentTocSettings] = useState<TocSettings | null>(null);
+    // const [currentTocStructure, setCurrentTocStructure] = useState<TreeItem[] | null>(null);
+    // const [currentTocSettings, setCurrentTocSettings] = useState<TocSettings | null>(null);
 
-    useEffect(() => {
-        setCurrentTocStructure(tocStructure);
-        setCurrentTocSettings(tocSettings);
-    }, [tocStructure, tocSettings])
+    // useEffect(() => {
+    //     setCurrentTocStructure(tocStructure);
+    //     setCurrentTocSettings(tocSettings);
+    // }, [tocStructure, tocSettings])
 
     const handleTreeItemClicked = (item: TreeItem) => {
         onClickHeadingIndex?.(item.headingIndex);
@@ -88,6 +87,17 @@ export default function TableOfContents({
 
         return templateOrder.filter(sectionKey => isSectionVisible(sectionKey));
     };
+
+    const memoizedTocStructure = useMemo(() => {
+        return <TreeView
+            data={tocStructure}
+            defaultOpen
+            onTreeItemClicked={(item) => {
+                handleTreeItemClicked(item)
+            }}
+            indentLevels={tocSettings.indentLevels}
+        />
+    }, [tocStructure, tocSettings]);
 
     const orderedVisibleSections = getOrderedVisibleSections();
 
@@ -146,15 +156,7 @@ export default function TableOfContents({
                                         key="critical"
                                         className="flex flex-col hover:bg-gray-50 dark:hover:bg-grey-20 rounded-md mb-4">
                                         <TocContentDelimiter text={t('tableOfContents.sections.criticalText.start')} />
-                                        {currentTocStructure && currentTocSettings &&
-                                            <TreeView
-                                                data={currentTocStructure}
-                                                defaultOpen
-                                                onTreeItemClicked={(item) => {
-                                                    handleTreeItemClicked(item)
-                                                }}
-                                                indentLevels={currentTocSettings.indentLevels}
-                                            />}
+                                        {memoizedTocStructure}
                                         <TocContentDelimiter text={t('tableOfContents.sections.criticalText.end')} />
                                     </div>
                                 );

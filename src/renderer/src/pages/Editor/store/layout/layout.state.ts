@@ -178,6 +178,14 @@ const standardPageDimensions: StandardPageDimension[] = [
 ]
  
 const settings = { setupDialogState, sort, setupOption }
+
+export const apparatusTypes =[
+         { item:'critical', disabled:false},
+         { item:'pageNotes', disabled:false},
+         { item:'sectionNotes', disabled:false},
+         { item:'innerMargin', disabled:false},
+          {item:'outerMargin', disabled:false}
+]
  
 const availableApparatusTypes: AvailableApparatusTypes = {
     critical: {

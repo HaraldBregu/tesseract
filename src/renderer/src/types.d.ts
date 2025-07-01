@@ -21,7 +21,8 @@ interface Spacing {
 }
 
 interface EmphasisState {
-    headingLevel: number;
+    styleId: string | undefined;
+    headingLevel: number | undefined;
     fontFamily: string;
     fontSize: string;
     bold: boolean;
@@ -38,6 +39,7 @@ interface EmphasisState {
     subscript: boolean;
     spacing: Spacing;
     showNonPrintingCharacters: boolean;
+    link: string;
 }
 
 type TextFormatting = {

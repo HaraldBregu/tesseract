@@ -64,12 +64,14 @@ export function buildEditMenu(onClick: (menuItem: MenuItem) => void): MenuItemCo
             label: i18next.t("menu.edit.cut"),
             accelerator: "CmdOrCtrl+X",
             enabled: viewMode === 'critix_editor',
+            click: (menuItem: MenuItem): void => onClick(menuItem),
         },
         {
             id: MenuItemId.COPY,
             label: i18next.t("menu.edit.copy"),
             accelerator: "CmdOrCtrl+C",
             enabled: viewMode === 'critix_editor',
+            click: (menuItem: MenuItem): void => onClick(menuItem),
         },
         {
             id: MenuItemId.COPY_STYLE,

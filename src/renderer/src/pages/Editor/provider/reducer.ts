@@ -186,6 +186,18 @@ export const reducer = (
             return { ...state, printPreviewVisible: action.payload };
         case 'TOGGLE_PRINT_PREVIEW_VISIBLE':
             return { ...state, printPreviewVisible: !state.printPreviewVisible };
+        case 'SET_REFERENCE_FORMAT':
+            return { ...state, referenceFormat: action.payload };
+        case 'SET_BOOKMARK_HIGHLIGHTED':
+            return { ...state, bookmarkHighlighted: action.payload };
+        case 'SET_COMMENT_HIGHLIGHTED':
+            return { ...state, commentHighlighted: action.payload };
+        case 'TOGGLE_BOOKMARK_HIGHLIGHTED':
+            return { ...state, bookmarkHighlighted: !state.bookmarkHighlighted };
+        case 'TOGGLE_COMMENT_HIGHLIGHTED':
+            return { ...state, commentHighlighted: !state.commentHighlighted };
+        case 'SET_LINK_CONFIG_VISIBLE':
+            return { ...state, linkConfigVisible: action.payload };
         default:
             return state;
     }

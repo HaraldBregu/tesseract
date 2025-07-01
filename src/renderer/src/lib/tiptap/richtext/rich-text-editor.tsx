@@ -59,7 +59,6 @@ const RichTextEditor = forwardRef(({
     onSelectionUpdate,
 }: RichTextEditorProps,
     ref: ForwardedRef<HTMLRichTextEditorElement>) => {
-    console.log("RichTextEditor rendered")
 
     const handleOnCreate = useCallback(() => {
         onCreate?.()

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Button from "@/components/ui/button";
@@ -27,17 +27,15 @@ const AddSymbolDialog: React.FC<{ isOpen: boolean; onCancel: () => void, onApply
 
     const ButtonMemo = memo(Button);
 
-    // @REFACTOR: useCallback
-    const handleFontChange = (fontName) => {
+    const handleFontChange = useCallback((fontName) => {
         setSelectedFont(fontName);
         setSymbols([]);
         setSelectedSymbol(0);
         setSelectedSpecialCharacter(0);
         window.system.getSymbols(fontName).then(setSymbols);
-    }
+    }, []);
 
-    // @REFACTOR: useCallback
-    const handleSubsetChange = (subsetIndex = selectedSubset) => {
+    const handleSubsetChange = useCallback((subsetIndex = selectedSubset) => {
         let filteredCharacters = symbols;
         setSelectedSubset(subsetIndex);
         if (subsetIndex !== '') {
@@ -45,13 +43,11 @@ const AddSymbolDialog: React.FC<{ isOpen: boolean; onCancel: () => void, onApply
             filteredCharacters = filteredCharacters.filter(character => character.code >= subset.start && character.code <= subset.end);
         }
         setFilterSymbols(filteredCharacters)
-    }
+    }, [selectedSubset, subsets, symbols])
 
-    // @REFACTOR: useCallback
-    const handleInsertCharacter = () => {
-        console.log(selectedSymbol);
+    const handleInsertCharacter = useCallback(() => {
         onApply(currentTab === 'symbols' ? selectedSymbol : selectedSpecialCharacter);
-    }
+    }, [currentTab, onApply, selectedSymbol, selectedSpecialCharacter]);
 
     useEffect(() => {
         handleSubsetChange('0');

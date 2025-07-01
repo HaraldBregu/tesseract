@@ -14,6 +14,7 @@ import {
   openChildWindow,
   toolbarWebContentsViewSend,
   closeChildWindow,
+  childWindowSend,
 } from "./main-window";
 import * as fsSync from "fs";
 import { getLocalesPath, getRootUrl, getStylesPath, getTemplatesPath } from "./shared/util.js";
@@ -52,6 +53,10 @@ import {
   setCurrentStyles,
   setRecentDocuments,
   updateRecentDocuments,
+  getCurrentMetadata,
+  setCurrentMetadata,
+  setCurrentReferencesFormat,
+  getCurrentReferencesFormat,
 } from "./document/document";
 import { setDisabledReferencesMenuItemsIds } from "./menu/items/references-menu";
 import { setApparatusSubMenuObjectItems, setEnableTocVisibilityMenuItem, setTocVisible, setToolbarVisible } from "./menu/items/view-menu";
@@ -97,8 +102,14 @@ import {
   readCriterionRegion,
   storeDateTimeFormat,
   readDateTimeFormat,
+  storeDateFormat,
+  readDateFormat,
+  storeTimeFormat,
+  readTimeFormat,
   storeHistoryActionsCount,
   readHistoryActionsCount,
+  setSimplifiedLayoutTabs,
+  getSimplifiedLayoutTabs,
 } from "./store";
 import { initializeAutoSave, updateAutoSave, cleanupAutoSave } from "./auto-save";
 import { setEnableTocSettingsMenu } from "./menu/items/format-menu";
@@ -106,6 +117,16 @@ import { ApplicationMenu } from "./menu/menu";
 import initializeFonts, { getSymbols, getFonts, getSubsets } from "./shared/fonts";
 import { initializeThemeManager } from "./theme-manager";
 import { v4 as uuidv4 } from 'uuid';
+
+// Global state to track if current document has changes
+let currentDocumentHasChanges = false;
+
+// Add command line switches to prevent sandbox and security issues in AppImage
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-setuid-sandbox');
+  app.commandLine.appendSwitch('disable-dev-shm-usage');
+}
 
 // .critx protocol configuration
 if (process.defaultApp) {
@@ -136,41 +157,171 @@ protocol.registerSchemesAsPrivileged([
 const handleAppClose = (closeFileFn: () => Promise<void>) =>
   async (event: Electron.Event): Promise<void> => {
     event.preventDefault();
+
+    // Save current tabs if rememberLayout is enabled
+    if (readRememberLayout()) {
+      try {
+        const currentTabs = getTabs();
+        mainLogger.info("Layout", `rememberLayout is enabled. Found ${currentTabs?.length || 0} current tabs`);
+
+        if (currentTabs && currentTabs.length > 0) {
+          // Only save tabs that have file paths (opened documents)
+          const validTabs = currentTabs.filter(tab => tab.filePath && tab.filePath !== null);
+          mainLogger.info("Layout", `Filtered to ${validTabs.length} valid tabs with file paths`);
+
+          // Create simplified tab objects that don't rely on runtime IDs
+          const simplifiedTabs: SimplifiedTab[] = validTabs.map(tab => ({
+            filePath: tab.filePath!,
+            selected: tab.selected,
+            route: tab.route,
+          }));
+
+          simplifiedTabs.forEach((tab, index) => {
+            mainLogger.info("Layout", `Tab ${index}: ${tab.filePath} (route: ${tab.route}, selected: ${tab.selected})`);
+          });
+
+          console.log("simplifiedTabs on close:", simplifiedTabs);
+
+          setSimplifiedLayoutTabs(simplifiedTabs);
+          mainLogger.info("Layout", `Saved ${simplifiedTabs.length} simplified tabs for layout restoration`);
+        } else {
+          mainLogger.info("Layout", "No tabs to save");
+        }
+      } catch (err) {
+        mainLogger.error("Layout", "Error saving tabs for layout restoration", err as Error);
+      }
+    } else {
+      mainLogger.info("Layout", "rememberLayout is disabled, not saving tabs");
+    }
+
     await closeFileFn();
   };
 
-const updateElectronLocale = async (lang: string): Promise<void> => {
-  const taskId = mainLogger.startTask("Electron", "Changing language");
+
+
+/**
+ * Consolidated language change function that handles all necessary operations consistently.
+ * This function replaces the previous scattered language change logic and ensures:
+ * - Consistent storage in both app settings mechanisms
+ * - Proper error handling and logging
+ * - Complete notification of all UI components (webContents, toolbar, child windows)
+ * - Menu rebuilding with new language
+ * - Recent documents update with new language
+ * 
+ * @param language - The language code to change to (e.g., 'en', 'it', 'de', 'fr', 'es')
+ */
+const changeLanguageComprehensive = async (language: string): Promise<void> => {
+  const taskId = mainLogger.startTask("Electron", `Changing language to: ${language}`);
   try {
+    // Validate language parameter
+    if (!language || typeof language !== 'string') {
+      throw new Error(`Invalid language parameter: ${language}`);
+    }
+
     const baseWindow = getBaseWindow();
-    if (!baseWindow) return;
+    if (!baseWindow) {
+      mainLogger.error("Electron", "Base window not available for language change");
+      return;
+    }
 
-    storeAppLanguage(lang);
+    // Store language in both storage mechanisms for consistency
+    storeAppLanguage(language);
+    storeCriterionLanguage(language);
 
-    await i18next.changeLanguage(lang);
+    // Change i18next language
+    await i18next.changeLanguage(language);
 
-    ApplicationMenu.build(onClickMenuItem)
+    // Update recent documents with new language
+    await setRecentDocuments();
 
-    mainLogger.endTask(taskId, "Electron", "Language changed");
+    // Rebuild application menu with new language
+    ApplicationMenu.build(onClickMenuItem);
+
+    // Notify all UI components about language change
+    const webContentsViews = getWebContentsViews();
+    webContentsViews.forEach(webContentsView => {
+      webContentsView.webContents.send("language-changed", language);
+    });
+
+    // Notify toolbar about language change
+    const toolbarContentView = getToolbarWebContentsView();
+    toolbarContentView?.webContents.send("language-changed", language);
+
+    // Notify child windows about language change
+    childWindowSend("language-changed", language);
+
+    mainLogger.endTask(taskId, "Electron", `Language successfully changed to: ${language}`);
   } catch (err) {
-    mainLogger.error("Electron", "Error while changing language", err as Error);
+    mainLogger.error("Electron", `Error while changing language to ${language}`, err as Error);
+    throw err; // Re-throw to allow caller to handle if needed
   }
 };
 
 const registerIpcListeners = (): void => {
+  // Debounced handler for critical text updates to prevent excessive updates
+  let updateCriticalTextTimeout: NodeJS.Timeout | null = null;
+
   ipcMain.on("update-critical-text", async (_event, data: object | null) => {
-    setCurrentMainText(data);
-    const mainText = getCurrentDocument()?.mainText;
-    if (!data || !mainText) return;
-    const isEqual = await _.isEqual(data, mainText);
-    const changed = !isEqual;
-    toolbarWebContentsViewSend("main-text-changed", changed);
+    const taskId = mainLogger.startTask("Document", "Processing critical text update");
+
+    try {
+      // Clear previous timeout to debounce rapid updates
+      if (updateCriticalTextTimeout) {
+        clearTimeout(updateCriticalTextTimeout);
+      }
+
+      updateCriticalTextTimeout = setTimeout(async () => {
+        try {
+          // Validate data
+          if (!data || typeof data !== 'object') {
+            mainLogger.info("Document", "Invalid critical text data received");
+            toolbarWebContentsViewSend("main-text-changed", false);
+            return;
+          }
+
+          // Set the current main text
+          setCurrentMainText(data);
+
+          // Get the document's main text for comparison
+          const currentDocument = getCurrentDocument();
+          const existingMainText = currentDocument?.mainText;
+
+          // Determine if document has changes
+          let hasChanges = false;
+          if (!existingMainText) {
+            // If no existing text, consider it changed if we have new data
+            hasChanges = true;
+          } else {
+            // Use deep comparison to detect changes
+            hasChanges = !await _.isEqual(data, existingMainText);
+          }
+
+          // Update global change state
+          currentDocumentHasChanges = hasChanges;
+
+          // Notify toolbar about the change state
+          toolbarWebContentsViewSend("main-text-changed", hasChanges);
+
+          mainLogger.endTask(taskId, "Document", `Critical text updated, hasChanges: ${hasChanges}`);
+        } catch (err) {
+          mainLogger.error("Document", "Error processing critical text update", err as Error);
+          toolbarWebContentsViewSend("main-text-changed", false);
+        }
+      }, 300); // 300ms debounce delay
+
+    } catch (err) {
+      mainLogger.error("Document", "Error handling critical text update", err as Error);
+    }
   });
+
+  // Enhanced annotations update handler
   ipcMain.on("update-annotations", (_event, data: object | null) => {
     setCurrentAnnotations(data);
   });
   ipcMain.on("set-electron-language", (_event, language: string) => {
-    updateElectronLocale(language);
+    changeLanguageComprehensive(language).catch(err => {
+      mainLogger.error("Electron", "Failed to change language via IPC", err as Error);
+    });
   });
   ipcMain.on("request-system-fonts", async (event) => {
     try {
@@ -196,33 +347,131 @@ const registerIpcListeners = (): void => {
     }
   });
   ipcMain.on("open-choose-layout-modal", async () => {
+    // Always show the template modal
     selectedWebContentsViewSend("receive-open-choose-layout-modal");
   });
 
   // When a new tab from FrontEnd is created it sends the filepath to the main process
   // The main process reads the file and sends the document to the FrontEnd
   ipcMain.on("document-opened-at-path", async (_, filepath: string, fileType: FileType) => {
-    switch (fileType) {
-      case "critx": {
-        const fileContent = await fs.readFile(filepath, "utf8");
-        const documentObject = JSON.parse(fileContent);
-        const document = await createDocument(documentObject);
-        setCurrentDocument(document);
-        setFilePathForSelectedTab(filepath);
-        selectedWebContentsViewSend("load-document", documentObject);
-        selectedWebContentsViewSend("load-document-apparatuses", documentObject.apparatuses);
-      } break;
-      case 'pdf':
-      case 'png':
-      case 'jpg':
-      case 'jpeg':
-        selectedWebContentsViewSend("load-file-at-path", filepath);
-        setFilePathForSelectedTab(filepath);
-        updateRecentDocuments(filepath);
-        ApplicationMenu.build(onClickMenuItem)
-        break;
-    }
+    const taskId = mainLogger.startTask("Document", `Loading document at path: ${filepath}`);
 
+    try {
+      switch (fileType) {
+        case "critx": {
+          // Enhanced error handling for file reading and parsing
+          if (!fsSync.existsSync(filepath)) {
+            mainLogger.error("Document", `File not found: ${filepath}`);
+            await dialog.showMessageBox(getBaseWindow()!, {
+              type: 'error',
+              message: 'File not found',
+              detail: `The file "${filepath}" could not be found.`
+            });
+            return;
+          }
+
+          let fileContent: string;
+          try {
+            fileContent = await fs.readFile(filepath, "utf8");
+          } catch (readError) {
+            mainLogger.error("Document", `Error reading file: ${filepath}`, readError as Error);
+            await dialog.showMessageBox(getBaseWindow()!, {
+              type: 'error',
+              message: 'Error reading file',
+              detail: `Could not read the file "${filepath}".`
+            });
+            return;
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let documentObject: Record<string, any>;
+          try {
+            documentObject = JSON.parse(fileContent);
+          } catch (parseError) {
+            mainLogger.error("Document", `Error parsing JSON in file: ${filepath}`, parseError as Error);
+            await dialog.showMessageBox(getBaseWindow()!, {
+              type: 'error',
+              message: 'Invalid file format',
+              detail: `The file "${filepath}" contains invalid JSON and cannot be opened.`
+            });
+            return;
+          }
+
+          // Validate document structure
+          if (!documentObject || typeof documentObject !== 'object') {
+            mainLogger.error("Document", `Invalid document structure in file: ${filepath}`);
+            await dialog.showMessageBox(getBaseWindow()!, {
+              type: 'error',
+              message: 'Invalid document',
+              detail: `The file "${filepath}" does not contain a valid document structure.`
+            });
+            return;
+          }
+
+          // Log document structure for debugging
+          mainLogger.info("Document", `Document structure - has main_text: ${documentObject.main_text !== undefined}, main_text type: ${typeof documentObject.main_text}`);
+
+          // Handle missing or null main_text gracefully
+          if (documentObject.main_text === undefined || documentObject.main_text === null) {
+            mainLogger.info("Document", `Document has empty main_text, initializing with default structure`);
+            // Initialize with empty document structure compatible with the editor
+            documentObject.main_text = {
+              type: "doc",
+              content: []
+            };
+          }
+
+          const document = await createDocument(documentObject);
+
+          // Validate the created document before using it
+          if (!document || typeof document !== 'object') {
+            mainLogger.error("Document", `Failed to create valid document from: ${filepath}`);
+            await dialog.showMessageBox(getBaseWindow()!, {
+              type: 'error',
+              message: 'Document creation failed',
+              detail: `Could not create a valid document from "${filepath}".`
+            });
+            return;
+          }
+
+          // Ensure critical fields are present
+          if (!document.version || !document.createdAt || !document.updatedAt) {
+            mainLogger.info("Document", `Document missing critical metadata, using defaults: ${filepath}`);
+            document.version = document.version || '1.0';
+            document.createdAt = document.createdAt || new Date().toISOString();
+            document.updatedAt = document.updatedAt || new Date().toISOString();
+          }
+
+          setCurrentDocument(document);
+          setFilePathForSelectedTab(filepath);
+
+          // Send transformed document data to renderer to ensure consistency
+          // Use the camelCase version that matches the main process state
+          selectedWebContentsViewSend("load-document", document);
+          selectedWebContentsViewSend("load-document-apparatuses", document.apparatuses || []);
+
+          mainLogger.endTask(taskId, "Document", `Document loaded successfully: ${filepath}`);
+        } break;
+        case 'pdf':
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+          selectedWebContentsViewSend("load-file-at-path", filepath);
+          setFilePathForSelectedTab(filepath);
+          updateRecentDocuments(filepath);
+          ApplicationMenu.build(onClickMenuItem)
+          mainLogger.endTask(taskId, "Document", `File loaded successfully: ${filepath}`);
+          break;
+      }
+    } catch (error) {
+      mainLogger.error("Document", `Unexpected error loading document: ${filepath}`, error as Error);
+      await dialog.showMessageBox(getBaseWindow()!, {
+        type: 'error',
+        message: 'Error opening document',
+        detail: `An unexpected error occurred while opening "${filepath}".`
+      });
+      mainLogger.endTask(taskId, "Document", `Error loading document: ${filepath}`);
+    }
   });
 
   ipcMain.on('application:updateToolbarAdditionalItems', (_, items) => {
@@ -260,16 +509,43 @@ const registerIpcListeners = (): void => {
 };
 
 export function changeLanguageGlobal(lang: string): void {
-  updateElectronLocale(lang);
-  const webContentsView = getSelectedWebContentsView();
-  webContentsView?.webContents.send("language-changed", lang);
+  // Use the comprehensive language change function
+  changeLanguageComprehensive(lang).catch(err => {
+    mainLogger.error("Electron", "Failed to change language globally", err as Error);
+  });
 }
+
+const showCloseConfirmation = async (): Promise<boolean> => {
+  const baseWindow = getBaseWindow();
+  if (!baseWindow) return false;
+
+  const result = await dialog.showMessageBox(baseWindow, {
+    message: i18next.t('close_document_dialog.title'),
+    detail: i18next.t('close_document_dialog.description'),
+    buttons: [i18next.t('buttons.cancel'), i18next.t('buttons.confirm')],
+    type: "warning",
+  });
+
+  return result.response === 1;
+};
 
 const closeCurrentDocument = async (): Promise<void> => {
   const taskId = mainLogger.startTask("Electron", "Closing current document");
+
+  // Check if document has unsaved changes using global state
+  if (currentDocumentHasChanges) {
+    const shouldClose = await showCloseConfirmation();
+    if (!shouldClose) {
+      mainLogger.endTask(taskId, "Electron", "File close cancelled by user");
+      return;
+    }
+  }
+
+  // Proceed with closing
   const toolbarWebContentsView = getToolbarWebContentsView()
   const currentWebContentsView = getSelectedWebContentsView()
   const tabId = currentWebContentsView?.webContents.id ?? -1
+
   toolbarWebContentsView?.webContents.send("close-current-document", tabId);
 
   const tabs = closeWebContentsViewWithId(tabId)
@@ -278,6 +554,9 @@ const closeCurrentDocument = async (): Promise<void> => {
 
   const selectedTab = tabs.find((tab) => tab.selected)
   const isNewDocument = !selectedTab || !selectedTab.filePath || selectedTab.filePath === null
+
+  // Reset change state when closing
+  currentDocumentHasChanges = false;
 
   ApplicationMenu
     .setIsNewDocument(isNewDocument)
@@ -293,6 +572,7 @@ async function onDocumentOpened(filePath: string): Promise<void> {
   const fileNameExt = fileNameParsed.ext as FileNameExt;
   const fileType = fileNameExt.slice(1) as FileType;
 
+  currentDocumentHasChanges = false;
   getToolbarWebContentsView()?.webContents.send(
     "document-opened",
     filePath,
@@ -309,6 +589,7 @@ async function onDocumentOpened(filePath: string): Promise<void> {
 function onDocumentSaved(filePath: string): void {
   const fileNameParsed = path.parse(filePath);
   const fileNameBase = fileNameParsed.base;
+  currentDocumentHasChanges = false;
   toolbarWebContentsViewSend("document-saved", fileNameBase);
   toolbarWebContentsViewSend("main-text-changed", false);
   updateRecentDocuments(filePath);
@@ -335,13 +616,13 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
   switch (typeId) {
     // Settings menu
     case MenuItemId.PREFERENCES: {
-      // selectedWebContentsViewSend("open-preferences");
       const url = getRootUrl() + "preferences"
       openChildWindow(url, { title: "Criterion Preferences" })
     }
       break;
     // File menu
     case MenuItemId.NEW_FILE:
+      currentDocumentHasChanges = false;
       toolbarWebContentsViewSend("create-new-document");
       setCurrentDocument(null)
       ApplicationMenu
@@ -393,13 +674,13 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend('save-as-template');
       break
     case MenuItemId.METADATA:
+      selectedWebContentsViewSend('metadata');
       break;
     case MenuItemId.PAGE_SETUP:
       selectedWebContentsViewSend('page-setup')
       break;
     case MenuItemId.PRINT:
       break;
-
     // Edit menu
     case MenuItemId.FIND_AND_REPLACE:
       break;
@@ -416,19 +697,19 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend('trigger-redo');
       break
     case MenuItemId.CUT:
-      // NO IMPPLEMENTATION REQUIRED
+      selectedWebContentsViewSend("cut");
       break;
     case MenuItemId.COPY:
-      // NO IMPPLEMENTATION REQUIRED
+      selectedWebContentsViewSend("copy");
       break;
     case MenuItemId.COPY_STYLE:
-      // NO IMPPLEMENTATION REQUIRED
+      selectedWebContentsViewSend("copy-style");
       break;
     case MenuItemId.PASTE:
-      // NO IMPPLEMENTATION REQUIRED
+      selectedWebContentsViewSend("paste");
       break;
     case MenuItemId.PASTE_STYLE:
-      // NO IMPPLEMENTATION REQUIRED
+      selectedWebContentsViewSend("copy-style");
       break;
     case MenuItemId.PASTE_AND_MATCH_STYLE:
       // NO IMPPLEMENTATION REQUIRED
@@ -665,6 +946,9 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.OPEN_TOC_SETTINGS:
       selectedWebContentsViewSend('toc-settings');
       break
+    case MenuItemId.REMOVE_LINK:
+      selectedWebContentsViewSend("remove-link");
+      break
     case MenuItemId.NUMBER_BULLET:
       selectedWebContentsViewSend("number-bullet");
       break;
@@ -888,8 +1172,10 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend("report-an-issue");
       break
     case MenuItemId.ABOUT:
-      // openChildWindow(getRootUrl() + "/about");
-      selectedWebContentsViewSend("show-about");
+      {
+        const url = getRootUrl() + "about";
+        openChildWindow(url, { title: "About", width: 440, height: 272 });
+      }
       break
 
     // Developer menu
@@ -958,24 +1244,246 @@ const initializei18next = async (): Promise<void> => {
   mainLogger.endTask(langTaskId, "Electron", "i18next configured");
 };
 
+/**
+ * Waits for the toolbar to be ready before proceeding
+ */
+const waitForToolbarReady = async (): Promise<void> => {
+  const toolbarWebContentsView = getToolbarWebContentsView();
+  if (!toolbarWebContentsView) {
+    throw new Error("Toolbar WebContentsView not available");
+  }
+
+  const isToolbarReady = (): boolean => {
+    return toolbarWebContentsView.webContents.isLoading() === false;
+  };
+
+  if (isToolbarReady()) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    const checkReady = (): void => {
+      if (isToolbarReady()) {
+        resolve();
+      } else {
+        setImmediate(checkReady);
+      }
+    };
+    checkReady();
+  });
+};
+
+/**
+ * Creates a restoration promise for a single document
+ */
+const createDocumentRestorationPromise = (savedTab: SimplifiedTab): Promise<void> => {
+  return new Promise<void>((resolve, reject) => {
+    let isResolved = false;
+    let handleDocumentOpenedAtPath: ((event: Electron.IpcMainEvent, filepath: string, fileType: FileType) => Promise<void>) | null = null;
+
+    const cleanup = (): void => {
+      if (handleDocumentOpenedAtPath) {
+        ipcMain.removeListener("document-opened-at-path", handleDocumentOpenedAtPath);
+        handleDocumentOpenedAtPath = null;
+      }
+    };
+
+    const safeResolve = (): void => {
+      if (!isResolved) {
+        isResolved = true;
+        cleanup();
+        resolve();
+      }
+    };
+
+    const safeReject = (error: Error): void => {
+      if (!isResolved) {
+        isResolved = true;
+        cleanup();
+        reject(error);
+      }
+    };
+
+    const timeout = setTimeout(() => {
+      safeReject(new Error(`Timeout loading document: ${savedTab.filePath}`));
+    }, 10000);
+
+    let documentOpenCompleted = false;
+    let contentLoadCompleted = false;
+
+    const checkCompletion = (): void => {
+      if (documentOpenCompleted && contentLoadCompleted) {
+        clearTimeout(timeout);
+        safeResolve();
+      }
+    };
+
+    // Set up listener for content loading completion
+    handleDocumentOpenedAtPath = async (_: Electron.IpcMainEvent, filepath: string, fileType: FileType): Promise<void> => {
+      if (filepath === savedTab.filePath) {
+        try {
+          const currentWebContentsView = getSelectedWebContentsView();
+          const webContentsViewId = currentWebContentsView?.webContents.id;
+
+          const waitForContentLoad = (): void => {
+            if (fileType === 'critx') {
+              const stillCurrentTab = getSelectedWebContentsView()?.webContents.id === webContentsViewId;
+              if (getCurrentDocument() !== null && stillCurrentTab) {
+                contentLoadCompleted = true;
+                checkCompletion();
+              } else if (stillCurrentTab) {
+                setImmediate(waitForContentLoad);
+              } else {
+                contentLoadCompleted = true;
+                checkCompletion();
+              }
+            } else {
+              contentLoadCompleted = true;
+              checkCompletion();
+            }
+          };
+
+          setTimeout(waitForContentLoad, 100);
+        } catch (err) {
+          safeReject(err as Error);
+        }
+      }
+    };
+
+    ipcMain.on("document-opened-at-path", handleDocumentOpenedAtPath);
+
+    // Use the normal onDocumentOpened flow
+    const wrappedOnDocumentOpened = async (filePath: string): Promise<void> => {
+      if (filePath === savedTab.filePath) {
+        try {
+          await onDocumentOpened(filePath);
+          documentOpenCompleted = true;
+          checkCompletion();
+        } catch (err) {
+          safeReject(err as Error);
+        }
+      }
+    };
+
+    wrappedOnDocumentOpened(savedTab.filePath);
+  });
+};
+
+/**
+ * Selects the previously selected tab after restoration
+ */
+const selectPreviouslySelectedTab = (simplifiedTabs: SimplifiedTab[]): void => {
+  const selectedTabIndex = simplifiedTabs.findIndex(tab => tab.selected);
+  if (selectedTabIndex >= 0) {
+    const currentWebContentsViews = getWebContentsViews();
+    if (selectedTabIndex < currentWebContentsViews.length) {
+      const selectedContentView = currentWebContentsViews[selectedTabIndex];
+      setSelectedWebContentsViewWithId(selectedContentView.webContents.id);
+      showWebContentsView(selectedContentView);
+      selectedContentView.webContents.focus();
+      mainLogger.info("Layout", `Selected restored tab at index: ${selectedTabIndex}`);
+    }
+  }
+};
+
+/**
+ * Restores tabs from saved layout data
+ */
+const restoreTabsFromSavedLayout = async (simplifiedTabs: SimplifiedTab[]): Promise<void> => {
+  const toolbarWebContentsView = getToolbarWebContentsView();
+  if (!toolbarWebContentsView) {
+    mainLogger.error("Layout", "Toolbar WebContentsView not available for tab restoration");
+    return;
+  }
+
+  await waitForToolbarReady();
+  mainLogger.info("Layout", "Toolbar is ready, starting tab restoration");
+
+  // Restore tabs sequentially using the normal document opening flow
+  for (let i = 0; i < simplifiedTabs.length; i++) {
+    const savedTab = simplifiedTabs[i];
+    try {
+      mainLogger.info("Layout", `Restoring document ${i + 1}/${simplifiedTabs.length}: ${savedTab.filePath}`);
+
+      await createDocumentRestorationPromise(savedTab);
+      mainLogger.info("Layout", `Document ${i + 1} restoration completed: ${savedTab.filePath}`);
+
+    } catch (err) {
+      mainLogger.error("Layout", `Failed to restore document: ${savedTab.filePath}`, err as Error);
+    }
+  }
+
+  // Select the previously selected tab after all tabs are restored
+  selectPreviouslySelectedTab(simplifiedTabs);
+
+  mainLogger.info("Layout", `Event-driven tab restoration completed: ${simplifiedTabs.length} documents restored`);
+};
+
 const onBaseWindowReady = async (baseWindow: BaseWindow): Promise<void> => {
-  const route = Route.root
+  mainLogger.info("Layout", `onBaseWindowReady called, rememberLayout: ${readRememberLayout()}`);
 
-  const selectedContentView = await createWebContentsView(route)
-  if (!selectedContentView)
-    return
+  // Check if rememberLayout is enabled and if there are saved tabs to restore
+  let shouldRestoreTabs = false;
+  const simplifiedTabs: SimplifiedTab[] = [];
 
-  const menuViewMode = routeToMenuMapping[route]
-  ApplicationMenu
-    .setIsNewDocument(true)
-    .setMenuViewMode(menuViewMode)
-    .build(onClickMenuItem)
+  if (readRememberLayout()) {
+    const savedTabs = getSimplifiedLayoutTabs();
+    console.log("savedTabs", savedTabs);
+    mainLogger.info("Layout", `Found ${savedTabs?.length || 0} saved simplified tabs`);
 
-  baseWindow.contentView.addChildView(selectedContentView)
-  showWebContentsView(selectedContentView)
-  selectedContentView.webContents.focus()
-  selectedWebContentsViewSend("receive-open-choose-layout-modal");
-}
+    if (savedTabs && savedTabs.length > 0) {
+      // Check which tabs can be restored (files still exist)
+      for (const savedTab of savedTabs) {
+        if (!savedTab.filePath) {
+          mainLogger.info("Layout", "Skipping tab without file path");
+          continue;
+        }
+
+        // Check if file still exists
+        if (!fsSync.existsSync(savedTab.filePath)) {
+          mainLogger.info("Layout", `File not found: ${savedTab.filePath}, skipping restoration`);
+          continue;
+        }
+
+        simplifiedTabs.push(savedTab);
+      }
+
+      if (simplifiedTabs.length > 0) {
+        mainLogger.info("Layout", `Found ${simplifiedTabs.length} valid tabs to restore`);
+
+        simplifiedTabs.forEach((tab, index) => {
+          mainLogger.info("Layout", `Valid tab ${index}: ${tab.filePath} (route: ${tab.route}, selected: ${tab.selected})`);
+        });
+
+        shouldRestoreTabs = true;
+        mainLogger.info("Layout", "Will restore tabs using event-driven approach");
+      }
+    }
+  }
+
+  if (!shouldRestoreTabs) {
+    // Only create the default tab if we're not restoring tabs
+    const selectedContentView = await createWebContentsView(Route.root);
+    if (!selectedContentView)
+      return;
+
+    const menuViewMode = routeToMenuMapping[Route.root];
+    ApplicationMenu
+      .setIsNewDocument(true)
+      .setMenuViewMode(menuViewMode)
+      .build(onClickMenuItem);
+
+    baseWindow.contentView.addChildView(selectedContentView);
+    showWebContentsView(selectedContentView);
+    selectedContentView.webContents.focus();
+
+    // Always show the template modal for new documents
+    selectedWebContentsViewSend("receive-open-choose-layout-modal");
+  } else {
+    // Restore tabs using event-driven approach
+    await restoreTabsFromSavedLayout(simplifiedTabs);
+  }
+};
 
 const initializeApp = async (): Promise<void> => {
   const appTaskId = mainLogger.startTask("Electron", "Starting application");
@@ -1076,13 +1584,14 @@ const initializeApp = async (): Promise<void> => {
 
   ipcMain.handle('system:getConfiguredSpcialCharactersList', () => readSpecialCharacterConfig());
 
-  ipcMain.handle('system:showMessageBox', async (_, message: string, buttons: string[]) => {
+  ipcMain.handle('system:showMessageBox', async (_, title: string, message: string, buttons: string[], type?: string,) => {
     const baseWindow = getBaseWindow();
     if (!baseWindow) return;
-
     const result = await dialog.showMessageBox(baseWindow, {
-      message: message,
+      message: title,
+      detail: message,
       buttons: buttons,
+      type: (type as "warning" | "none" | "info" | "error" | "question") || "warning",
     });
 
     return result;
@@ -1104,6 +1613,14 @@ const initializeApp = async (): Promise<void> => {
   // DOCUMENT API
   ipcMain.handle('document:openDocument', () => {
     openDocument(null, onDocumentOpened);
+  })
+  ipcMain.handle('document:saveDocument', async () => {
+    return await saveDocument(onDocumentSaved);
+  })
+  ipcMain.handle('document:getMainText', async () => {
+    const document = getCurrentDocument();
+    const mainText = document?.mainText as object;
+    return mainText;
   })
   ipcMain.handle('document:getTemplates', async () => {
     const templatesFolderPath = getTemplatesPath();
@@ -1353,9 +1870,9 @@ const initializeApp = async (): Promise<void> => {
 
     const selectedFilePath = result.filePaths[0];
     const siglumData = await fs.readFile(selectedFilePath, "utf8");
+
     try {
       const siglumDataParsed = JSON.parse(siglumData)
-
       const entries = siglumDataParsed.entries.map((entry: DocumentSiglum) => ({
         id: uuidv4(),
         siglum: entry.siglum,
@@ -1369,6 +1886,12 @@ const initializeApp = async (): Promise<void> => {
       mainLogger.error("Electron", "Error parsing siglum data", error as Error);
       return null;
     }
+  })
+  ipcMain.handle('document:setReferencesFormat', (_, referencesFormat: ReferencesFormat) => {
+    setCurrentReferencesFormat(referencesFormat)
+  })
+  ipcMain.handle('document:getReferencesFormat', () => {
+    return getCurrentReferencesFormat()
   })
 
   ipcMain.handle('preferences:get', () => {
@@ -1388,7 +1911,9 @@ const initializeApp = async (): Promise<void> => {
         customVersioningDirectory: readCustomVersioningDirectory(),
         criterionLanguage: readCriterionLanguage(),
         criterionRegion: readCriterionRegion(),
-        dateTimeFormat: readDateTimeFormat(),
+        dateTimeFormat: readDateTimeFormat(), // Keep for backwards compatibility
+        dateFormat: readDateFormat(),
+        timeFormat: readTimeFormat(),
         historyActionsCount: readHistoryActionsCount(),
       };
 
@@ -1410,13 +1935,23 @@ const initializeApp = async (): Promise<void> => {
         customVersioningDirectory: '~/Username/Documents/',
         criterionLanguage: 'en',
         criterionRegion: 'IT',
-        dateTimeFormat: 'DD/MM/YYYY HH:MM:SS',
+        dateTimeFormat: 'DD/MM/YYYY HH:MM:SS', // Keep for backwards compatibility
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: 'HH:MM',
         historyActionsCount: '10'
       };
     }
   })
 
-  ipcMain.handle('preferences:save', (_, preferences: Preferences) => {
+  ipcMain.handle('document:getMetadata', () => {
+    return getCurrentMetadata();
+  });
+
+  ipcMain.handle('document:setMetadata', (_, metadata: DocumentMetadata[]) => {
+    setCurrentMetadata(metadata);
+  });
+
+  ipcMain.handle('preferences:save', async (_, preferences: Preferences) => {
     const taskId = mainLogger.startTask("Preferences", "Saving preferences");
     try {
       // Save the file name display preference
@@ -1463,13 +1998,24 @@ const initializeApp = async (): Promise<void> => {
         storeCustomVersioningDirectory(preferences.customVersioningDirectory);
       }
       if (preferences.criterionLanguage) {
-        storeCriterionLanguage(preferences.criterionLanguage);
+        try {
+          storeCriterionLanguage(preferences.criterionLanguage);
+          await changeLanguageComprehensive(preferences.criterionLanguage);
+        } catch (err) {
+          mainLogger.error("Preferences", `Failed to change language to ${preferences.criterionLanguage}`, err as Error);
+        }
       }
       if (preferences.criterionRegion) {
         storeCriterionRegion(preferences.criterionRegion);
       }
       if (preferences.dateTimeFormat) {
         storeDateTimeFormat(preferences.dateTimeFormat);
+      }
+      if (preferences.dateFormat) {
+        storeDateFormat(preferences.dateFormat);
+      }
+      if (preferences.timeFormat) {
+        storeTimeFormat(preferences.timeFormat);
       }
       if (preferences.historyActionsCount) {
         storeHistoryActionsCount(preferences.historyActionsCount);
@@ -1514,23 +2060,15 @@ const initializeApp = async (): Promise<void> => {
     return closeApplication();
   }));
 
-  const language = readAppLanguage()
-  await i18next.changeLanguage(language);
-
-  await setRecentDocuments();
-
-  ApplicationMenu.build(onClickMenuItem)
+  // Initialize language using our comprehensive function for consistency
+  // This ensures proper setup of language across all UI components
+  const language = readAppLanguage();
+  await changeLanguageComprehensive(language);
 
   registerIpcListeners();
 
   // Initialize auto save functionality
   initializeAutoSave();
-
-  const webContentsView = getSelectedWebContentsView();
-  const toolbarContentView = getToolbarWebContentsView();
-
-  toolbarContentView?.webContents.send("language-changed", language);
-  webContentsView?.webContents.send("language-changed", language);
 
   mainLogger.endTask(appTaskId, "Electron", "Application started");
 };

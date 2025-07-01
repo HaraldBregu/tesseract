@@ -61,7 +61,6 @@ const AppBookmarks = forwardRef(({
     onMoveBookmarkToCategory
 }: BookmarksProps,
     ref: ForwardedRef<unknown>) => {
-    console.log("AppBookmarks rendered: ")
 
     useImperativeHandle(ref, () => {
         return {

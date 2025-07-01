@@ -88,7 +88,9 @@
     "superscript": "Apice",
     "subscript": "Pedice",
     "contextMenu": "Customize Toolbar",
-    "modalTitle": "Select or remove items from the toolbar"
+    "modalTitle": "Select or remove items from the toolbar",
+    "editLink": "Edit Link",
+    "removeLink": "Remove Link"
   },
   "dividerSections": {
     "toc": "Tabella dei contenuti",
@@ -97,6 +99,7 @@
     "bibliography": "Bibliografia",
     "appendix": "Appendice"
   },
+  "linkPlaceholder": "Collega a un URL esterno es. https://example.com o http://example.com",
   "menu": {
     "file": {
       "label": "File",
@@ -349,6 +352,7 @@
   "buttons": {
     "cancel": "Annulla",
     "ok": "Ok",
+    "confirm": "Conferma",
     "save": "Salva",
     "done": "Fatto",
     "apply": "Applica",
@@ -367,6 +371,69 @@
     "symbol": "Symbol",
     "character": "Character",
     "keyboardShortcut": "Keyboard Shortcut"
+  },
+  "referencesFormat": {
+    "title": "Formato riferimenti",
+    "tabs": {
+      "separators": "Separatori",
+      "readingTypes": "Tipi di lettura",
+      "guideColors": "Colori guida",
+      "notes": "Note"
+    },
+    "appearance": "Aspetto",
+    "customizeSeparators": "Personalizza i caratteri e lo stile dei separatori delle note critiche.",
+    "customizeReadingTypes": "Personalizza la dicitura e lo stile delle letture.",
+    "highlightColor": "Colore evidenziazione",
+    "customizeGuideColors": "Evidenziazioni di testo che non sono incluse nella stampa.",
+    "lemmaSeparator": "Separatore lemma",
+    "fromToSeparator": "Separatore da-a",
+    "readingsSeparator": "Separatore letture",
+    "apparatusSeparator": "Separatore apparato",
+    "addReadingType": "Aggiungi tipo di lettura",
+    "omReadingType": "Tipo di lettura omissione",
+    "trReadingType": "Tipo di lettura trasposizione",
+    "delReadingType": "Tipo di lettura cancellazione",
+    "bold": "Grassetto",
+    "italic": "Corsivo",
+    "underline": "Sottolineato",
+    "separator": {
+      "none": "Nessuno",
+      "bracket": "Parentesi ( ] )",
+      "dash": "Trattino ( - )",
+      "colon": "Due punti ( : )",
+      "semicolon": "Punto e virgola ( ; )"
+    },
+    "guide": {
+      "lemma": "Lemma",
+      "sigla": "Sigla",
+      "readingTypeSeparator": "Tipo di lettura & separatore",
+      "comments": "Commenti",
+      "bookmarks": "Segnalibri",
+      "highlights": "Evidenziazioni"
+    },
+    "highlight": {
+      "none": "nessuno",
+      "pink": "rosa",
+      "yellow": "giallo",
+      "blue": "blu",
+      "gray": "grigio",
+      "mint": "menta"
+    },
+    "pageNotes": "Note di pagina",
+    "sectionNotes": "Note di sezione",
+    "numerationTitle": "Numerazione",
+    "numeration": {
+      "whole": "Intero documento",
+      "page": "Ricomincia ad ogni pagina",
+      "section": "Ricomincia ad ogni sezione:"
+    },
+    "sectionLevel": {
+      "1": "Livello 1",
+      "2": "Livello 2",
+      "3": "Livello 3",
+      "4": "Livello 4",
+      "5": "Livello 5"
+    }
   },
   "customSpacing": {
     "title": "Spaziatura personalizzata",
@@ -468,6 +535,20 @@
     "all": "Tutte",
     "default": "Predefinito"
   },
+  "metadata": {
+    "title": "Metadata",
+    "license": "Licenza",
+    "creationDate": "Data di creazione",
+    "lastSavedDate": "Data ultimo salvataggio",
+    "titleDoc": "Titolo",
+    "subject": "Oggetto",
+    "author": "Autore",
+    "copyrightHolder": "Titolare del copyright",
+    "keywords": "Parole chiave",
+    "status": "Stato",
+    "template": "Modello",
+    "language": "Lingua"
+  },
   "pageSetup": {
     "title": "Scegli Layout",
     "confirmationModal": {
@@ -563,7 +644,7 @@
   },
   "delete_bookmark_dialog": {
     "title": "Se continui, eliminerai il segnalibro",
-    "description": "Se continui, eliminerai il segnalibro. Vuoi continuare? Se sì, clicca sul pulsante “Elimina”, altrimenti clicca su “Annulla”; in alternativa.",
+    "description": "Se continui, eliminerai il segnalibro. Vuoi continuare? Se sì, clicca sul pulsante 'Elimina', altrimenti clicca su 'Annulla'; in alternativa.",
     "buttons": {
       "cancel": "Annulla",
       "delete": "Elimina",
@@ -572,7 +653,7 @@
   },
   "delete_bookmark_category_dialog": {
     "title": "Se continui, eliminerai tutti i segnalibri nella categoria",
-    "description": "Vuoi continuare? Se sì, clicca sul pulsante “Elimina”, altrimenti clicca su “Annulla”; in alternativa sposta tutti i segnalibri in un’altra categoria creata con il pulsante “Sposta”",
+    "description": "Vuoi continuare? Se sì, clicca sul pulsante 'Elimina', altrimenti clicca su 'Annulla'; in alternativa sposta tutti i segnalibri in un'altra categoria creata con il pulsante 'Sposta'",
     "buttons": {
       "cancel": "Annulla",
       "delete": "Elimina",
@@ -603,7 +684,7 @@
   },
   "delete_comment_dialog": {
     "title": "Se continui, eliminerai il commento",
-    "description": "Se continui, eliminerai il commento. Vuoi continuare? Se sì, clicca sul pulsante “Elimina”, altrimenti clicca su “Annulla”; in alternativa.",
+    "description": "Se continui, eliminerai il commento. Vuoi continuare? Se sì, clicca sul pulsante 'Elimina', altrimenti clicca su 'Annulla'; in alternativa.",
     "buttons": {
       "cancel": "Annulla",
       "delete": "Elimina",
@@ -612,7 +693,7 @@
   },
   "delete_comment_category_dialog": {
     "title": "Se continui, eliminerai tutti i commenti nella categoria",
-    "description": "Vuoi continuare? Se sì, clicca sul pulsante “Elimina”, altrimenti clicca su “Annulla”; in alternativa sposta tutti i segnalibri in un’altra categoria creata con il pulsante “Sposta”",
+    "description": "Vuoi continuare? Se sì, clicca sul pulsante 'Elimina', altrimenti clicca su 'Annulla'; in alternativa sposta tutti i segnalibri in un'altra categoria creata con il pulsante 'Sposta'",
     "buttons": {
       "cancel": "Annulla",
       "delete": "Elimina",
@@ -633,6 +714,15 @@
     "buttons": {
       "cancel": "Annulla",
       "move": "Sposta"
+    }
+  },
+  "close_document_dialog": {
+    "title": "Questo documento contiene modifiche non salvate",
+    "description": "Vuoi salvare le tue modifiche prima di chiudere il documento?",
+    "buttons": {
+      "cancel": "Annulla",
+      "abort": "Non salvare",
+      "save": "Salva"
     }
   },
   "choose_template_dialog": {
@@ -788,7 +878,9 @@
     "language": {
       "criterionLanguage": "Lingua Criterion",
       "criterionRegion": "Regione Criterion",
-      "dateTimeFormat": "Formato Data e Ora"
+      "dateTimeFormat": "Formato Data e Ora",
+      "dateFormat": "Formato Data",
+      "timeFormat": "Formato Ora"
     },
     "editing": {
       "showHistoryActions": {
@@ -803,17 +895,17 @@
     },
     "comingSoon": "Impostazioni account in arrivo..."
   },
-  "siglum" : {
+  "siglum": {
     "title": "Sigla",
     "save": "Salva",
     "create": "Crea",
     "cancel": "Annulla",
     "import": "Importa",
     "export": "Esporta",
-    "manuscripts": "Manoscritti",
+    "manuscripts": "Manoscritti*",
     "description": "Descrizione",
     "empty": {
-      "title": "Create sigla before adding notes"
+      "title": "Crea sigle prima di aggiungere note"
     },
     "importDialog": {
       "title": "Ci sono {{count}} sigle che sono già presenti nel documento. Vuoi sostituirle?",

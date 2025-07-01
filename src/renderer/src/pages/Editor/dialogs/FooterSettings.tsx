@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import PaginationSetup from "@/components/pagination-form";
 import { selectFooterSettings } from "@/pages/editor/store/pagination/pagination.selector";
 import { type FooterSettings, updateFooterSettings } from "@/pages/editor/store/pagination/pagination.slice";
+import { HeaderContentType, HeaderDisplayMode } from "@/utils/headerEnums";
 
 // Definizione dell'interfaccia per le impostazioni
 interface FooterModalProps {
@@ -18,19 +19,19 @@ const FooterSettings = ({ isOpen, setIsOpen }: FooterModalProps) => {
     const dispatch = useDispatch();
     const footerSettings = useSelector(selectFooterSettings);
 
-    // Inizializza lo stato direttamente dal selettore Redux
     const [settings, setSettings] = useState<FooterSettings>(() => ({
-        displayMode: footerSettings.displayMode,
-        startFromPage: footerSettings.startFromPage ?? 1, // Provide default value if undefined
-        sectionsToShow: footerSettings.sectionsToShow,
-        leftContent: footerSettings.leftContent,
-        centerContent: footerSettings.centerContent,
-        rightContent: footerSettings.rightContent,
+        displayMode: footerSettings?.displayMode || HeaderDisplayMode.NONE,
+        startFromPage: footerSettings?.startFromPage || 1,
+        sectionsToShow: footerSettings?.sectionsToShow || [],
+        leftContent: footerSettings?.leftContent || HeaderContentType.NONE,
+        centerContent: footerSettings?.centerContent || HeaderContentType.NONE,
+        rightContent: footerSettings?.rightContent || HeaderContentType.NONE,
     }));
 
-    // Aggiorna lo stato locale quando cambiano le impostazioni Redux
     useEffect(() => {
-        setSettings({ ...footerSettings });
+        if (footerSettings) {
+            setSettings({ ...footerSettings });
+        }
     }, [footerSettings]);
 
     const submitHandler = useCallback(() => {

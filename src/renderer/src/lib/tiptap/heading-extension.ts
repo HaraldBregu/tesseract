@@ -4,7 +4,7 @@ import Heading from '@tiptap/extension-heading';
 const h1: ElementAttribute = {
     fontSize: '18pt',
     fontWeight: 'bold',
-    color: null,
+    color: '#000',
     fontStyle: 'normal',
     fontFamily: 'Times New Roman',
     textAlign: 'left',
@@ -18,7 +18,7 @@ const h1: ElementAttribute = {
 const h2: ElementAttribute = {
     fontSize: '16pt',
     fontWeight: 'bold',
-    color: null,
+    color: '#000',
     fontStyle: 'normal',
     fontFamily: 'Times New Roman',
     textAlign: 'left',
@@ -32,7 +32,7 @@ const h2: ElementAttribute = {
 const h3: ElementAttribute = {
     fontSize: '14pt',
     fontWeight: 'bold',
-    color: null,
+    color: '#000',
     fontStyle: 'normal',
     fontFamily: 'Times New Roman',
     textAlign: 'left',
@@ -46,7 +46,7 @@ const h3: ElementAttribute = {
 const h4: ElementAttribute = {
     fontSize: '12pt',
     fontWeight: 'bold',
-    color: null,
+    color: '#000',
     fontStyle: 'italic',
     fontFamily: 'Times New Roman',
     textAlign: 'left',
@@ -60,7 +60,7 @@ const h4: ElementAttribute = {
 const h5: ElementAttribute = {
     fontSize: '12pt',
     fontWeight: 'bold',
-    color: null,
+    color: '#000',
     fontStyle: 'italic',
     fontFamily: 'Times New Roman',
     textAlign: 'left',
@@ -74,7 +74,7 @@ const h5: ElementAttribute = {
 const h6: ElementAttribute = {
     fontSize: '10pt',
     fontWeight: 'bold',
-    color: null,
+    color: '#000',
     fontStyle: 'italic',
     fontFamily: 'Times New Roman',
     textAlign: 'left',
@@ -289,14 +289,17 @@ export const ExtendedHeading = Heading
             const marginRight = node.attrs.marginRight || styles.marginRight;
             const lineHeight = node.attrs.lineHeight || styles.lineHeight;
 
-            const styleString = `font-size: ${fontSize}; 
+            const styleString = `
+            font-size: ${fontSize}; 
             font-weight: ${fontWeight}; 
             color: ${color}; 
             ${fontStyle === 'italic' ? 'font-style: italic' : ''}; 
             font-family: ${fontFamily}; 
             text-align: ${textAlign}; 
-            margin-left: ${marginLeft}; margin-right: ${marginRight};
-            margin-top: ${marginTop}; margin-bottom: ${marginBottom};
+            margin-left: ${marginLeft}; 
+            margin-right: ${marginRight};
+            margin-top: ${marginTop}; 
+            margin-bottom: ${marginBottom};
             line-height: ${lineHeight};`;
 
             return [`h${level}`, {
@@ -308,7 +311,6 @@ export const ExtendedHeading = Heading
                 "data-color": color,
                 "data-font-style": fontStyle,
                 "data-font-family": fontFamily,
-
             }, 0];
         }
     });

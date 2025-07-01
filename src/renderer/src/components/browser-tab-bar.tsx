@@ -27,7 +27,7 @@ const BrowserTab = ({ item, onClick, onRemove, isSelected }: Props) => {
   }, [])
 
   const getTitle = useCallback((item: TabInfo) => {
-    return item.changed ? item.name + ' *' : item.name
+    return item.changed ? ' * ' + item.name : item.name
   }, [])
 
   return (
@@ -161,17 +161,6 @@ const BrowserTabBar = ({
                         onClick={() => onSelect(item)}
                         onRemove={() => {
                           onRemove(item)
-                          if (selectedTab?.id === item.id) {
-                            const currentIndex = tabs.findIndex(tab => tab.id === item.id);
-                            if (tabs.length > 1) {
-                              if (currentIndex < tabs.length - 1) {
-                                onSelect(tabs[currentIndex + 1]);
-                              }
-                              else if (currentIndex > 0) {
-                                onSelect(tabs[currentIndex - 1]);
-                              }
-                            }
-                          }
                         }}
                       />
                     ))}

@@ -16,6 +16,7 @@ const defaultAttributes: ElementAttribute = {
 
 export const ExtendedParagraph = Paragraph
     .extend({
+
         onCreate() {
             this.editor.chain()
                 .focus()
@@ -45,12 +46,14 @@ export const ExtendedParagraph = Paragraph
                     return modified;
                 }).run();
         },
+
         addAttributes() {
             return {
                 ...this.parent?.(),
                 fontSize: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.fontSize || element.dataset.fontSize || '12pt',
                     renderHTML: attributes => {
                         const fontSize = attributes.fontSize || defaultAttributes.fontSize;
                         return { style: `font-size: ${fontSize}` };
@@ -59,6 +62,7 @@ export const ExtendedParagraph = Paragraph
                 fontFamily: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.fontFamily || element.dataset.fontFamily || 'Times New Roman',
                     renderHTML: attributes => {
                         const fontFamily = attributes.fontFamily || defaultAttributes.fontFamily;
                         return { style: `font-family: ${fontFamily}` };
@@ -67,6 +71,7 @@ export const ExtendedParagraph = Paragraph
                 fontWeight: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.fontWeight || element.dataset.fontWeight || 'normal',
                     renderHTML: attributes => {
                         const fontWeight = attributes.fontWeight || defaultAttributes.fontWeight;
                         return { style: `font-weight: ${fontWeight}` };
@@ -75,6 +80,7 @@ export const ExtendedParagraph = Paragraph
                 fontStyle: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.fontStyle || element.dataset.fontStyle || 'normal',
                     renderHTML: attributes => {
                         const fontStyle = attributes.fontStyle || defaultAttributes.fontStyle;
                         return { style: `font-style: ${fontStyle}` };
@@ -83,6 +89,7 @@ export const ExtendedParagraph = Paragraph
                 textAlign: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.textAlign || element.dataset.textAlign || 'left',
                     renderHTML: attributes => {
                         const textAlign = attributes.textAlign || defaultAttributes.textAlign;
                         return { style: `text-align: ${textAlign}` };
@@ -91,6 +98,7 @@ export const ExtendedParagraph = Paragraph
                 marginLeft: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.marginLeft || element.dataset.marginLeft || '0px',
                     renderHTML: attributes => {
                         const marginLeft = attributes.marginLeft || defaultAttributes.marginLeft;
                         return { style: `margin-left: ${marginLeft}` };
@@ -99,6 +107,7 @@ export const ExtendedParagraph = Paragraph
                 marginRight: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.marginRight || element.dataset.marginRight || '0px',
                     renderHTML: attributes => {
                         const marginRight = attributes.marginRight || defaultAttributes.marginRight;
                         return { style: `margin-right: ${marginRight}` };
@@ -107,6 +116,7 @@ export const ExtendedParagraph = Paragraph
                 marginTop: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.marginTop || element.dataset.marginTop || '0px',
                     renderHTML: attributes => {
                         const marginTop = attributes.marginTop || defaultAttributes.marginTop;
                         return { style: `margin-top: ${marginTop}` };
@@ -115,6 +125,7 @@ export const ExtendedParagraph = Paragraph
                 marginBottom: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.marginBottom || element.dataset.marginBottom || '0px',
                     renderHTML: attributes => {
                         const marginBottom = attributes.marginBottom || defaultAttributes.marginBottom;
                         return { style: `margin-bottom: ${marginBottom}` };
@@ -123,6 +134,7 @@ export const ExtendedParagraph = Paragraph
                 lineHeight: {
                     default: null,
                     rendered: true,
+                    parseHTML: element => element.style.lineHeight || element.dataset.lineHeight || '1',
                     renderHTML: attributes => {
                         const lineHeight = attributes.lineHeight || defaultAttributes.lineHeight;
                         return { style: `line-height: ${lineHeight}` };
@@ -130,6 +142,7 @@ export const ExtendedParagraph = Paragraph
                 },
             }
         },
+        
         renderHTML({ node, HTMLAttributes }) {
             const fontFamily = defaultAttributes.fontFamily;
             const fontSize = defaultAttributes.fontSize;
@@ -142,12 +155,17 @@ export const ExtendedParagraph = Paragraph
             const marginRight = node.attrs.marginRight || defaultAttributes.marginRight;
             const lineHeight = node.attrs.lineHeight || defaultAttributes.lineHeight;
 
-            const styleString = `font-size: ${fontSize}; 
-        font-weight: ${fontWeight}; font-style: ${fontStyle}; 
-        font-family: ${fontFamily}; text-align: ${textAlign}; 
-        margin-top: ${marginTop}; margin-bottom: ${marginBottom};
-        margin-left: ${marginLeft}; margin-right: ${marginRight};
-        line-height: ${lineHeight};`;
+            const styleString = `
+            font-size: ${fontSize}; 
+            font-weight: ${fontWeight}; 
+            font-style: ${fontStyle}; 
+            font-family: ${fontFamily}; 
+            text-align: ${textAlign}; 
+            margin-top: ${marginTop}; 
+            margin-bottom: ${marginBottom};
+            margin-left: ${marginLeft};
+            margin-right: ${marginRight};
+            line-height: ${lineHeight};`;
 
             return [`p`, {
                 ...HTMLAttributes,
@@ -158,6 +176,27 @@ export const ExtendedParagraph = Paragraph
                 "data-font-family": fontFamily
             }, 0];
         },
+        // addKeyboardShortcuts() {
+        //     return {
+        //         'Enter': ({ editor }) => {
+        //             // Split block (create new paragraph) and clear stored marks
+        //             const result = editor
+        //                 .chain()
+        //                 .focus()
+        //                 .splitBlock()
+        //                 .run();
+
+        //             // Remove stored marks that would be applied to new content
+        //             if (result) {
+        //                 editor.view.dispatch(
+        //                     editor.state.tr.setStoredMarks([])
+        //                 );
+        //             }
+
+        //             return result;
+        //         },
+        //     }
+        // },
         addCommands() {
             return {
                 ...this.parent?.(),
@@ -168,7 +207,7 @@ export const ExtendedParagraph = Paragraph
                         // fontStyle: 'normal',
                         // fontFamily: 'Times New Roman'
                     }).run();
-                },
+                }
             }
         },
     })

@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ReferencesAction } from "./action";
-import { SeparatorConfig, SeparatorOptions, ReferencesFormatState } from "./types";
+import { ReferencesAction, setSeparatorReadingType, toggleStyle } from "./action";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/button";
 import Bold from "@/components/icons/Bold";
@@ -8,18 +7,24 @@ import Italic from "@/components/icons/Italic";
 import Underline from "@/components/icons/Underline";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import { useMemo } from "react";
-import Divider from "@/components/ui/divider";
-import cn from "@/utils/classNames";
+import { memo, useCallback } from "react";
+import { separatorOptions, separators } from "./constants";
+import AppSeparator from "@/components/app/app-separator";
 
 interface SeparatorsProps {
-    state: ReferencesFormatState,
+    state: ReferencesFormat,
     dispatch: (action: ReferencesAction) => void
 }
 
 interface PreviewProps {
-    configKey: keyof ReferencesFormatState,
-    config: SeparatorConfig
+    configKey: SeparatorKeys,
+}
+
+interface SeparatorSectionProps {
+    configKey: SeparatorKeys,
+    label: string,
+    config: ReferenceFormatChar,
+    dispatch: (action: ReferencesAction) => void
 }
 
 const getSeparatorValue = (val: string) => {
@@ -27,43 +32,66 @@ const getSeparatorValue = (val: string) => {
     return val;
 };
 
-const Preview: React.FC<PreviewProps> = ({
+const Preview: React.FC<PreviewProps> = memo(({
     configKey,
-    config
 }): React.ReactNode => {
-    const sep = config.value.startsWith("custom:")
-                    ? ` ${getSeparatorValue(config.value)}`
-                    : config.value !== "none" ? config.value : "";
     let text = "";
     switch (configKey) {
-        case "lemma":
-            text = `lemma${sep}`;
+        case "lemma_separator":
+            text = `lemma ]`;
             break;
-        case "fromTo":
-            text = `lemma${sep} lemma ]`;
+        case "from_to_separator":
+            text = `lemma ... lemma ]`;
             break;
-        case "readings":
-            text = `reading${sep} reading`;
+        case "readings_separator":
+            text = `reading : reading`;
             break;
-        case "apparatus":
-            text = `entry${sep} entry`;
+        case "apparatus_separator":
+            text = `entry ; entry`;
             break;
     }
-    return <Label className={cn('text-sm text-grey-10 leading-[15px]', config.bold ? 'font-bold' : '', config.italic ? 'italic' : '', config.underline ? 'underline' : '')}>{text}</Label>;
-};
-
-const renderSeparatorSection = (
-    configKey: keyof ReferencesFormatState,
-    label: string,
-    config: SeparatorConfig,
-    options: SeparatorOptions,
-    dispatch: (action: ReferencesAction) => void,
-) => {
-    const { t } = useTranslation();
-    const isCustom = config.value.startsWith("custom:");
     return (
-        <div className="flex-1 mb-4">
-            <Label className="text-secondary-30 text-[13px] font-semibold mb-4 flex">{label}</Label>
+        <Label className='text-sm text-grey-10 leading-[15px] dark:text-grey-80'>
+            {text}
+        </Label>
+    );
+});
+
+const SeparatorSection: React.FC<SeparatorSectionProps> = memo(({
+    configKey,
+    label,
+    config,
+    dispatch,
+}) => {
+    const { t } = useTranslation();
+    const isCustom = config.value?.startsWith("custom:");
+    const onRadioChange = useCallback((value: string) => {
+        if (value === "custom") {
+            dispatch(setSeparatorReadingType(configKey, "custom:"));
+        } else {
+            dispatch(setSeparatorReadingType(configKey, value));
+        }
+    }, [configKey, dispatch]);
+
+    const onInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setSeparatorReadingType(configKey, `custom:${e.target.value}`))
+    }, [configKey, dispatch]);
+
+    const handleBoldToggle = useCallback(() => {
+        dispatch(toggleStyle(configKey, "bold"));
+    }, [configKey, dispatch]);
+
+    const handleItalicToggle = useCallback(() => {
+        dispatch(toggleStyle(configKey, "italic"));
+    }, [configKey, dispatch]);
+
+    const handleUnderlineToggle = useCallback(() => {
+        dispatch(toggleStyle(configKey, "underline"));
+    }, [configKey, dispatch]);
+
+    return (
+        <div className="flex-1 mb-4 " key={configKey}>
+            <Label className="text-secondary-30 dark:text-foreground text-[13px] font-semibold mb-4 flex">{label}</Label>
             <div className="flex items-center gap-2 mb-2">
                 {/* BOLD CONTROL */}
                 <Button
@@ -71,9 +99,9 @@ const renderSeparatorSection = (
                     variant={config.bold ? "tonal" : "icon"}
                     size="iconSm"
                     tabIndex={9}
-                    tooltip={t('toolbar.bold')}
+                    tooltip={t('referencesFormat.bold')}
                     icon={<Bold intent='secondary' variant='tonal' size='small' />}
-                    onClick={() => dispatch({ type: "TOGGLE_SEPERATOR_STYLE", key: configKey, style: "bold" })}
+                    onClick={handleBoldToggle}
                     aria-pressed={config.bold}
                     aria-label="Bold"
                     className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -84,9 +112,9 @@ const renderSeparatorSection = (
                     variant={config.italic ? "tonal" : "icon"}
                     size="iconSm"
                     tabIndex={10}
-                    tooltip={t('toolbar.italic')}
+                    tooltip={t('referencesFormat.italic')}
                     icon={<Italic intent='secondary' variant='tonal' size='small' />}
-                    onClick={() => dispatch({ type: "TOGGLE_SEPERATOR_STYLE", key: configKey, style: "italic" })}
+                    onClick={handleItalicToggle}
                     aria-pressed={config.italic}
                     aria-label="Italic"
                     className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -97,67 +125,49 @@ const renderSeparatorSection = (
                     variant={config.underline ? "tonal" : "icon"}
                     size="iconSm"
                     tabIndex={11}
-                    tooltip={t('toolbar.underline')}
+                    tooltip={t('referencesFormat.underline')}
                     icon={<Underline intent='secondary' variant='tonal' size='small' />}
-                    onClick={() => dispatch({ type: "TOGGLE_SEPERATOR_STYLE", key: configKey, style: "underline" })}
+                    onClick={handleUnderlineToggle}
                     aria-pressed={config.underline}
                     aria-label="Underline"
                     className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
             </div>
-            <Divider className="my-2" orientation="horizontal" />
+            <AppSeparator className="my-2"/>
             <RadioGroup
+                key={`radio-group-${configKey}`}
                 value={isCustom ? "custom" : config.value}
-                onValueChange={(value) => {
-                    if (value === "custom") {
-                        dispatch({
-                            type: "SET_SEPERATOR",
-                            key: configKey,
-                            value: "custom:",
-                        });
-                    } else {
-                        dispatch({
-                            type: "SET_SEPERATOR",
-                            key: configKey,
-                            value,
-                        });
-                    }
-                }}
+                onValueChange={onRadioChange}
             >
                 {
-                    options[configKey].map((opt) => (
-                        <div key={opt.value} className="flex items-center space-x-2">
+                    separatorOptions[configKey].map((opt) => (
+                        <div key={`radio-${configKey}-${opt.value}`} className="flex items-center space-x-2">
                             <RadioGroupItem value={opt.value} id={`${configKey}-${opt.value}`} />
-                            <Label htmlFor={`${configKey}-${opt.value}`} className="text-secondary-30 text-[13px] leading-[15px] font-semibold">{opt.label}</Label>
+                            <Label htmlFor={`${configKey}-${opt.value}`} className="text-secondary-30 text-[13px] leading-[15px] font-semibold dark:text-grey-80">{t(opt.label)}</Label>
                         </div>
                     ))
                 }
                 <div className="flex items-center mt-2 space-x-2">
-                    <RadioGroupItem value="custom" id={`${configKey}-custom`} />
-                    <Label htmlFor={`${configKey}-custom`} className="text-secondary-30 text-[13px] leading-[15px] font-semibold">
+                    <RadioGroupItem key={`radio-${configKey}-custom`} value="custom" id={`${configKey}-custom`} />
+                    <Label htmlFor={`${configKey}-custom`} className="text-secondary-30 text-[13px] leading-[15px] font-semibold dark:text-grey-80">
                         {t("referencesFormat.separator.customize", "Customize")}
                     </Label>
                     <Input
-                        className="w-16 ml-2 border-secondary-85"
-                        size={6}
+                        key={`input-${configKey}`}
+                        className="w-16 ml-2 border-secondary-85 dark:text-grey-80 dark:border-secondary-85 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        size={3}
                         disabled={!isCustom}
-                        value={isCustom ? getSeparatorValue(config.value) : ""}
-                        maxLength={6}
-                        onChange={
-                            (e) => dispatch({
-                                type: "SET_SEPERATOR",
-                                key: configKey,
-                                value: `custom:${e.target.value}`,
-                            })
-                        }
+                        value={isCustom ? getSeparatorValue(config.value ?? "") : ""}
+                        maxLength={3}
+                        onChange={onInputChange}
                     />
                 </div>
             </RadioGroup>
-            <Divider className="my-2" orientation="horizontal" />
-            <Preview configKey={configKey} config={config} />
+            <AppSeparator className="my-2"/>
+            <Preview key={`preview-${configKey}`} configKey={configKey} />
         </div>
     );
-};
+});
 
 const Separators: React.FC<SeparatorsProps> = ({
     state,
@@ -165,44 +175,30 @@ const Separators: React.FC<SeparatorsProps> = ({
 }) => {
     const { t } = useTranslation();
 
-    const separatorOptions: SeparatorOptions = useMemo(() => ({
-        lemma: [
-            { value: "none", label: t("referencesFormat.separator.none", "None") },
-            { value: " ]", label: t("referencesFormat.separator.bracket", `Bracket ( ] )`) },
-        ],
-        fromTo: [
-            { value: "none", label: t("referencesFormat.separator.none", "None") },
-            { value: " -", label: t("referencesFormat.separator.dash", "Dash ( - )") },
-        ],
-        readings: [
-            { value: "none", label: t("referencesFormat.separator.none", "None") },
-            { value: " :", label: t("referencesFormat.separator.colon", "Colon ( : )") },
-        ],
-        apparatus: [
-            { value: "none", label: t("referencesFormat.separator.none", "None") },
-            { value: " ;", label: t("referencesFormat.separator.semicolon", "Semicolon ( ; )") },
-        ],
-    }), []);
-
     return (
         <>
-            <Label className="flex text-lg leading-6 font-bold mb-2 text-secondary-30">
+            <Label className="flex text-lg leading-6 font-bold mb-2 text-secondary-30 dark:text-foreground">
                 {t("referencesFormat.appearance", "Appearance")}
             </Label>
-            <Label className="flex text-secondary-30 mb-6 leading-6">
+            <Label className="flex text-secondary-30 mb-6 leading-6 dark:text-foreground">
                 {t(
                     "referencesFormat.customizeSeparators",
                     "Customize critical notes separators characters and style."
                 )}
             </Label>
             <div className="flex gap-10 flex-wrap">
-                {renderSeparatorSection("lemma", t("referencesFormat.lemmaSeparator", "Lemma separator"), state['lemma'], separatorOptions, dispatch)}
-                {renderSeparatorSection("fromTo", t("referencesFormat.fromToSeparator", "From-To terms separator"), state['fromTo'], separatorOptions, dispatch )}
-                {renderSeparatorSection("readings", t("referencesFormat.readingsSeparator", "Readings separator"), state['readings'], separatorOptions, dispatch )}
-                {renderSeparatorSection("apparatus", t("referencesFormat.apparatusSeparator", "Apparatus entries separator"), state['apparatus'], separatorOptions, dispatch )}
+                {separators.map(({ key, label }) => (
+                    <SeparatorSection
+                        key={key}
+                        configKey={key as SeparatorKeys}
+                        label={t(label)}
+                        config={state[key as SeparatorKeys]}
+                        dispatch={dispatch}
+                    />
+                ))}
             </div>
         </>
     )
-}
+};
 
-export default Separators;
+export default memo(Separators);

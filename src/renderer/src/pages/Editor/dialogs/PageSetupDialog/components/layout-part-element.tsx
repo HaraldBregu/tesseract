@@ -3,7 +3,7 @@ import Pencil from "@/components/icons/Pencil";
 import Button from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ReactNode, useEffect, useState } from "react";
+import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
 import DragHandle from "@/components/icons/DragHandle";
 import Typogaphy from "@/components/Typography";
 import {
@@ -33,6 +33,14 @@ interface LayoutPartElementProps {
   dragHandler: (c: ReactNode) => ReactNode;
   curLayout?: string;
   curSection: string;
+  setApparatusSectionTypes: Dispatch<SetStateAction<{
+    item: string;
+    disabled: boolean;
+}[]>>
+apparatusSectionTypes:{
+    item: string;
+    disabled: boolean;
+}[];
   setIncludedElements: (action: {
     type:
     | "textColumns"
@@ -53,22 +61,19 @@ const LayoutPartElement = ({
   index,
   onChangeColumnNr,
   readonly,
-  sectionTypes,
   dragHandler,
   setIncludedElements,
   apparatusDetails,
+  apparatusSectionTypes,
+  setApparatusSectionTypes
 }: LayoutPartElementProps) => {
   const { t } = useTranslation();
 
   const [edit, setEdit] = useState<boolean>(false);
   const [dets, setDets] = useState<TElement>(details);
-  const [apparatusSectionTypes, setApparatusSectionTypes] = useState<string[]>(
-    Object.keys(sectionTypes).filter((type) => { type !== "text" })
-  );
 
-  const editEndHandler = (i, details) => {
-
-    console.log({ details })
+   const editEndHandler = (i, details) => {
+  
     onChangeColumnNr(i, details);
     setEdit(false);
   };
@@ -135,8 +140,43 @@ const LayoutPartElement = ({
   }, [dets]);
 
   useEffect(() => {
-    setApparatusSectionTypes(Object.keys(sectionTypes).filter((type) => type !== "text"));
-  }, [sectionTypes]);
+        const outerMarginExists = apparatusDetails.find(({sectionType})=>sectionType==='outerMargin')
+        const innerMarginExists = apparatusDetails.find(({sectionType})=>sectionType==='innerMargin')
+
+        if(outerMarginExists){
+            setApparatusSectionTypes((prev) =>
+                prev.map((el) =>
+                  el.item === 'outerMargin'
+                    ? { ...el, disabled: true }
+                    : el
+                )
+              )
+        }else{
+           setApparatusSectionTypes((prev) =>
+                prev.map((el) => 
+                   el.item === 'outerMargin'
+                    ? { ...el, disabled: false }
+                    : el
+                
+                ))
+        }
+
+        if(innerMarginExists){
+            setApparatusSectionTypes((prev) =>
+                prev.map((el) =>
+                  el.item === 'innerMargin'
+                    ? { ...el, disabled: true }
+                    : el
+                )
+              )
+        }else{
+           setApparatusSectionTypes((prev) =>
+                prev.map((el) =>  el.item === 'innerMargin'
+                    ? { ...el, disabled: false }
+                    : el
+                ))
+        }
+  }, [details.sectionType]);
 
   return (
     <div className="flex justify-start">
@@ -232,10 +272,11 @@ const LayoutPartElement = ({
                                         focus-visible:bg-primary
                                         focus-visible:text-white
                                     "
-                    value={sectionType}
-                    key={sectionType}
+                    value={sectionType.item}
+                    key={sectionType.item}
+                    disabled={sectionType.disabled}
                   >
-                    {sectionTypeLabel(sectionType)}
+                    {sectionTypeLabel(sectionType.item)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -309,7 +350,7 @@ const LayoutPartElement = ({
       )}
 
       {!readonly && !edit && (
-        <div className="flex flex-row">
+        <div className="flex sm:flex-wrap md:flex-wrap xl:flex-nowrap">
           <Button variant="icon" size="icon" onClick={() => setEdit(true)}>
             <Pencil size={22} />
           </Button>

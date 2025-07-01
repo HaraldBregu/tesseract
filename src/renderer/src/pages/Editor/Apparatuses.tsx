@@ -42,7 +42,6 @@ import {
 import TextEditor, { EditorData, HTMLTextEditorElement } from "@/components/text-editor";
 import { Input } from "@/components/ui/input";
 import { rendererLogger } from "@/utils/logger";
-import { useIpcRenderer } from "@/hooks/use-ipc-renderer";
 import useSingleAndDoubleClick from "@/hooks/use-single-double-click";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Button from "@/components/ui/button";
@@ -56,8 +55,22 @@ import Siglum from "@/components/icons/Siglum";
 import Citation from "@/components/icons/Citation";
 import CommentAdd from "@/components/icons/CommentAdd";
 import { commentCategoryOptionsSelector } from "./store/comment/comments.selector";
-import { setSelectedSideviewTabIndex } from "./provider";
+import { setLinkConfigVisible, setSelectedSideviewTabIndex } from "./provider";
 import { useEditor } from "./hooks/useEditor";
+import LinkAdd from "@/components/icons/LinkAdd";
+
+const ApparatusesLayout = ({ children, showToolbar }: { children: React.ReactNode, showToolbar: boolean }) => {
+    return (
+        <div style={{ height: showToolbar ? "calc(100vh - 5.5rem)" : "calc(100vh - 2.25rem)" }}>
+            <div className="h-full overflow-auto bg-white dark:bg-grey-10">
+                <div className="flex flex-col h-full">
+                    {children}
+                </div>
+            </div>
+        </div>
+    )
+}
+
 
 const apparatusTypeName = (type: ApparatusType) => {
     switch (type) {
@@ -83,13 +96,17 @@ const types = [
 ] as const satisfies ApparatusType[]
 
 interface EditorApparatusProps {
+    linkActive: boolean;
     onFocusEditor: () => void
-    onRegisterComment: (id: string, categoryId?: string) => void
+    onRegisterComment: (id: string, categoryId?: string) => void,
+    showToolbar: boolean
 }
 
 const Apparatuses = forwardRef(({
+    linkActive,
     onFocusEditor,
     onRegisterComment,
+    showToolbar,
 }: EditorApparatusProps, ref: ForwardedRef<unknown>) => {
     MotionGlobalConfig.skipAnimations = true;
 
@@ -115,10 +132,22 @@ const Apparatuses = forwardRef(({
             redo: () => {
                 editorRef?.redo();
             },
-            setHeadingLevel: (headingLevel: number) => {
-                editorRef?.setHeadingLevel(headingLevel);
+            // @ts-ignore
+            setHeading: (style: Style) => {
+                //editorRef?.setCustomHeading(style);
             },
-            setBody: () => {
+            setHeadingLevel: async (headingLevel: number) => {
+                const position = editorRef?.setHeading(headingLevel);
+                setTimeout(() => {
+                    editorRef?.focus();
+                    if (position) {
+                        editorRef?.setTextSelection(position);
+                    }
+                }, 100);
+            },
+            // @ts-ignore
+            setBody: (style: Style) => {
+                // editorRef?.setCustomBody(style);
                 editorRef?.setBody();
             },
             setFontFamily: (fontFamily: string) => {
@@ -178,15 +207,15 @@ const Apparatuses = forwardRef(({
             toggleNonPrintingCharacters: () => {
                 editorRef?.toggleNonPrintingCharacters();
             },
-            addComment: () => {
-                editorRef?.addComment();
+            addComment: (color: string, categoryId?: string) => {
+                commentCategoryIdRef.current = categoryId;
+                registerComment(color);
             },
             unsetComment: () => {
                 editorRef?.unsetComment();
             },
-            // @ts-ignore
             scrollToComment: (comment: AppComment) => {
-                // handleScrollToComment(comment);
+                handleScrollToComment(comment);
             },
             deleteComments: (comments: AppComment[]) => {
                 editorRef?.deleteComments(comments);
@@ -199,6 +228,41 @@ const Apparatuses = forwardRef(({
             },
             insertSiglum: (siglum: Siglum) => {
                 handleInsertSiglum(siglum)
+            },
+            setLink: (url: string) => {
+                editorRef?.setLink(url);
+            },
+            removeLink: () => {
+                editorRef?.removeLink();
+            },
+            cut: () => {
+                if (!editorRef) return
+                const text = editorRef.selectedText()
+                navigator.clipboard.writeText(text).then(() => {
+                    editorRef?.deleteSelection()
+                })
+            },
+            copy: () => {
+                if (!editorRef) return
+                const text = editorRef.selectedText()
+                navigator.clipboard.writeText(text)
+            },
+            copyStyle: () => {
+                if (!editorRef) return
+                const text = editorRef.selectedText()
+                navigator.clipboard.writeText(text)
+            },
+            paste: () => {
+                if (!editorRef) return
+                navigator.clipboard.readText().then((text) => {
+                    editorRef.insertContent(text)
+                })
+            },
+            pasteStyle: () => {
+                if (!editorRef) return
+                navigator.clipboard.readText().then((text) => {
+                    editorRef.insertContent(text)
+                })
             }
         };
     });
@@ -229,30 +293,9 @@ const Apparatuses = forwardRef(({
         value: siglum
     })), [state.siglumList])
 
-    useIpcRenderer((ipc) => {
-        ipc.on("view-apparatus", (_, data: any) => {
-            dispatch(toggleVisibilityApparatus({
-                id: data.id,
-                visible: !data.visible
-            }))
-        })
-    }, [window.electron.ipcRenderer])
-
     useEffect(() => {
         window.menu.disableReferencesMenuItems(disabledRemainingApparatusesTypes)
     }, [window.menu, disabledRemainingApparatusesTypes])
-
-    useEffect(() => {
-        const items = apparatuses.map((apparatus) => {
-            return {
-                id: apparatus.id,
-                title: apparatus.title,
-                visible: apparatus.visible,
-                disabled: false,
-            }
-        })
-        window.menu.updateViewApparatusesMenuItems(items)
-    }, [apparatuses, window.menu])
 
     useEffect(() => {
         if (!apparatusesData) return;
@@ -285,6 +328,14 @@ const Apparatuses = forwardRef(({
         }) as DocumentApparatus[]
         window.doc.setApparatuses(newApparatuses)
     }, [apparatuses, editorRefs])
+
+    const registerComment = useCallback((color: string) => {
+        editorRef?.addComment(color);
+    }, [editorRef, state.referenceFormat.comments_color]);
+
+    const handleScrollToComment = useCallback((comment: AppComment) => {
+        editorRef?.scrollToComment(comment.id);
+    }, [editorRef]);
 
     const handleClick = useSingleAndDoubleClick(
         () => { },
@@ -357,7 +408,7 @@ const Apparatuses = forwardRef(({
 
     return (
         <>
-            <div className={cn("h-full overflow-y-auto bg-white dark:bg-grey-10")}>
+            <ApparatusesLayout showToolbar={showToolbar}>
                 <ReorderGroup
                     items={apparatuses}
                     onReorder={(newTabs) => dispatch(updateVisibleApparatuses(newTabs))}
@@ -631,30 +682,33 @@ const Apparatuses = forwardRef(({
                                             onFocusEditor={() => {
                                                 setEditorRef(editorRefs.current[item.id]);
                                                 dispatch(setCanAddBookmark(false));
-                                                onFocusEditor()
+                                                onFocusEditor();
                                             }}
                                             canEdit={canEdit}
+                                            commentHighlightColor={state.referenceFormat?.comments_color}
                                             commentHighlighted={true}
+                                            bookmarkHighlightColor={state.referenceFormat?.bookmarks_color}
+                                            bookmarkHighlighted={true}
                                             onUpdate={(editor: EditorData) => {
-                                                updateTextHandler(editor)
+                                                updateTextHandler(editor);
                                             }}
                                             onEmphasisStateChange={(emphasisState) => {
-                                                dispatch(setEmphasisState(emphasisState))
+                                                dispatch(setEmphasisState(emphasisState));
                                             }}
                                             onSelectionMarks={(selectionMarks) => {
                                                 const commentMarksIds = selectionMarks
                                                     .filter(mark => mark.type === 'comment')
-                                                    ?.map(mark => mark?.attrs?.id)
+                                                    ?.map(mark => mark?.attrs?.id);
                                                 if (commentMarksIds.length > 0) {
-                                                    dispatch(selectCommentWithId(commentMarksIds[0]))
-                                                    sidebar.setOpen(true)
-                                                    dispatchEditor(setSelectedSideviewTabIndex(0))
+                                                    dispatch(selectCommentWithId(commentMarksIds[0]));
+                                                    sidebar.setOpen(true);
+                                                    dispatchEditor(setSelectedSideviewTabIndex(0));
                                                 } else {
-                                                    dispatch(selectComment(null))
+                                                    dispatch(selectComment(null));
                                                 }
                                             }}
                                             onCommentCreated={async (id, content) => {
-                                                const userInfo = await window.system.getUserInfo() as unknown as UserInfo
+                                                const userInfo = await window.system.getUserInfo() as unknown as UserInfo;
                                                 dispatch(addComment({
                                                     id: id,
                                                     content: content ?? '',
@@ -662,17 +716,17 @@ const Apparatuses = forwardRef(({
                                                     categoryId: commentCategoryIdRef.current,
                                                     userInfo: userInfo.username
                                                 }));
-                                                sidebar.setOpen(true)
-                                                dispatchEditor(setSelectedSideviewTabIndex(0))
+                                                sidebar.setOpen(true);
+                                                dispatchEditor(setSelectedSideviewTabIndex(0));
                                                 setTimeout(() => {
-                                                    onRegisterComment(id, commentCategoryIdRef.current)
-                                                }, 100)
+                                                    onRegisterComment(id, commentCategoryIdRef.current);
+                                                }, 100);
                                             }}
                                             onChangeComments={(comments) => {
-                                                dispatch(updateCommentList({ target: 'APPARATUS_TEXT', comments: comments }))
+                                                dispatch(updateCommentList({ target: 'APPARATUS_TEXT', comments: comments }));
                                             }}
                                             onChangeComment={(data) => {
-                                                dispatch(editCommentContent({ commentId: data.id, content: data.content }))
+                                                dispatch(editCommentContent({ commentId: data.id, content: data.content }));
                                             }}
                                             onCanUndo={(value) => {
                                                 dispatch(setCanUndo(value));
@@ -706,7 +760,7 @@ const Apparatuses = forwardRef(({
                                                     onClick: (data?: any) => {
                                                         const categoryId = data?.value;
                                                         commentCategoryIdRef.current = categoryId;
-                                                        editorRef?.addComment();
+                                                        registerComment(state.referenceFormat.comments_color);
                                                     },
                                                 },
                                                 {
@@ -717,18 +771,47 @@ const Apparatuses = forwardRef(({
                                                     ],
                                                     onClick: (data?: any) => {
                                                         const siglum = data?.value as Siglum;
-                                                        handleInsertSiglum(siglum)
+                                                        handleInsertSiglum(siglum);
                                                     },
                                                 },
-                                            ]}
-                                        />
+                                                {
+                                                    icon: <LinkAdd intent="primary" variant="tonal" size="small" />,
+                                                    type: linkActive ? "dropdown" : "button",
+                                                    options: [
+                                                        {
+                                                            label: t("toolbar.editLink"),
+                                                            value: "edit",
+                                                        },
+                                                        {
+                                                            label: t("toolbar.removeLink"),
+                                                            value: "remove",
+                                                        },
+                                                    ],
+                                                    onClick: (data?: any) => {
+                                                        if (!linkActive) {
+                                                            dispatchEditor(setLinkConfigVisible(true));
+                                                            return;
+                                                        }
+                                                        if (!data) return;
+                                                        if (data.value === "edit") {
+                                                            dispatchEditor(setLinkConfigVisible(true));
+                                                        } else if (data.value === "remove") {
+                                                            editorRef?.removeLink();
+                                                            dispatchEditor(setLinkConfigVisible(false));
+                                                        }
+                                                    },
+                                                },
+                                            ]} />
                                     </motion.div>
                                 </AnimatePresence>
                             </motion.div>
                         </ReorderItem>
                     ))}
                 </ReorderGroup>
-            </div>
+            </ApparatusesLayout>
+            {/* <div className={cn("h-full overflow-y-auto bg-white dark:bg-grey-10")}>
+               
+            </div> */}
 
             <Dialog
                 open={deleteApparatusDialogOpen.open}

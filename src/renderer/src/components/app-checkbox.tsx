@@ -10,8 +10,8 @@ interface AppCheckboxProps {
   disabled?: boolean,
   className?: string,
   labelClassName?: string,
-  containerClassName?:string,
-    onCheckedChange?: (checked: boolean) => void,
+  containerClassName?: string,
+  onCheckedChange?: (checked: boolean) => void,
 }
 
 const AppCheckbox = React.forwardRef<HTMLButtonElement, AppCheckboxProps>(

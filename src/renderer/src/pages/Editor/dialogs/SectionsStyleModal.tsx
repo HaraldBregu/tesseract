@@ -9,7 +9,6 @@ import Modal from "@/components/ui/modal";
 import Button from "@/components/ui/button";
 import TextField from "@/components/ui/textField";
 import Typography from "@/components/Typography";
-import Divider from "@/components/ui/divider";
 import CustomSelect from "@/components/ui/custom-select";
 import PlusCircle from "@/components/icons/PlusCircle";
 import ColorToggleGroup from "@/components/color-group-toggle";
@@ -17,12 +16,13 @@ import TextAlignToggle from "@/components/text-align-toggle";
 import SortableStylesList from "@/components/sortable-styles-list";
 import { selectEnabledStyles } from '../store/editor-styles/editor-styles.selector';
 import { updateStyles } from '../store/editor-styles/editor-styles.slice';
+import { v4 as uuidv4 } from 'uuid'
+import AppSeparator from '@/components/app/app-separator';
 
 
 /**
  * @todo:
  * - Handle system font loading (with spinner, skeleton, or by preloading at app startup)
- * - Fix bug with empty or duplicate name: it becomes readonly
  */
 
 interface SectionsStyleModalProps {
@@ -43,7 +43,6 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
   const styles = useSelector(selectEnabledStyles)
     .map((style) => ({
       ...style,
-      id: style.name,
       label: style.name,
     })) || [];
 
@@ -125,7 +124,6 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
         .filter(s => s.enabled === true)
         .map(style => ({
           ...style,
-          id: style.name,
           label: style.name,
         }));
 
@@ -134,7 +132,7 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
         setStyle(enabledStyles[0]);
       }
     } catch (err) {
-      console.log("err", err);
+      console.error("err", err);
     }
   };
 
@@ -146,7 +144,8 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
 
   // @REFACTOR: useCallback
   const handleSave = () => {
-    const updatedStyles = localStyles?.map(({ id, label, ...rest }) => rest);
+    const updatedStyles = localStyles?.map(({ label, ...rest }) => rest);
+
     dispatch(updateStyles(updatedStyles ?? []));
     window.doc.setStyles(updatedStyles ?? []);
     onClose();
@@ -154,7 +153,7 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
 
   // @REFACTOR: useCallback
   const handleExport = async () => {
-    const styles = localStyles?.map(({ id, label, ...rest }) => rest);
+    const styles = localStyles?.map(({ label, ...rest }) => rest);
     await window.doc.createStyle(styles);
     fetchExportedStyles()
   }
@@ -176,7 +175,6 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
             .filter(s => s.enabled === true)
             .map(style => ({
               ...style,
-              id: style.name,
               label: style.name,
             }));
 
@@ -207,8 +205,9 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
     }
 
     const newStyle = {
-      id: newName,
+      id: uuidv4(),
       label: newName,
+      level: undefined,
       type: "CUSTOM",
       enabled: true,
       name: newName,
@@ -242,9 +241,7 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
     const duplicate = localStyles?.find(s => s.name === name && s.id !== style.id);
 
     if (!name || duplicate) {
-      if (duplicate) {
-        alert(`A style named "${name}" already exists.`);
-      }
+      console.warn(`A style named "${name}" already exists.`);
       const fallback = originalNameRef.current;
       if (fallback) {
         const restored = { ...style, name: fallback, label: fallback };
@@ -310,7 +307,7 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
       ]}>
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel minSize={33} defaultSize={33}>
-          <div className="h-[30rem] px-5">
+          <div className="h-[28rem] px-5">
             <div className="flex justify-between my-5">
               <CustomSelect
                 disabled={!exportedStyles || exportedStyles.length === 0}
@@ -338,11 +335,14 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
                 size="small"
                 intent="secondary"
                 variant="outline"
-                className="!p-2 h-10 w-28 align-end"
+                className="h-[26px] w-[58px] align-end"
                 onClick={handleAdd}
-                leftIcon={<PlusCircle className="w-4 h-4" />}
+               
               >
-                {t("sections_styles_dialog.styles_section.add")}
+                <div className='flex py-[8px] '>
+                  <PlusCircle className="w-5 h-5 pl-[4px] ml-[-4px]" />
+                  {t("sections_styles_dialog.styles_section.add")}
+                </div>
               </Button>
             </div>
             <SortableStylesList
@@ -355,7 +355,7 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
         </ResizablePanel>
         <ResizableHandle tabIndex={-1} />
         <ResizablePanel minSize={50} defaultSize={66}>
-          <div className="w-full h-[31rem] pt-5 px-5 pb-3 flex gap-4 flex-col overflow-y-auto !bg-white dark:!bg-grey-20"
+          <div className="w-full h-[26rem] pt-5 px-5 pb-3 flex gap-4 flex-col overflow-y-auto !bg-white dark:!bg-grey-20"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -449,7 +449,7 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
                 <div>
                   <Typography component="p" className="ml-2 mb-[0.625rem] text-[11px] font-semibold">{t("sections_styles_dialog.typography_section.align")}</Typography>
                 </div>
-                <TextAlignToggle value={style?.align} onChange={(value) => updateStyleProperty("align", value)} />
+                <TextAlignToggle value={style?.align} onChange={(value) => updateStyleProperty("align", value)} disabled={!style?.align}/>
               </div>
               <div>
                 <ColorToggleGroup
@@ -457,13 +457,14 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
                   onChange={(value) => updateStyleProperty("color", value)} />
               </div>
             </div>
-            <Divider orientation="horizontal" className="my-[-0.125rem]"></Divider>
+            <AppSeparator  className= "my-[-0.125rem]"/>
             <Typography component="h2" className="-mb-[0.75rem] mt-[-0.125rem]">
               <span className="text-lg font-bold">{t("sections_styles_dialog.spacing_section.spacing")}</span>
             </Typography>
             <div className="flex gap-2 flex-wrap justify-between">
               <TextField
-                value={style?.lineHeight?.split('pt')[0] ?? ""}
+                value={style?.lineHeight?.split('pt')[0]}
+                disabled={!style?.lineHeight}
                 id="line-spacing"
                 className="flex-1 min-w-14"
                 type="number"
@@ -474,7 +475,8 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
                 onChange={(e) => updateStyleProperty("lineHeight", e.target.value)}
               />
               <TextField
-                value={style?.marginTop?.split('pt')[0] ?? ""}
+                value={style?.marginTop?.split('pt')[0]}
+                disabled={!style?.marginTop}
                 id="margin-top"
                 className="flex-1 min-w-14"
                 type="number"
@@ -484,7 +486,8 @@ function SectionsStyleModal({ open, onClose }: SectionsStyleModalProps) {
                 onChange={(e) => updateStyleProperty("marginTop", e.target.value)}
               />
               <TextField
-                value={style?.marginBottom?.split('pt')[0] ?? ""}
+                value={style?.marginBottom?.split('pt')[0]}
+                disabled={!style?.marginBottom}
                 id="margin-bottom"
                 className="flex-1 min-w-14"
                 type="number"

@@ -14,7 +14,6 @@ import Subscript from "@/components/icons/Subscript"
 import Underline from "@/components/icons/Underline"
 import Beta from "@/components/icons/Beta"
 import Bold from "@/components/icons/Bold"
-import Divider from "@/components/ui/divider"
 import Siglum from "@/components/icons/Siglum"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Italic from "@/components/icons/Italic"
@@ -22,6 +21,7 @@ import { useTranslation } from "react-i18next"
 import { oneLinerExtensionsConfig } from "@/lib/tiptap/richtext/constants"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import AppSeparator from "@/components/app/app-separator"
 
 
 type SiglumSetupMode = "empty" | "update" | "create"
@@ -66,11 +66,11 @@ export const SiglumSetup = ({
 
     const handleDeleteSiglum = useCallback((siglum: Siglum) => {
         dispatch(deleteSiglum(siglum))
-    }, [])
+    }, [state.siglumList])
 
     const handleDuplicateSiglum = useCallback((siglum: Siglum) => {
         dispatch(duplicateSiglum(siglum))
-    }, [])
+    }, [state.siglumList])
 
     const handleUpdateSiglum = useCallback(() => {
         switch (mode) {
@@ -165,7 +165,7 @@ export const SiglumSetup = ({
 
     const handleExportSiglumList = useCallback(() => {
         onExportSiglumList()
-    }, [])
+    }, [state.siglumList])
 
     const handleSetModeCreate = useCallback(() => {
         handleSetMode("create")
@@ -173,7 +173,7 @@ export const SiglumSetup = ({
 
     const handleImportSiglum = useCallback(() => {
         onImportSiglum()
-    }, [])
+    }, [state.siglumList])
 
     return (
         <Dialog
@@ -346,10 +346,13 @@ const SiglumList = ({
                         "flex items-center gap-2 w-full rounded-sm px-2 ",
                         itemSelected?.id === item.id && "bg-primary dark:bg-grey-30"
                     )}>
-                        <span className={cn(
-                            "text-sm text-gray-900 dark:text-grey-80",
-                            itemSelected?.id === item.id && "text-white dark:text-grey-90"
-                        )}>{item.siglum.value}</span>
+                        <span
+                            className={cn(
+                                "text-sm text-gray-900 dark:text-grey-80",
+                                itemSelected?.id === item.id && "text-white dark:text-grey-90"
+                            )}
+                            dangerouslySetInnerHTML={{ __html: item.siglum.content }}
+                        />
                         <div className="ml-auto flex gap-2">
                             <Button
                                 intent="secondary"
@@ -534,8 +537,8 @@ const SiglumSetupToolbar = memo(({
 
     return (
         <SiglumSetupToolbarLayout>
-            <div className="flex gap-2 items-center">
-                <div className={`flex items-center space-x-2 transition-transform duration-300`}>
+            <div className="flex gap-2 items-center h-full">
+                <div className={`flex items-center space-x-2 transition-transform duration-300 h-full`}>
                     <Select
                         value={fontFamily}
                         onValueChange={handleSetFontFamily}
@@ -557,7 +560,7 @@ const SiglumSetupToolbar = memo(({
                         </SelectContent>
                     </Select>
                 </div>
-                <Divider className="px-0" />
+                <AppSeparator orientation="vertical" className="h-4 border-grey-80 dark:border-grey-40" />
                 <Button
                     intent="secondary"
                     variant={superscript ? "tonal" : "icon"}
@@ -613,7 +616,7 @@ const SiglumSetupToolbar = memo(({
                     aria-label="underline"
                     className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
-                <Divider className="px-0" />
+                <AppSeparator orientation="vertical" className="h-4 border-grey-80 dark:border-grey-40" />
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
@@ -645,7 +648,7 @@ const SiglumSetupToolbar = memo(({
                         </div>
                     </PopoverContent>
                 </Popover>
-                <Divider className="px-0" />
+                <AppSeparator orientation="vertical" className="h-4 border-grey-80 dark:border-grey-40" />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
@@ -866,7 +869,7 @@ const SiglumSetupEditorContainer = forwardRef(({
 
 const SiglumSetupToolbarLayout = memo(({ children }: { children: React.ReactNode }) => {
     return (
-        <div className="flex gap-2 items-center justify-between  border-b border-grey-80 pb-2">
+        <div className="flex gap-2 items-center justify-between border-b border-grey-80 pb-2">
             <div className="flex gap-2 items-center">
                 {children}
             </div>

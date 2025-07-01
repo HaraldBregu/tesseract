@@ -29,7 +29,7 @@ const systemAPI: ISystemAPI = {
     getSubsets: (): Promise<Subset[]> => ipcRenderer.invoke('system:getSubsets'),
     getSymbols: (fontName: string): Promise<CharacterSet> => ipcRenderer.invoke('system:getSymbols', fontName),
     getConfiguredSpcialCharactersList: (): Promise<CharacterConfiguration[]> => ipcRenderer.invoke('system:getConfiguredSpcialCharactersList'),
-    showMessageBox: (message: string, buttons: string[]): Promise<Electron.MessageBoxReturnValue> => ipcRenderer.invoke('system:showMessageBox', message, buttons)
+    showMessageBox: (title: string, message: string, buttons: string[], type?: string): Promise<Electron.MessageBoxReturnValue> => ipcRenderer.invoke('system:showMessageBox', title, message, buttons, type)
 }
 
 const applicationAPI: IApplicationAPI = {
@@ -38,8 +38,17 @@ const applicationAPI: IApplicationAPI = {
     closeChildWindow: (): Promise<void> => ipcRenderer.invoke('application:closeChildWindow'),
 }
 
+const debugAPI = {
+    getLayoutTabs: (): Promise<Tab[]> => ipcRenderer.invoke('debug:getLayoutTabs'),
+    getCurrentTabs: (): Promise<Tab[]> => ipcRenderer.invoke('debug:getCurrentTabs'),
+    testTabRestoration: (): Promise<{ success: boolean, count?: number, error?: string }> => ipcRenderer.invoke('debug:testTabRestoration'),
+    forceSaveTabs: (): Promise<Tab[]> => ipcRenderer.invoke('debug:forceSaveTabs'),
+}
+
 const documentAPI: IDocumentAPI = {
     openDocument: (): Promise<void> => ipcRenderer.invoke('document:openDocument'),
+    saveDocument: (): Promise<boolean> => ipcRenderer.invoke('document:saveDocument'),
+    getMainText: (): Promise<object> => ipcRenderer.invoke('document:getMainText'),
     getTemplates: (): Promise<string[]> => ipcRenderer.invoke('document:getTemplates'),
     importTemplate: (): Promise<void> => ipcRenderer.invoke('document:importTemplate'),
     createTemplate: (template: unknown, name: string): Promise<void> => ipcRenderer.invoke('document:createTemplate', template, name),
@@ -55,7 +64,11 @@ const documentAPI: IDocumentAPI = {
     createStyle: (style: unknown): Promise<void> => ipcRenderer.invoke('document:createStyle', style, name),
     importStyle: (): Promise<string> => ipcRenderer.invoke('document:importStyle'),
     exportSiglumList: (siglumList: Siglum[]): Promise<void> => ipcRenderer.invoke('document:exportSiglumList', siglumList),
-    importSiglumList: (): Promise<Siglum[]> => ipcRenderer.invoke('document:importSiglumList')
+    importSiglumList: (): Promise<Siglum[]> => ipcRenderer.invoke('document:importSiglumList'),
+    setReferencesFormat: (referencesFormat: ReferencesFormat): Promise<void> => ipcRenderer.invoke('document:setReferencesFormat', referencesFormat),
+    getReferencesFormat: (): Promise<ReferencesFormat> => ipcRenderer.invoke('document:getReferencesFormat'),
+    setMetadata: (metadata: DocumentMetadata[]): Promise<void> => ipcRenderer.invoke('document:setMetadata', metadata),
+    getMetadata: (): Promise<DocumentMetadata[]> => ipcRenderer.invoke('document:getMetadata')
 }
 
 const preferencesAPI: IPreferencesAPI = {
@@ -85,6 +98,7 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('doc', documentAPI)
         contextBridge.exposeInMainWorld('theme', themeAPI)
         contextBridge.exposeInMainWorld('preferences', preferencesAPI)
+        contextBridge.exposeInMainWorld('debug', debugAPI)
     } catch (error) {
         console.error(error)
     }

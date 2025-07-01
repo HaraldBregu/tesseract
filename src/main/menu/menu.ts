@@ -9,7 +9,7 @@ import { buildFormatMenu } from "./items/format-menu";
 import { buildViewMenu } from "./items/view-menu";
 import { buildHelpMenu } from "./items/help-menu";
 import { buildDeveloperMenu } from "./items/developer-menu";
-import { buildLanguageMenu } from "./items/language-menu";
+// import { buildLanguageMenu } from "./items/language-menu";
 import { buildCriterionMacMenu } from "./items/criterion-mac-menu";
 import { buildSettingsMenu } from "./items/settings-menu";
 import { setIsNewDocument, setMenuViewMode } from "../shared/constants";
@@ -64,7 +64,7 @@ const buildMenu = (
   }
   if (is.dev) {
     menuTemplate.push(buildDeveloperMenu(onClick))
-    menuTemplate.push(buildLanguageMenu(onClick))
+    // menuTemplate.push(buildLanguageMenu(onClick))
   }
 
   const menu = Menu.buildFromTemplate(menuTemplate);
@@ -93,7 +93,7 @@ export class ApplicationMenu {
     setIsNewDocument(isNew)
     return ApplicationMenu.instance
   }
-  
+
   build(onClick: (menuItem: MenuItem) => void): ApplicationMenu {
     const menu = buildMenu(onClick)
     Menu.setApplicationMenu(menu)

@@ -143,15 +143,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
       layoutTemplate: includedElements,
     };
 
-    // Check if rememberLayout is enabled and save to electron store
-    try {
-      const preferences = await window.preferences.getPreferences();
-      if (preferences.rememberLayout) {
-        window.preferences.savePageSetup(pageSetupData);
-      }
-    } catch (error) {
-      console.error('Error checking rememberLayout preference:', error);
-    }
+    // Note: rememberLayout functionality has been disabled
 
     const isTocVisible = includedElements.toc.visible;
 
@@ -175,7 +167,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
         title={t("pageSetup.title")}
         isOpen={open}
         onOpenChange={() => { }}
-        className="flex flex-col w-full xl:max-w-[80vw] max-w-[98vw] h-[98%] xl:h-[90%] overflow-hidden !gap-0"
+        className="flex flex-col w-full xl:max-w-[70vw] max-w-[98vw] h-[98%] xl:h-[90%] overflow-hidden !gap-0"
         actions={[
           <Button
             key="cancel"
@@ -204,7 +196,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
       >
         <div className="flex flex-2 flex-row justify-between bg-gray-100 dark:bg-grey-20 overflow-y-hidden h-full min-w-[20vw]" >
           <div
-            className="flex w-[259px] pt-5 pb-5 pl-[12px] pr-[12px] overflow-auto flex-col bg-white dark:bg-grey-10 h-full"
+            className="flex w-1/4 pt-5 pb-5 pl-[12px] pr-[12px] overflow-auto flex-col bg-white dark:bg-grey-10 h-full"
             style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
           >
             <div>
@@ -229,7 +221,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
               </Accordion>
             </div>
           </div>
-          <div className="flex w-[532px] justify-center p-5 overflow-y-auto" style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}>
+          <div className="flex w-5/12 justify-center p-5 overflow-y-auto" style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}>
             <SortableArea<SetupDialogStateKeys>
               includedElements={includedElements}
               itemLs={orderedItms}
@@ -238,7 +230,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
               wrapper={(x) => (
                 <Accordion
                   type="single"
-                  className="!p-0 flex flex-col w-[393px] gap-2"
+                  className="!p-0 flex flex-col w-full gap-2"
                   collapsible
                   onValueChange={(v) => setCurSection(v)}
                 >
@@ -252,7 +244,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
                   v={v}
                   title={t(`pageSetup.component.section.${v}`)}
                 >
-                  <div className="bg-white dark:bg-grey-10 w-[24.5rem] p-2 lg:p-5 flex flex-row justify-start gap-4 border-t h-[30rem]">
+                  <div className="bg-white dark:bg-grey-10 w-full p-2 lg:p-5 flex flex-row justify-center gap-4 border-t h-[63vh]">
                     <AppRadioGroup
                       disabled={isReadonly}
                       items={layouts
@@ -280,7 +272,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
                           payload: lt,
                         })
                       }
-                      className="flex flex-col gap-2 items-center"
+                      className="flex flex-col gap-2 items-center !w-1/4"
                       variant="icon"
                     />
 
@@ -291,7 +283,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
                         apparatusDetails={apparatusColDetails || []}
                         textDetails={textColDetails || {}}
                         showDetails
-                        className="!w-[281px] p-4 col-span-3 h-[398px]"
+                        className="!w-full p-4 col-span-3 h-[90%]"
                       />
                     ) : (
                       <LayoutShapeText layout={curLayout} />
@@ -309,7 +301,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
             curSection !== "intro" &&
             curSection !== "bibliography" ? (
             <div
-              className="overflow-auto flex w-[280px] gap-3 pt-5 pb-5 pl-[12px] pr-[12px] flex-col bg-white dark:bg-grey-10"
+              className="overflow-auto flex min-w-1/4 gap-3 pt-5 pb-5 pl-[12px] pr-[12px] flex-col bg-white dark:bg-grey-10"
               style={{ scrollbarWidth: "none" }}
             >
               <>
@@ -334,7 +326,7 @@ export function PageSetupDialog({ open, onClose, onSave, apparatusesList }: Page
               </>
             </div>
           ) : (
-            <div className="flex w-[280px] pt-5 pb-5 pl-[12px] pr-[12px] flex-col bg-transparent dark:bg-transparent" />
+            <div className="flex w-1/4 pt-5 pb-5 pl-[12px] pr-[12px] flex-col bg-transparent dark:bg-transparent" />
           )}
         </div>
       </Modal>

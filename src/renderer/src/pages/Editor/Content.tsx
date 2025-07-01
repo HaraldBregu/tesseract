@@ -4,16 +4,15 @@ import {
     useCallback,
     useEffect,
     useImperativeHandle,
-    useMemo,
     useRef,
     useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
     selectApparatuses,
-    selectBookmarkHighlighted,
+    selectCanAddBookmark,
+    selectCanAddComment,
     selectCanEdit,
-    selectCommentHighlighted,
     selectTocSettings,
     selectToolbarEmphasisState,
     showTocChecked,
@@ -28,8 +27,6 @@ import {
     setEmphasisState,
     setTocStructure,
     setHeadingEnabled,
-    toggleBookmarkHighlighted,
-    toggleCommentHighlighted,
     setComment,
     setCanAddComment,
     createApparatusesFromLayout,
@@ -105,12 +102,15 @@ import { selectStyles } from "./store/editor-styles/editor-styles.selector";
 import { useSidebar } from "@/components/ui/sidebar";
 import ChooseTemplateModal from "./dialogs/ChooseTemplateModal";
 import { useEditor } from "./hooks/useEditor";
-import { setCharacters, setEditorFocus, setSelectedSideviewTabIndex, setWords } from "./provider";
+import { setCharacters, setEditorFocus, setLinkConfigVisible, setSelectedSideviewTabIndex, setWords, toggleBookmarkHighlighted, toggleCommentHighlighted } from "./provider";
+import { useAutoDocumentSync } from "@/hooks/use-auto-document-sync";
+import { Fragment } from "@tiptap/pm/model";
 
 
 interface ContentProps {
     onFocusEditor: () => void;
     showToolbar: boolean;
+    linkActive: boolean;
     onRegisterBookmark: (id: string, categoryId?: string) => void;
     onRegisterComment: (id: string, categoryId?: string) => void;
 }
@@ -131,6 +131,7 @@ export const Content = forwardRef((
     {
         onFocusEditor,
         showToolbar,
+        linkActive,
         onRegisterBookmark,
         onRegisterComment
     }: ContentProps,
@@ -149,6 +150,16 @@ export const Content = forwardRef((
                 editorRef?.current?.redo();
             },
             setHeadingLevel: async (headingLevel: number) => {
+                const position = editorRef?.current?.setHeading(headingLevel);
+                setTimeout(() => {
+                    editorRef?.current?.focus();
+                    if (position) {
+                        editorRef?.current?.setTextSelection(position);
+                    }
+                }, 100);
+            },
+            /*
+            setHeadingLevel: async (headingLevel: number) => {
                 const position = editorRef?.current?.setHeadingLevel(headingLevel);
                 setTimeout(() => {
                     editorRef?.current?.focus();
@@ -157,8 +168,36 @@ export const Content = forwardRef((
                     }
                 }, 100);
             },
+            setBody: () => {
+                editorRef?.current?.setBody();
+                setTimeout(() => {
+                    editorRef?.current?.focus();
+                }, 100);
+            },
+*/
+            setHeading: async (style: Style) => {
+                const position = editorRef?.current?.setCustomHeading(style);
+                setTimeout(() => {
+                    editorRef?.current?.focus();
+                    if (position) {
+                        editorRef?.current?.setTextSelection(position);
+                    }
+                }, 100);
+            },
+            // @ts-ignore
             setBody: (style) => {
-                editorRef?.current?.setBody(style);
+                // editorRef?.current?.setCustomBody(style);
+                // setTimeout(() => {
+                //     editorRef?.current?.focus();
+                // }, 100);
+                // editorRef?.current?.setBody();
+                editorRef?.current?.setBody();
+                setTimeout(() => {
+                    editorRef?.current?.focus();
+                }, 100);
+            },
+            setCustomStyle: (style) => {
+                editorRef?.current?.setCustomStyle(style);
                 setTimeout(() => {
                     editorRef?.current?.focus();
                 }, 100);
@@ -217,9 +256,9 @@ export const Content = forwardRef((
             continuePreviousNumbering: () => {
                 editorRef?.current?.continuePreviousNumbering();
             },
-            addBookmark: (categoryId?: string) => {
+            addBookmark: (color: string, categoryId?: string) => {
                 bookmarkCategoryIdRef.current = categoryId;
-                registerBookmark();
+                registerBookmark(color);
             },
             unsetBookmark: () => {
                 editorRef?.current?.unsetBookmark();
@@ -233,9 +272,9 @@ export const Content = forwardRef((
             deleteBookmarks: (bookmarks: Bookmark[]) => {
                 editorRef?.current?.deleteBookmarks(bookmarks);
             },
-            addComment: (categoryId?: string) => {
+            addComment: (color: string, categoryId?: string) => {
                 commentCategoryIdRef.current = categoryId;
-                registerComment();
+                registerComment(color);
             },
             unsetComment: () => {
                 editorRef?.current?.unsetComment();
@@ -254,6 +293,95 @@ export const Content = forwardRef((
             },
             insertCharacter: (character: number) => {
                 editorRef?.current?.insertCharacter(character);
+            },
+            setLink: (url: string) => {
+                editorRef?.current?.setLink(url);
+            },
+            removeLink: () => {
+                editorRef?.current?.removeLink();
+            },
+            cut: () => {
+                const innerHtml = editorRef?.current?.selectedInnerHtmlString()
+                const text = editorRef?.current?.selectedText()
+
+                const clipboardItem = new ClipboardItem({
+                    'text/plain': new Blob([text], { type: 'text/plain' }),
+                    'text/html': new Blob([innerHtml], { type: 'text/html' }),
+                })
+
+                const clipboardItems: ClipboardItem[] = []
+                clipboardItems.push(clipboardItem)
+
+                navigator.clipboard
+                    .write(clipboardItems)
+                    .then(() => {
+                        editorRef?.current?.deleteSelection()
+                    })
+                    .catch((err) => {
+                        console.error('Clipboard write failed:', err);
+                    });
+            },
+            copy: () => {
+                const text = editorRef?.current?.selectedText()
+                navigator.clipboard.writeText(text)
+            },
+            copyStyle: () => {
+                const text = editorRef?.current?.selectedText()
+                navigator.clipboard.writeText(text)
+            },
+            paste: () => {
+                // navigator.clipboard.readText().then((text) => {
+                //         editorRef?.current?.insertContent(text)
+                // })
+
+                // navigator.clipboard
+                //     .readText()
+                //     .then((text) => {
+                //         console.log('Clipboard text:', text);
+                //     }).catch((err) => {
+                //         console.error('Failed to read clipboard:', err);
+                //     });
+
+                navigator.clipboard
+                    .read()
+                    .then((items) => {
+                        // console.log("items: ", items);
+
+                        items.forEach(async (item) => {
+                            if (item.types.includes('text/html')) {
+                                const blob = await item.getType('text/html');
+                                //@ts-ignore
+                                const html = await blob.text();
+                                // console.log("html: ", html)
+                                // editor.commands.focus();
+                                // editor.commands.insertContent(html, {
+                                //     parseOptions: {
+                                //         preserveWhitespace: 'full',
+                                //     },
+                                // });
+                            }
+                            else if (item.types.includes('text/plain')) {
+                                const blob = await item.getType('text/plain');
+                                //@ts-ignore
+                                const text = await blob.text();
+                                // console.log("text: ", text)
+                                // editor.commands.focus();
+                                // editor.commands.insertContent(text);
+                                // break;
+                            }
+                        })
+
+
+                        // const blob = await item.getType('text/html');
+                        // const html = await blob.text();
+
+                        // editorRef?.current?.insertContent(html)
+                    });
+            },
+            pasteStyle: () => {
+                navigator.clipboard.readText().then((text) => {
+                    editorRef?.current?.insertContent(text)
+                })
             }
         };
     });
@@ -263,7 +391,6 @@ export const Content = forwardRef((
     const [state, dispatchEditor] = useEditor();
     const dispatch = useDispatch();
     const emphasisState = useSelector(selectToolbarEmphasisState);
-
     const criticalTextEditorRef = useRef<any>();
 
     const [editorRef, setEditorRef] = useState<any>(null);
@@ -310,21 +437,17 @@ export const Content = forwardRef((
     const introductionContentRef = useRef<any>(null);
     const bibliographyContentRef = useRef<any>(null);
 
-    const registerComment = useCallback(() => {
-        editorRef?.current?.addComment("MAIN_TEXT");
+    const registerComment = useCallback((color: string) => {
+        editorRef?.current?.addComment(color);
     }, [editorRef]);
 
-    const registerBookmark = useCallback(() => {
-        criticalTextEditorRef?.current?.addBookmark();
-    }, []);
+    const registerBookmark = useCallback((color: string) => {
+        criticalTextEditorRef?.current?.addBookmark(color);
+    }, [criticalTextEditorRef?.current]);
 
     const handleScrollToComment = useCallback((comment: AppComment) => {
-        switch (comment.target) {
-            case "MAIN_TEXT":
-                criticalTextEditorRef?.current?.scrollToComment(comment.id);
-                break;
-        }
-    }, []);
+        criticalTextEditorRef?.current?.scrollToComment(comment.id);
+    }, [criticalTextEditorRef?.current]);
 
     // @REFACTOR: some of this functions could be moved to a different file (ELayout.tsx)
     useIpcRenderer(
@@ -335,17 +458,17 @@ export const Content = forwardRef((
 
             ipc.on("CmdOrCtrl+Shift+K", () => {
                 commentCategoryIdRef.current = undefined;
-                registerComment();
+                registerComment(state.referenceFormat.comments_color);
             });
 
             ipc.on("insert-comment", () => {
                 commentCategoryIdRef.current = undefined;
-                registerComment();
+                registerComment(state.referenceFormat.comments_color);
             });
 
-            ipc.on("insert-bookmark", () => {
+            ipc.on("insert-bookmark", (_) => {
                 bookmarkCategoryIdRef.current = undefined;
-                registerBookmark();
+                registerBookmark(state.referenceFormat.bookmarks_color);
             });
 
             // @ts-ignore
@@ -559,6 +682,8 @@ export const Content = forwardRef((
                 setIsChooseTemplateModalOpen(true);
             });
 
+            // Note: "load-saved-layout" IPC handler has been disabled (rememberLayout functionality removed)
+
             ipc.on("save-as-template", () => {
                 setIsSaveAsTemplateModalOpen(true);
             });
@@ -579,33 +704,7 @@ export const Content = forwardRef((
         [window.electron.ipcRenderer, editorRef, emphasisState]
     );
 
-    const maybeLoadSavedPageSetup = async (currentTemplate: any) => {
-        try {
-            const preferences = await window.preferences.getPreferences();
-            const needsPageSetup =
-                !currentTemplate?.pageSetup ||
-                !currentTemplate?.layoutTemplate ||
-                !currentTemplate?.sort;
-
-            if (preferences.rememberLayout && needsPageSetup) {
-                const savedPageSetup = await window.preferences.getPageSetup();
-                if (savedPageSetup) {
-                    console.log(
-                        'Loading saved page setup for document without page setup:',
-                        savedPageSetup
-                    );
-                    currentTemplate = {
-                        ...currentTemplate,
-                        pageSetup: currentTemplate?.pageSetup ?? savedPageSetup.pageSetup,
-                        layoutTemplate: currentTemplate?.layoutTemplate ?? savedPageSetup.layoutTemplate,
-                        sort: currentTemplate?.sort ?? savedPageSetup.sort,
-                    };
-                }
-            }
-        } catch (error) {
-            console.error('Error loading saved page setup:', error);
-        }
-    };
+    // Note: maybeLoadSavedPageSetup function has been disabled (rememberLayout functionality removed)
 
     useEffect(() => {
         const taskId = rendererLogger.startTask(
@@ -617,59 +716,113 @@ export const Content = forwardRef((
         window.electron.ipcRenderer.on(
             "load-document",
             async (_event, document: any) => {
-                const criticalText = document.main_text;
-                const annotations = document.annotations;
-                const comments = annotations?.comments;
-                const commentCategories = annotations?.commentCategories;
-                const bookmarks = annotations?.bookmarks;
-                const bookmarkCategories = annotations?.bookmarkCategories;
-                let currentTemplate = document.template;
+                try {
+                    setIsDocumentLoading(true); // Prevent template overwrites during loading
+                    rendererLogger.debug("Document", `Loading document data - hasMainText: ${document?.mainText !== undefined}, mainTextType: ${typeof document?.mainText}`);
 
-                // Check if rememberLayout is enabled and if document doesn't have page setup
+                    // Handle both camelCase (new) and snake_case (legacy) for backward compatibility
+                    const criticalText = document.mainText || document.main_text;
+                    const annotations = document.annotations;
+                    const comments = annotations?.comments;
+                    const commentCategories = annotations?.commentCategories;
+                    const bookmarks = annotations?.bookmarks;
+                    const bookmarkCategories = annotations?.bookmarkCategories;
+                    let currentTemplate = document.template;
 
-                await maybeLoadSavedPageSetup(currentTemplate);
+                    // Validate and ensure criticalText has proper structure
+                    let validatedCriticalText = criticalText;
+                    if (!criticalText || typeof criticalText !== 'object') {
+                        rendererLogger.debug("Document", "Invalid or missing main_text, using default structure");
+                        validatedCriticalText = {
+                            type: "doc",
+                            content: []
+                        };
+                    } else if (!criticalText.type || !criticalText.content) {
+                        rendererLogger.debug("Document", "Incomplete main_text structure, normalizing");
+                        validatedCriticalText = {
+                            type: criticalText.type || "doc",
+                            content: Array.isArray(criticalText.content) ? criticalText.content : []
+                        };
+                    }
 
-                criticalTextEditorRef.current.setJSON(criticalText);
+                    // Safely set the JSON content with error handling
+                    try {
+                        if (criticalTextEditorRef.current) {
+                            await criticalTextEditorRef.current.setJSON(validatedCriticalText);
+                            rendererLogger.debug("Document", "Main text loaded successfully");
+                        } else {
+                            rendererLogger.error("Document", "Critical text editor ref not available");
+                        }
+                    } catch (setJsonError) {
+                        rendererLogger.error("Document", "Error setting JSON content", setJsonError as Error);
+                        // Fallback to empty document if setJSON fails
+                        if (criticalTextEditorRef.current) {
+                            await criticalTextEditorRef.current.setJSON({
+                                type: "doc",
+                                content: []
+                            });
+                        }
+                    }
 
-                commentsRef.current = comments;
-                commentsCategoriesRef.current = commentCategories;
-                bookmarksRef.current = bookmarks;
-                bookmarkCategoriesRef.current = bookmarkCategories;
+                    // Note: Auto-saving of document layout has been disabled (rememberLayout functionality removed)
 
-                const tocSettings = currentTemplate?.paratextual?.tocSettings
-                const lineNumberSettings = currentTemplate?.paratextual?.lineNumberSettings;
-                const pageNumberSettings = currentTemplate?.paratextual?.pageNumberSettings;
-                const headerSettings = currentTemplate?.paratextual?.headerSettings;
-                const footerSettings = currentTemplate?.paratextual?.footerSettings;
-                const templateStyles = currentTemplate?.styles || [];
+                    commentsRef.current = comments || [];
+                    commentsCategoriesRef.current = commentCategories || [];
+                    bookmarksRef.current = bookmarks || [];
+                    bookmarkCategoriesRef.current = bookmarkCategories || [];
 
-                tocSettingsRef.current = tocSettings;
-                lineNumberSettingsRef.current = lineNumberSettings;
-                pageNumberSettingsRef.current = pageNumberSettings;
-                headerSettingsRef.current = headerSettings
-                footerSettingsRef.current = footerSettings;
+                    const tocSettings = currentTemplate?.paratextual?.tocSettings
+                    const lineNumberSettings = currentTemplate?.paratextual?.lineNumberSettings;
+                    const pageNumberSettings = currentTemplate?.paratextual?.pageNumberSettings;
+                    const headerSettings = currentTemplate?.paratextual?.headerSettings;
+                    const footerSettings = currentTemplate?.paratextual?.footerSettings;
+                    const templateStyles = currentTemplate?.styles || [];
 
-                dispatch(
-                    updateSetupPageState({
-                        setupDialogState: currentTemplate?.layoutTemplate,
-                        sort: currentTemplate?.sort,
-                        setupOption: currentTemplate?.pageSetup,
-                    }));
+                    tocSettingsRef.current = tocSettings;
+                    lineNumberSettingsRef.current = lineNumberSettings;
+                    pageNumberSettingsRef.current = pageNumberSettings;
+                    headerSettingsRef.current = headerSettings
+                    footerSettingsRef.current = footerSettings;
 
-                dispatch(setComments(comments));
-                dispatch(setCommentsCategories(commentCategories));
-                dispatch(setBookmarks(bookmarks));
-                dispatch(setBookmarksCategories(bookmarkCategories));
+                    dispatch(
+                        updateSetupPageState({
+                            setupDialogState: currentTemplate?.layoutTemplate,
+                            sort: currentTemplate?.sort,
+                            setupOption: currentTemplate?.pageSetup,
+                        }));
 
-                dispatch(updateTocSettings(tocSettings));
-                dispatch(updateLineNumberSettings(lineNumberSettings));
-                dispatch(updatePageNumberSettings(pageNumberSettings));
-                dispatch(updateHeaderSettings(headerSettings));
-                dispatch(updateFooterSettings(footerSettings));
-                setSelectedTemplate(currentTemplate);
-                dispatch(updateStyles(templateStyles));
-                window.doc.setStyles(templateStyles);
+                    dispatch(setComments(comments || []));
+                    dispatch(setCommentsCategories(commentCategories || []));
+                    dispatch(setBookmarks(bookmarks || []));
+                    dispatch(setBookmarksCategories(bookmarkCategories || []));
 
+                    dispatch(updateTocSettings(tocSettings));
+                    dispatch(updateLineNumberSettings(lineNumberSettings));
+                    dispatch(updatePageNumberSettings(pageNumberSettings));
+                    dispatch(updateHeaderSettings(headerSettings));
+                    dispatch(updateFooterSettings(footerSettings));
+                    setSelectedTemplate(currentTemplate);
+                    dispatch(updateStyles(templateStyles));
+                    window.doc.setStyles(templateStyles);
+
+                    rendererLogger.debug("Document", "Document loading completed successfully");
+                    setIsDocumentLoading(false); // Loading complete, safe to apply templates
+                } catch (error) {
+                    rendererLogger.error("Document", "Error during document loading", error as Error);
+                    setIsDocumentLoading(false); // Reset loading state on error
+
+                    // Fallback: Initialize with empty document
+                    try {
+                        if (criticalTextEditorRef.current) {
+                            await criticalTextEditorRef.current.setJSON({
+                                type: "doc",
+                                content: []
+                            });
+                        }
+                    } catch (fallbackError) {
+                        rendererLogger.error("Document", "Error in fallback document initialization", fallbackError as Error);
+                    }
+                }
             }
         );
 
@@ -680,36 +833,46 @@ export const Content = forwardRef((
         );
     }, [window.electron.ipcRenderer]);
 
-    // @REFACTOR: use a better way to do this, or split this function in smaller ones
-    const updateHandler = useCallback(() => {
-        const taskId = rendererLogger.startTask("TextEditor", "Content update");
+    // Initialize auto document sync hook
+    const { syncDocumentData } = useAutoDocumentSync({
+        debounceDelay: 300,
+        enabled: true,
+        enableLogging: true
+    });
+
+    // Improved sync function that automatically handles all document data
+    const syncAllDocumentData = useCallback(() => {
+        // Prevent syncing during document loading to avoid conflicts
+        if (isDocumentLoading) {
+            return;
+        }
 
         const textEditorJson = criticalTextEditorRef.current?.getJSON();
 
-        window.electron.ipcRenderer.send("update-critical-text", textEditorJson);
+        const documentData = {
+            criticalText: textEditorJson,
+            annotations: {
+                comments: commentsRef.current || [],
+                commentCategories: commentsCategoriesRef.current,
+                bookmarks: bookmarksRef.current,
+                bookmarkCategories: bookmarkCategoriesRef.current,
+            },
+            paratextual: {
+                tocSettings: tocSettingsRef.current,
+                lineNumberSettings: lineNumberSettingsRef.current,
+                pageNumberSettings: pageNumberSettingsRef.current,
+                headerSettings: headerSettingsRef.current,
+                footerSettings: footerSettingsRef.current,
+            },
+            layoutTemplate,
+            pageSetup,
+            sort,
+            styles,
+        };
 
-        window.electron.ipcRenderer.send("update-annotations", {
-            comments: commentsRef.current || [],
-            commentCategories: commentsCategoriesRef.current,
-            bookmarks: bookmarksRef.current,
-            bookmarkCategories: bookmarkCategoriesRef.current,
-        });
-
-        window.doc.setLayoutTemplate(layoutTemplate);
-        window.doc.setPageSetup(pageSetup);
-        window.doc.setSort(sort);
-        window.doc.setStyles(styles);
-
-        window.doc.setParatextual({
-            tocSettings: tocSettingsRef.current,
-            lineNumberSettings: lineNumberSettingsRef.current,
-            pageNumberSettings: pageNumberSettingsRef.current,
-            headerSettings: headerSettingsRef.current,
-            footerSettings: footerSettingsRef.current,
-        });
-
-        rendererLogger.endTask(taskId, "TextEditor", "Editor content updated");
+        syncDocumentData(documentData);
     }, [
+        syncDocumentData,
         styles,
         layoutTemplate,
         pageSetup,
@@ -726,51 +889,47 @@ export const Content = forwardRef((
         footerSettingsRef,
     ]);
 
-    useEffect(() => {
-        const updateContentRefs = () => {
-            const textEditorJson = criticalTextEditorRef.current?.getJSON();
+    const updateContentRefs = useCallback(() => {
+        const textEditorJson = criticalTextEditorRef.current?.getJSON();
 
-            const introductionData = extractSectionsFromGlobalText(
-                textEditorJson,
-                "introduction"
-            );
+        const introductionData = extractSectionsFromGlobalText(
+            textEditorJson,
+            "introduction"
+        );
 
-            const extractedMainTextSections = extractSectionsFromGlobalText(
-                textEditorJson,
-                "maintext"
-            );
-            const bibliographyData = extractSectionsFromGlobalText(
-                textEditorJson,
-                "bibliography"
-            );
+        const extractedMainTextSections = extractSectionsFromGlobalText(
+            textEditorJson,
+            "maintext"
+        );
+        const bibliographyData = extractSectionsFromGlobalText(
+            textEditorJson,
+            "bibliography"
+        );
 
-            const tocStructureData = createTocTreeStructure(
-                {
-                    type: "doc",
-                    content: extractedMainTextSections,
-                },
-                tocSettings
-            );
+        const tocStructureData = createTocTreeStructure(
+            {
+                type: "doc",
+                content: extractedMainTextSections,
+            },
+            tocSettingsRef.current
+        );
 
-            const tocForText = createTiptapJSONStructure(
-                tocStructureData,
-                tocSettings,
-                window.innerWidth / 2.3
-            );
+        const tocForText = createTiptapJSONStructure(
+            tocStructureData,
+            tocSettingsRef.current,
+            window.innerWidth / 2.3
+        );
 
-            // Store the Table of Contents (TOC) structure in a ref to ensure it can be accessed and updated without triggering unnecessary re-renders.
-            tocForTextRef.current = tocForText;
-            introductionContentRef.current = introductionData;
-            mainTextContentRef.current = extractedMainTextSections;
-            bibliographyContentRef.current = bibliographyData;
+        // Store the Table of Contents (TOC) structure in a ref to ensure it can be accessed and updated without triggering unnecessary re-renders.
+        tocForTextRef.current = tocForText;
+        introductionContentRef.current = introductionData;
+        mainTextContentRef.current = extractedMainTextSections;
+        bibliographyContentRef.current = bibliographyData;
 
-            setTimeout(() => {
-                dispatch(setTocStructure(tocStructureData));
-            }, 100);
-        };
-
-        updateContentRefs();
-    }, [tocSettings]);
+        setTimeout(() => {
+            dispatch(setTocStructure(tocStructureData));
+        }, 100);
+    }, [criticalTextEditorRef, tocSettingsRef.current]);
 
     useEffect(() => {
         commentsRef.current = comments;
@@ -782,7 +941,7 @@ export const Content = forwardRef((
         pageNumberSettingsRef.current = pageNumberSettings;
         headerSettingsRef.current = headerSettings;
         footerSettingsRef.current = footerSettings;
-        updateHandler();
+        syncAllDocumentData();
     }, [
         comments,
         commentsCategories,
@@ -795,9 +954,35 @@ export const Content = forwardRef((
         footerSettings,
     ]);
 
+    // @TODO: this is how we should handle the main text
+    // useEffect(() => {
+    //     const taskId = rendererLogger.startTask("TextEditor", "Load main text");
+    //     async function loadMainText() {
+    //         const mainText = await window.doc.getMainText() as object
+    //         console.log("mainText: ", mainText)
+    //     }
+    //     loadMainText()
+    //     rendererLogger.endTask(taskId, "TextEditor", "Load main text action completed");
+    // }, [window.doc]);
+
+
+
     // @REFACTOR: this is a heavy function, we should refactor it
     const updateTemplates = useCallback(async (showToc: boolean = true) => {
-        let data: unknown[] = []
+        let data: Fragment[] = []
+
+        const tocContent = tocForTextRef.current?.content
+        const toc = tocContent.length === 0 ? null : tocContent
+
+        const introductionContent = introductionContentRef.current
+        const introduction = introductionContent.length === 0 ? null : introductionContent
+
+        const bibliographyContent = bibliographyContentRef.current
+        const bibliography = bibliographyContent.length === 0 ? null : bibliographyContent
+
+        const mainTextContent = mainTextContentRef.current
+        const mainText = mainTextContent.length === 0 ? null : mainTextContent
+
         sort.forEach(
             item => {
                 if (layoutTemplate[item].visible) {
@@ -807,7 +992,7 @@ export const Content = forwardRef((
                                 data.push(
                                     ...tocTemplate(
                                         t("dividerSections.toc"),
-                                        tocForTextRef.current?.content
+                                        toc
                                     ),
                                 );
                             }
@@ -816,7 +1001,7 @@ export const Content = forwardRef((
                             data.push(
                                 ...introTemplate(
                                     t("dividerSections.introduction"),
-                                    introductionContentRef.current
+                                    introduction
                                 ),
                             );
                             break;
@@ -824,14 +1009,14 @@ export const Content = forwardRef((
                             data.push(
                                 ...bibliographyTemplate(
                                     t("dividerSections.bibliography"),
-                                    bibliographyContentRef.current
+                                    bibliography
                                 )
                             );
                             break;
                         case "critical":
                             data.push(
                                 ...textTemplate(t("dividerSections.mainText"),
-                                    mainTextContentRef.current
+                                    mainText
                                 ),
                             );
                             break;
@@ -845,19 +1030,21 @@ export const Content = forwardRef((
             content: data
         };
 
+        console.log("content: ", content)
+        await criticalTextEditorRef.current.setJSON(content);
+
         // @REFACTOR: check again this solution, this could generate future issues
-        try {
-            await criticalTextEditorRef.current.setJSON(content);
-            setTimeout(() => {
-                criticalTextEditorRef.current.scrollToSection("toc");
-            }, 1000);
-        } catch (error) {
-            console.error("Error updating templates:", error);
-        }
+        // try {
+        //     await criticalTextEditorRef.current.setJSON(content);
+        //     setTimeout(() => {
+        //         criticalTextEditorRef.current.scrollToSection("toc");
+        //     }, 1000);
+        // } catch (error) {
+        //     console.error("Error updating templates:", error);
+        // }
     }, [
         sort,
         layoutTemplate,
-        tocSettings,
         tocForTextRef,
         introductionContentRef,
         mainTextContentRef,
@@ -881,8 +1068,7 @@ export const Content = forwardRef((
     const [isCustomSpacingOpen, setIsCustomSpacingOpen] = useState(false);
     const [isResumeNumberingOpen, setIsResumeNumberingOpen] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null)
-
-    const memoizedTocSettings = useMemo(() => tocSettings, [tocSettings]);
+    const [isDocumentLoading, setIsDocumentLoading] = useState(false);
 
     // @REFACTOR: use "useCallback" for this function and generally always use it
     const extractEditorSections = (textEditorJson: any) => {
@@ -904,13 +1090,13 @@ export const Content = forwardRef((
     const generateTocForText = (tocStructureData: any) => {
         return createTiptapJSONStructure(
             tocStructureData,
-            memoizedTocSettings,
+            tocSettingsRef.current,
             window.innerWidth / 2.3
         );
     };
 
     const updateHandlerEffect = useCallback(() => {
-        updateHandler();
+        syncAllDocumentData();
 
         const textEditorJson = criticalTextEditorRef.current?.getJSON();
         const { mainTextData, introductionData, bibliographyData } = extractEditorSections(textEditorJson);
@@ -920,7 +1106,7 @@ export const Content = forwardRef((
             content: mainTextData,
         }
 
-        const tocStructureData = createTocTreeStructure(mainTextContent, memoizedTocSettings);
+        const tocStructureData = createTocTreeStructure(mainTextContent, tocSettingsRef.current);
         dispatch(setTocStructure(tocStructureData));
 
         const tocForText = generateTocForText(tocStructureData);
@@ -930,7 +1116,12 @@ export const Content = forwardRef((
         mainTextContentRef.current = mainTextData;
         bibliographyContentRef.current = bibliographyData;
 
-    }, [criticalTextEditorRef, memoizedTocSettings, updateHandler]);
+    }, [criticalTextEditorRef, syncAllDocumentData]);
+
+    useEffect(() => {
+        updateContentRefs();
+        updateTemplates(showToc);
+    }, [tocSettings, updateContentRefs, updateTemplates, showToc, criticalTextEditorRef]);
 
     // @REFACTOR: use "useCallback" for this function and generally always use it
     const handleSaveTemplate = (templateName) => {
@@ -989,7 +1180,18 @@ export const Content = forwardRef((
 
     // @REFACTOR: use "useCallback" for this function and generally always use it
     const handleEditorViewContent = (data: any) => {
-        console.log('handleEditorViewContent ', data)
+        // Prevent content overwrites during document loading
+        if (isDocumentLoading) {
+            rendererLogger.debug("Template", "Skipping template application during document loading");
+            return;
+        }
+
+        // Validate that template data is complete
+        if (!data?.sort || !data?.layoutTemplate) {
+            rendererLogger.error("Template", "Incomplete template data provided", new Error(`Missing required template data: sort=${!!data?.sort}, layoutTemplate=${!!data?.layoutTemplate}`));
+            return;
+        }
+
         const orderSection = data?.sort;
         const layoutTemplate = data?.layoutTemplate;
         let tocEnabled = false;
@@ -998,6 +1200,19 @@ export const Content = forwardRef((
                 [sectionName]: layoutTemplate[sectionName],
             })
         );
+
+        // const tocContent = tocForTextRef.current?.content
+        // const toc = tocContent.length === 0 ? null : tocContent
+
+        // const introductionContent = introductionContentRef.current
+        // const introduction = introductionContent.length === 0 ? null : introductionContent
+
+        // const bibliographyContent = bibliographyContentRef.current
+        // const bibliography = bibliographyContent.length === 0 ? null : bibliographyContent
+
+        // const mainTextContent = mainTextContentRef.current
+        // const mainText = mainTextContent.length === 0 ? null : mainTextContent
+
 
         const _content = layoutTemplateNewOrder?.flatMap((sectionObj) => {
             const key = Object.keys(sectionObj)[0];
@@ -1018,16 +1233,15 @@ export const Content = forwardRef((
             }] : [...cont]
 
             switch (key) {
-                case "toc":
-                    tocEnabled = sectionData?.visible;
-                    return tocSettingsRef.current?.show
-                        ?
-                        tocTemplate(
-                            t("dividerSections.toc"),
-                            sectionContentParagraph(tocForTextRef.current?.content, 'toc')
-                        )
-
-                        : [];
+                // case "toc":
+                //     tocEnabled = sectionData?.visible;
+                //     return tocSettingsRef.current?.show
+                //         ?
+                //         tocTemplate(
+                //             t("dividerSections.toc"),
+                //             sectionContentParagraph(tocForTextRef.current?.content, 'toc')
+                //         )
+                //         : [];
                 case "intro":
                     return introTemplate(
                         t("dividerSections.introduction"),
@@ -1038,12 +1252,10 @@ export const Content = forwardRef((
                         t("dividerSections.bibliography"),
                         sectionContentParagraph(bibliographyContentRef.current, 'bibliography')
                     )
-
                 case "critical":
                     return textTemplate(t("dividerSections.mainText"),
                         mainTextContentRef.current
                     )
-
                 default:
                     return textTemplate(t("dividerSections.mainText"),
                         mainTextContentRef.current
@@ -1095,20 +1307,17 @@ export const Content = forwardRef((
 
     const sidebar = useSidebar();
 
-    // @REFACTOR: try to find a better way to do this
-    useEffect(() => {
-        // Update the table of contents when the showToc state changes
-        updateTemplates(showToc);
-    }, [showToc]);
-
     const canEditSelector = useSelector(selectCanEdit)
 
     const handleOnUpdateEditor = useCallback((editor: EditorData) => {
         dispatchEditor(setCharacters(editor.characters))
         dispatchEditor(setWords(editor.words))
         updateHandlerEffect()
-    }, [])
-    
+    }, [updateHandlerEffect])
+
+    const canAddComment = useSelector(selectCanAddComment)
+    const canAddBookmark = useSelector(selectCanAddBookmark)
+
     return (
         <>
             <EditorTextLayout showToolbar={showToolbar}>
@@ -1148,21 +1357,21 @@ export const Content = forwardRef((
                         {
                             type: "ITEM",
                             title: "Show Comment highlights",
-                            icon: useSelector(selectCommentHighlighted) ? (
+                            icon: state.commentHighlighted ? (
                                 <Check className="w-4 h-4" />
                             ) : null,
                             onClick: () => {
-                                dispatch(toggleCommentHighlighted());
+                                dispatchEditor(toggleCommentHighlighted());
                             },
                         },
                         {
                             type: "ITEM",
                             title: "Show Bookmark highlights",
-                            icon: useSelector(selectBookmarkHighlighted) ? (
+                            icon: state.bookmarkHighlighted ? (
                                 <Check className="w-4 h-4" />
                             ) : null,
                             onClick: () => {
-                                dispatch(toggleBookmarkHighlighted());
+                                dispatchEditor(toggleBookmarkHighlighted());
                             },
                         },
                     ]}
@@ -1176,14 +1385,11 @@ export const Content = forwardRef((
                     onUpdate={handleOnUpdateEditor}
                     onFocusEditor={() => {
                         setEditorRef(criticalTextEditorRef);
-                        dispatch(setCanAddBookmark(true));
-                        dispatch(setCanAddComment(true));
                         dispatchEditor(setEditorFocus(true))
                         onFocusEditor()
                     }}
-                    bookmarkHighlightColor={state.bookmarkHighlightColor}
-                    bookmarkHighlighted={useSelector(selectBookmarkHighlighted)}
-
+                    bookmarkHighlightColor={state.referenceFormat?.bookmarks_color}
+                    bookmarkHighlighted={state.bookmarkHighlighted}
                     onChangeBookmarks={(bookmarks) => {
                         dispatch(updateBookmarkList(bookmarks))
                     }}
@@ -1193,7 +1399,8 @@ export const Content = forwardRef((
                     onChangeBookmark={(data) => {
                         dispatch(editBookmarkContent({ bookmarkId: data.id, content: data.content }))
                     }}
-                    commentHighlighted={useSelector(selectCommentHighlighted)}
+                    commentHighlightColor={state.referenceFormat?.comments_color}
+                    commentHighlighted={state.commentHighlighted}
                     onChangeComment={(data) => {
                         dispatch(editCommentContent({ commentId: data.id, content: data.content }))
                     }}
@@ -1264,6 +1471,8 @@ export const Content = forwardRef((
                     }}
                     onCurrentSection={(section) => {
                         dispatch(setHeadingEnabled(section !== 'toc'))
+                        dispatch(setCanAddBookmark(section !== 'toc'))
+                        dispatch(setCanAddComment(section !== 'toc'))
                     }}
                     bubbleToolbarItems={[
                         {
@@ -1288,25 +1497,50 @@ export const Content = forwardRef((
                                 },
                                 ...commentCategoryOptions,
                             ],
+                            disabled: !canAddComment,
                             onClick: (data?: any) => {
                                 const categoryId = data?.value;
                                 commentCategoryIdRef.current = categoryId;
-                                registerComment();
+                                registerComment(state.referenceFormat.comments_color);
                             },
                         },
                         {
                             icon: <Bookmark intent="primary" variant="tonal" size="small" />,
                             type: "dropdown",
                             options: toolbarBookmarkCategories,
+                            disabled: !canAddBookmark,
                             onClick: (data?: any) => {
                                 const categoryId = data?.value;
                                 bookmarkCategoryIdRef.current = categoryId;
-                                registerBookmark();
+                                registerBookmark(state.referenceFormat.bookmarks_color);
                             },
                         },
                         {
                             icon: <LinkAdd intent="primary" variant="tonal" size="small" />,
-                            type: "button",
+                            type: linkActive ? "dropdown" : "button",
+                            options: [
+                                {
+                                    label: t("toolbar.editLink"),
+                                    value: "edit",
+                                },
+                                {
+                                    label: t("toolbar.removeLink"),
+                                    value: "remove",
+                                },
+                            ],
+                            onClick: (data?: any) => {
+                                if (!linkActive) {
+                                    dispatchEditor(setLinkConfigVisible(true));
+                                    return;
+                                }
+                                if (!data) return;
+                                if (data.value === "edit") {
+                                    dispatchEditor(setLinkConfigVisible(true));
+                                } else if (data.value === "remove") {
+                                    editorRef?.current?.removeLink();
+                                    dispatchEditor(setLinkConfigVisible(false));
+                                }
+                            },
                         },
                     ]}
                 />
@@ -1328,22 +1562,24 @@ export const Content = forwardRef((
                 apparatusesList={apparatusesList}
             />}
 
-            <CustomSpacingModal
+            {isCustomSpacingOpen && <CustomSpacingModal
                 isOpen={isCustomSpacingOpen}
                 onCancel={() => setIsCustomSpacingOpen(false)}
                 onApply={(spacing: Spacing) => {
                     editorRef?.current?.setLineSpacing(spacing);
                     setIsCustomSpacingOpen(false);
                 }}
-            />
-            <ResumeNumberingModal
+            />}
+
+            {isResumeNumberingOpen && <ResumeNumberingModal
                 isOpen={isResumeNumberingOpen}
                 onCancel={() => setIsResumeNumberingOpen(false)}
                 onApply={(numberBullet: number) => {
                     editorRef?.current?.setListNumbering(numberBullet);
                     setIsResumeNumberingOpen(false);
                 }}
-            />
+            />}
+
             {isChooseTemplateModalOpen && (
                 <ChooseTemplateModal
                     open={isChooseTemplateModalOpen}
@@ -1370,11 +1606,12 @@ export const Content = forwardRef((
                         dispatch(createApparatusesFromLayout(apparatusEditorList));
                         setIsChooseTemplateModalOpen(false);
                         setSelectedTemplate(selectedTemplate);
-                        console.log('CHOOSETEMPLATEMODAL.  ', selectedTemplate)
+
                         selectedTemplate.name?.toLowerCase() === 'blank' ? setIsPageSetupOpen(true) : handleEditorViewContent(selectedTemplate)
                     }}
                 ></ChooseTemplateModal>
             )}
+
             {saveTemplateModalOpen && (
                 <SaveAsTemplateModal
                     open={saveTemplateModalOpen}
@@ -1382,6 +1619,7 @@ export const Content = forwardRef((
                     onSaveTemplate={handleSaveTemplate}
                 ></SaveAsTemplateModal>
             )}
+
             {isSectionsStyleModalOpen && (
                 <SectionsStyleModal open={isSectionsStyleModalOpen} onClose={() => setIsSectionsStyleModalOpen(false)}></SectionsStyleModal>)}
         </>

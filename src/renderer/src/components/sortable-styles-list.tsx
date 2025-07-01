@@ -9,6 +9,8 @@ import Button from "@/components/ui/button";
 import DragHandle from "@/components/icons/DragHandle";
 import Delete from "@/components/icons/Delete";
 import { getNextName } from '@/utils/stylesUtils';
+import { v4 as uuidv4 } from 'uuid'
+
 import { useTheme } from '@/hooks/use-theme';
 
 function SortableStyleItem({ id, item, onDelete, onDuplicate, selected, onStyleSelect }) {
@@ -53,7 +55,7 @@ function SortableStyleItem({ id, item, onDelete, onDuplicate, selected, onStyleS
             // color: selected ? 'white' : item.color,
             color: selected ? 'white' : isDark ? 'white' : item.color,
             display: 'inline-block',
-            maxWidth: '12.5rem',
+            maxWidth: '9.5rem',
           }}
         >
           {item.name}
@@ -150,10 +152,11 @@ function SortableStylesList({ styles, onStylesChange, selectedStyle, onStyleSele
 
                 const clone = {
                   ...item,
-                  id: `${item.id}-copy-${Date.now()}`,
+                  id: uuidv4(),
                   name: newName,
-                  type: "CUSTOM"
-                };
+                  type: "CUSTOM",
+                  level: undefined
+                } satisfies Style;
 
                 const index = styles.findIndex(i => i.id === item.id);
                 const newList = [...styles];

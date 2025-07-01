@@ -11,8 +11,10 @@ import {
     setEditorMode,
     setEmphasisState,
     toggleTocVisibility,
+    toggleVisibilityApparatus,
 } from "./store/editor/editor.slice";
 import {
+    selectApparatuses,
     selectBookmarkActive,
     selectCanAddBookmark,
     selectCanAddComment,
@@ -21,7 +23,9 @@ import {
     selectEditorMode,
     selectHeadingEnabled,
     selectHistory,
+    selectLinkActive,
     selectToolbarEmphasisState,
+    selectVisibleApparatuses,
     showTocChecked
 } from "./store/editor/editor.selector";
 import Toolbar from "./Toolbar";
@@ -32,13 +36,14 @@ import { bookmarkCategoriesSelector } from "./store/bookmark/bookmark.selector";
 import { commentCategoriesSelector } from "./store/comment/comments.selector";
 import CustomizeToolbarModal from "./dialogs/CustomizeToolbar";
 import { useReducer } from "react";
-import { editorContext as EditorContext, reducer, initialState, setSiglumSetupDialogVisible, setFontFamilyList, setAddSymbolVisible, setReferenceFormatVisible, toggleInsertSiglumDialogVisible, setLineNumberSetupDialogVisible, setPageNumberSetupDialogVisible, setHeaderSetupDialogVisible, setFooterSetupDialogVisible, setPageSetupOptDialogVisible, setTocSetupDialogVisible, togglePrintPreviewVisible } from "./provider";
+import { editorContext as EditorContext, reducer, initialState, setSiglumSetupDialogVisible, setFontFamilyList, setAddSymbolVisible, setReferenceFormatVisible, toggleInsertSiglumDialogVisible, setLineNumberSetupDialogVisible, setPageNumberSetupDialogVisible, setHeaderSetupDialogVisible, setFooterSetupDialogVisible, setPageSetupOptDialogVisible, setTocSetupDialogVisible, togglePrintPreviewVisible, setLinkConfigVisible } from "./provider";
 import Apparatuses from "./Apparatuses";
 import { selectHeadingAndCustomStyles } from "./store/editor-styles/editor-styles.selector";
 import { useEditor } from "./hooks/useEditor";
-import AddSymbolDialog from "./dialogs/AddSymbol";
 import SetupDialogs from "./dialogs/SetupDialogs";
+import MetadataSetup from "./dialogs/MetadataSetup";
 import InsertDialogs from "./dialogs/InsertDialogs";
+import LinkConfig from "./dialogs/LinkConfig";
 
 
 const EditorContextProvider = ({ children }: { children: React.ReactNode }) => {
@@ -65,8 +70,10 @@ const ELayout = () => {
     const editorTextRef = useRef<any>();
     const editorApparatusesRef = useRef<any>();
 
-    const [editorContainerRef, setEditorContainerRef] = useState<any>();
+    const [editorContainerRef, setEditorContainerRef] = useState<any>(editorTextRef);
     const [isCustomizeToolbarOpen, setIsCustomizeToolbarOpen] = useState(false);
+    const [isMetadataOpen, setIsMetadataOpen] = useState(false);
+
     const [toolbarAdditionalItems, setToolbarAdditionalItems] = useState<string[]>([]);
     const [showToolbar, setShowToolbar] = useState(true);
 
@@ -84,6 +91,14 @@ const ELayout = () => {
     const commentCategories = useSelector(commentCategoriesSelector)
     const commentActive = useSelector(selectCommentActive)
     const canAddComment = useSelector(selectCanAddComment)
+    const linkActive = useSelector(selectLinkActive);
+    const currentLink = useMemo(() => emphasisState.link, [emphasisState.link]);
+    const linkConfigVisible = useMemo(() => state.linkConfigVisible, [state.linkConfigVisible]);
+
+    const handleInsertLink = useCallback((link: string) => {
+        editorContainerRef?.current.setLink(link);
+        dispatchEditor(setLinkConfigVisible(false));
+    }, [editorContainerRef, dispatchEditor]);
 
     useIpcRenderer((ipc) => {
 
@@ -126,6 +141,9 @@ const ELayout = () => {
         ipc.on("page-setup", () => {
             dispatchEditor(setPageSetupOptDialogVisible(true))
         });
+        ipc.on("metadata", () => {
+            setIsMetadataOpen(true)
+        });
 
         ipc.on('toolbar-additional-items', (_, items: string[]) => {
             setToolbarAdditionalItems(items);
@@ -151,16 +169,56 @@ const ELayout = () => {
             dispatchEditor(setReferenceFormatVisible(true));
         });
 
+        ipc.on('insert-link', () => {
+            dispatchEditor(setLinkConfigVisible(true));
+        });
+
+        ipc.on('remove-link', () => {
+            handleRemoveLink();
+        });
+
+        ipc.on('CmdOrCtrl+Shift+K', () => {
+            handleRemoveLink();
+        });
+
+        ipc.on('CmdOrCtrl+K', () => {
+            dispatchEditor(setLinkConfigVisible(true));
+        });
+
         ipc.send('request-system-fonts');
         ipc.on('receive-system-fonts', (_: any, fonts: string[]) => {
             dispatchEditor(setFontFamilyList(fonts))
+        });
+
+        ipc.on('cut', () => {
+            editorContainerRef?.current.cut();
+        });
+
+        ipc.on('copy', () => {
+            editorContainerRef?.current.copy();
+        });
+
+        ipc.on('copy-style', () => {
+            editorContainerRef?.current.copyStyle();
+        });
+
+        ipc.on('paste', () => {
+            editorContainerRef?.current.paste();
+        });
+
+        ipc.on('paste-style', () => {
+            editorContainerRef?.current.pasteStyle();
+        });
+
+        ipc.on('insert-symbol', () => {
+            handleOnShowAddSymbol();
         });
 
         return () => {
             ipc.off('receive-system-fonts');
             ipc.cleanup()
         }
-    }, [window.electron.ipcRenderer]);
+    }, [window.electron.ipcRenderer, editorContainerRef]);
 
     // @REFACTOR: check again this solution, only when user change the toc visibility using the button
     useEffect(() => {
@@ -169,11 +227,11 @@ const ELayout = () => {
 
     useEffect(() => {
         window.application.toolbarIsVisible().then(setShowToolbar);
-    }, [window.application.toolbarIsVisible]);
+    }, []);
 
     useEffect(() => {
         window.application.toolbarAdditionalItems().then(setToolbarAdditionalItems);
-    }, [window.application.toolbarAdditionalItems]);
+    }, []);
 
     // @REFACTOR: check again this solution
     const handleSaveToolbarOptions = useCallback((items: string[]) => {
@@ -183,35 +241,39 @@ const ELayout = () => {
 
     const handleAddSymbol = useCallback((character: number) => {
         editorContainerRef?.current.insertCharacter(character);
-    }, [])
+    }, [editorContainerRef])
 
     const siglumList = useMemo(() => state.siglumList, [state.siglumList]);
 
     const onEmphasisStateChange = useCallback((emphasisState: EmphasisState) => {
         dispatch(setEmphasisState(emphasisState))
         editorContainerRef.current?.focus()
-    }, [editorContainerRef])
+    }, [dispatch, editorContainerRef])
 
     // TOOLBAR
 
     const handleOnSelectSiglum = useCallback((siglum: Siglum) => {
         editorApparatusesRef.current?.insertSiglum(siglum)
-    }, [editorApparatusesRef.current])
+    }, [])
 
     const handleOnShowSiglumSetup = useCallback(() => {
         dispatchEditor(setSiglumSetupDialogVisible(true))
-    }, [])
+    }, [dispatchEditor])
 
     const handleOnToggleNonPrintingCharacters = useCallback(() => {
         editorContainerRef.current?.toggleNonPrintingCharacters()
     }, [editorContainerRef])
 
-    const handleOnHeadingLevelChange = useCallback((headingLevel: number) => {
-        editorContainerRef.current?.setHeadingLevel(headingLevel)
+    const handleOnHeadingChange = useCallback((style: Style) => {
+        editorContainerRef.current?.setHeading(style)
     }, [editorContainerRef])
 
     const handleOnSetBody = useCallback((style?: Style) => {
         editorContainerRef.current?.setBody(style)
+    }, [editorContainerRef])
+
+    const handleOnSetCustomStyle = useCallback((style?: Style) => {
+        editorContainerRef.current?.setCustomStyle(style)
     }, [editorContainerRef])
 
     const handleOnFontFamilyChange = useCallback((fontFamily: string) => {
@@ -296,25 +358,27 @@ const ELayout = () => {
 
     const handleOnSetEditorMode = useCallback((mode: 'editing' | 'review') => {
         dispatch(setEditorMode(mode))
-    }, [])
+    }, [dispatch])
 
     const handleOnClickAddBookmark = useCallback((categoryId?: string) => {
-        editorContainerRef.current?.addBookmark(categoryId)
-    }, [editorContainerRef])
+        const color = state.referenceFormat.bookmarks_color
+        editorContainerRef.current?.addBookmark(color, categoryId)
+    }, [editorContainerRef, state.referenceFormat])
 
     const handleOnUnsetBookmark = useCallback(() => {
         dispatch(setBookmark(false))
         editorContainerRef.current?.unsetBookmark()
-    }, [editorContainerRef])
+    }, [dispatch, editorContainerRef])
 
     const handleOnClickAddComment = useCallback((categoryId?: string) => {
-        editorContainerRef.current?.addComment(categoryId)
-    }, [editorContainerRef])
+        const color = state.referenceFormat.comments_color
+        editorContainerRef.current?.addComment(color, categoryId)
+    }, [editorContainerRef, state.referenceFormat])
 
     const handleOnUnsetComment = useCallback(() => {
         dispatch(setComment(false))
         editorContainerRef.current?.unsetComment()
-    }, [editorContainerRef])
+    }, [dispatch, editorContainerRef])
 
     const handleOnShowCustomizeToolbar = useCallback(() => {
         setIsCustomizeToolbarOpen(true);
@@ -322,43 +386,75 @@ const ELayout = () => {
 
     const handleOnShowAddSymbol = useCallback(() => {
         dispatchEditor(setAddSymbolVisible(true));
-    }, [])
+    }, [dispatchEditor])
 
     const handleOnClickBookmark = useCallback((bookmark: Bookmark) => {
         editorTextRef.current?.scrollToBookmark(bookmark.id)
-    }, [editorTextRef.current])
+    }, [])
 
     const handleOnClickHeadingIndex = useCallback((index: number) => {
         editorTextRef.current?.scrollToHeadingIndex(index)
-    }, [editorTextRef.current])
+    }, [])
 
     const handleOnDeleteBookmarks = useCallback((bookmarks?: Bookmark[]) => {
         editorTextRef.current?.deleteBookmarks(bookmarks)
-    }, [editorTextRef.current])
+    }, [])
 
     const handleOnDeleteComments = useCallback((comments?: AppComment[]) => {
         editorTextRef.current?.deleteComments(comments)
-    }, [editorTextRef.current])
+    }, [])
 
     const handleOnClickComment = useCallback((comment: AppComment) => {
-        editorTextRef.current?.scrollToComment(comment)
-    }, [editorTextRef.current])
+        editorContainerRef.current?.scrollToComment(comment)
+    }, [editorContainerRef])
 
     const handleOnFocusContentEditor = useCallback(() => {
         setEditorContainerRef(editorTextRef)
-    }, [editorTextRef.current])
+    }, [])
 
     const handleOnRegisterBookmark = useCallback((id: string, categoryId?: string) => {
         sidebarRef.current?.registerBookmark(id, categoryId)
-    }, [sidebarRef.current])
+    }, [])
 
     const handleOnRegisterComment = useCallback((id: string, categoryId?: string) => {
         sidebarRef.current?.registerComment(id, categoryId)
-    }, [sidebarRef.current])
+    }, [])
 
     const handleOnFocusApparatusEditor = useCallback(() => {
         setEditorContainerRef(editorApparatusesRef)
-    }, [editorApparatusesRef.current])
+    }, [])
+
+    const handleOnShowLinkConfig = useCallback(() => {
+        dispatchEditor(setLinkConfigVisible(true))
+    }, [dispatchEditor])
+
+    const handleRemoveLink = useCallback(() => {
+        editorContainerRef.current?.removeLink();
+    }, [editorContainerRef])
+
+    const apparatuses = useSelector(selectApparatuses)
+    const visibleApparatuses = useSelector(selectVisibleApparatuses)
+
+    useIpcRenderer((ipc) => {
+        ipc.on("view-apparatus", (_, data: any) => {
+            dispatch(toggleVisibilityApparatus({
+                id: data.id,
+                visible: !data.visible
+            }))
+        })
+    }, [window.electron])
+
+    useEffect(() => {
+        const items = apparatuses.map((apparatus) => {
+            return {
+                id: apparatus.id,
+                title: apparatus.title,
+                visible: apparatus.visible,
+                disabled: false,
+            }
+        })
+        window.menu.updateViewApparatusesMenuItems(items)
+    }, [apparatuses])
 
     return (
         <>
@@ -383,8 +479,12 @@ const ELayout = () => {
                         toggleNonPrintingCharacters={handleOnToggleNonPrintingCharacters}
                         emphasisState={emphasisState}
                         onEmphasisStateChange={onEmphasisStateChange}
-                        onHeadingLevelChange={handleOnHeadingLevelChange}
+                        onHeadingLevelChange={(level) => {
+                            editorContainerRef.current?.setHeadingLevel(level)
+                        }}
+                        onHeadingChange={handleOnHeadingChange}
                         onSetBody={handleOnSetBody}
+                        onCustomStyleChange={handleOnSetCustomStyle}
                         onFontFamilyChange={handleOnFontFamilyChange}
                         onFontSizeChange={handleOnFontSizeChange}
                         onBoldChange={handleOnBoldChange}
@@ -422,25 +522,39 @@ const ELayout = () => {
                         onUnsetComment={handleOnUnsetComment}
                         showCustomizeToolbar={handleOnShowCustomizeToolbar}
                         showAddSymbol={handleOnShowAddSymbol}
+                        linkActive={linkActive}
+                        showLinkConfig={handleOnShowLinkConfig}
+                        removeLink={handleRemoveLink}
                     />
                     <ResizablePanelGroup direction="horizontal">
-                        <ResizablePanel minSize={35} defaultSize={40}>
+                        <ResizablePanel
+                            minSize={35}
+                            defaultSize={40}>
                             <Content
                                 ref={editorTextRef}
                                 onFocusEditor={handleOnFocusContentEditor}
                                 showToolbar={showToolbar}
+                                linkActive={linkActive}
                                 onRegisterBookmark={handleOnRegisterBookmark}
                                 onRegisterComment={handleOnRegisterComment}
                             />
                         </ResizablePanel>
-                        <ResizableHandle withHandle />
-                        <ResizablePanel minSize={30} defaultSize={40}>
-                            <Apparatuses
-                                ref={editorApparatusesRef}
-                                onFocusEditor={handleOnFocusApparatusEditor}
-                                onRegisterComment={handleOnRegisterComment}
-                            />
-                        </ResizablePanel>
+                        {visibleApparatuses.length > 0 &&
+                            <>
+                                <ResizableHandle withHandle />
+                                <ResizablePanel
+                                    minSize={30}
+                                    defaultSize={40}>
+                                    <Apparatuses
+                                        ref={editorApparatusesRef}
+                                        showToolbar={showToolbar}
+                                        linkActive={linkActive}
+                                        onFocusEditor={handleOnFocusApparatusEditor}
+                                        onRegisterComment={handleOnRegisterComment}
+                                    />
+                                </ResizablePanel>
+                            </>
+                        }
                         {state.printPreviewVisible &&
                             <>
                                 <ResizableHandle withHandle />
@@ -462,12 +576,13 @@ const ELayout = () => {
                 </SidebarInset>
             </SidebarProvider>
 
-            {/* @REFACTOR: move this modal from this position, use SetupDialogs or InsertDialogs */}
-            <AddSymbolDialog
-                isOpen={state.addSymbolVisible}
-                onCancel={() => dispatchEditor(setAddSymbolVisible(false))}
-                onApply={handleAddSymbol}
-            />
+            {/* Link Config Dialog */}
+            {linkConfigVisible && <LinkConfig
+                isOpen={linkConfigVisible}
+                onCancel={() => dispatchEditor(setLinkConfigVisible(false))}
+                onDone={handleInsertLink}
+                currentLink={currentLink} // Get current link if available
+            />}
 
             {/* SETUP DIALOGS */}
             <SetupDialogs />
@@ -475,7 +590,15 @@ const ELayout = () => {
             {/* INSERT DIALOGS */}
             <InsertDialogs
                 onInsertSiglum={handleOnSelectSiglum}
+                onAddSymbol={handleAddSymbol}
             />
+
+            {isMetadataOpen && <MetadataSetup
+                isOpen={isMetadataOpen}
+                onClose={() => setIsMetadataOpen(false)}
+                metadata={window.doc.getMetadata()}
+                onSave={(metadata) => window.doc.setMetadata(metadata)}
+            />}
         </>
 
     )

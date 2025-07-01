@@ -56,7 +56,7 @@
     "icon": "./buildResources/appIcons/icon.icns",
     "iconSize": 100,
     "window": {
-      "width": 600,
+      "width": 660,
       "height": 400
     },
     "contents": [
@@ -66,13 +66,13 @@
         "type": "file"
       },
       {
-        "x": 420,
+        "x": 480,
         "y": 170,
         "type": "link",
         "path": "/Applications"
       }
     ],
-    "title": "Criterion_${version}_${arch}",
+    "title": "Install Criterion ${version}",
     "internetEnabled": false,
     "format": "UDZO",
     "sign": true,
@@ -80,16 +80,62 @@
     "writeUpdateInfo": false
   },
   "linux": {
-    "target": ["AppImage", "deb", "rpm"],
+    "target": [
+      { "target": "AppImage" },
+      { "target": "deb" },
+      { "target": "rpm" }
+    ],
     "category": "Utility",
-    "icon": "./buildResources/appIcons",
+    "icon": "./buildResources/appIcons/linux_icons",
+    "maintainer": "Fincons Group S.p.A.",
+    "synopsis": "Text editor for Critical editions",
+    "description": "Criterion is a professional text editor designed specifically for creating and editing critical editions of texts. It provides advanced features for scholarly text editing and academic publishing.",
+    "vendor": "Fincons Group",
+    "executableName": "criterion",
     "desktop": {
       "Type": "Application",
       "Name": "Criterion",
-      "Icon": "appIcon",
+      "Comment": "Text editor for Critical editions",
+      "Icon": "criterion",
       "Terminal": false,
-      "Categories": "Utility;"
-    }
+      "Categories": "Office;WordProcessor;TextEditor;",
+      "MimeType": "application/x-criterion-document;",
+      "StartupNotify": true,
+      "StartupWMClass": "Criterion"
+    },
+    "fileAssociations": [
+      {
+        "ext": "critx",
+        "name": "Criterion Document",
+        "description": "Criterion Document File",
+        "mimeType": "application/x-criterion-document",
+        "icon": "./buildResources/fileIcons/linux/48x48.png"
+      }
+    ]
+  },
+  "appImage": {
+    "license": "./LICENSE"
+  },
+  "deb": {
+    "depends": [
+      "libgtk-3-0",
+      "libnss3",
+      "libxss1",
+      "libasound2",
+      "libatk-bridge2.0-0",
+      "libgdk-pixbuf2.0-0",
+      "libx11-xcb1",
+      "libxcomposite1",
+      "libxdamage1",
+      "libxrandr2",
+      "libxcursor1",
+      "libxext6",
+      "libxcb1",
+      "libnspr4",
+      "libdrm2",
+      "libcups2",
+      "libexpat1"
+    ]
   },
   "win": {
     "icon": "./buildResources/appIcons/icon.ico",

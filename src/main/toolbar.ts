@@ -2,6 +2,7 @@ import { BaseWindow, shell, WebContentsView } from 'electron'
 import { join } from 'path'
 import { getRootUrl } from './shared/util'
 import { getTabs, setTabs } from './store';
+import { is } from '@electron-toolkit/utils';
 
 const toolbarHeight = 32
 const toolbar: Route = "/browser-tab-bar";
@@ -63,6 +64,9 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
     toolbarWebContentsView.webContents.on('did-finish-load', () => {
       return resolve(toolbarWebContentsView)
     })
+
+    if (is.dev)
+      toolbarWebContentsView.webContents.toggleDevTools()
 
     toolbarWebContentsView.webContents.on('did-fail-load', () => {
       return resolve(null)

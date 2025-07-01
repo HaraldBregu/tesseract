@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import Button from "../../../components/ui/button";
-import Divider from "../../../components/ui/divider";
 import Modal from "../../../components/ui/modal";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -10,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { sectionTypes } from "@/utils/optionsEnums";
 import { updateLineNumberSettings } from "@/pages/editor/store/pagination/pagination.slice";
 import { selectLineNumberSettings } from "@/pages/editor/store/pagination/pagination.selector";
+import AppSeparator from "@/components/app/app-separator";
 
 interface LineNumberModalProps {
     isOpen: boolean;
@@ -27,7 +27,6 @@ const LineNumberSettings = ({ isOpen, setIsOpen }: LineNumberModalProps) => {
     });
 
     useEffect(() => {
-        // console.log("🚀 ~ LineNumberModal ~ lineNumberSettings:", lineNumberSettings)
         setSettings(prev => ({
             ...prev,
             ...lineNumberSettings
@@ -92,7 +91,7 @@ const LineNumberSettings = ({ isOpen, setIsOpen }: LineNumberModalProps) => {
                     }}
                 />
             </div>
-            <Divider orientation="horizontal" />
+            <AppSeparator />
             <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1">
                     <Typography component="p" className="text-[0.8125em] font-bold">{t('lineNumber.numeration')}</Typography>

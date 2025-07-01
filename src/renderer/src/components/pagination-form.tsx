@@ -1,5 +1,4 @@
 import { useMemo, memo } from "react";
-import Divider from "./ui/divider";
 import { useTranslation } from "react-i18next";
 import AppRadioGroup from "./app-radiogroup";
 import Typography from "./Typography";
@@ -8,6 +7,7 @@ import { Check } from "lucide-react";
 import AppCheckbox from "./app-checkbox";
 import { HeaderContentType, HeaderDisplayMode } from "@/utils/headerEnums";
 import { HeaderSettings } from "@/pages/editor/store/pagination/pagination.slice";
+import AppSeparator from "./app/app-separator";
 
 /**
  * Componente memoizzato per la selezione del punto di inizio
@@ -235,7 +235,7 @@ const PaginationSetup = ({ settings, setSettings }: PaginationSetupProps) => {
                 </div>
                 <ShowOptions settings={settings} setSettings={setSettings} />
             </div>
-            <Divider orientation="horizontal" />
+            <AppSeparator />
             <div className="flex flex-col gap-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
                     {positions.map((position) => (

@@ -3,13 +3,6 @@ import { promises as fs } from 'fs'
 import { readLastFolderPath, readRecentDocuments, storeLastFolderPath, storeRecentDocuments, readFileNameDisplay, readRecentFilesCount } from '../store';
 import path from 'path';
 
-export interface DocumentMetadata {
-    title?: string;
-    author?: string;
-    createdAt: string;
-    updatedAt: string;
-}
-
 export interface DocumentData {
     version: string;
     createdAt: string;
@@ -18,7 +11,8 @@ export interface DocumentData {
     apparatuses: DocumentApparatus[];
     annotations: object | null;
     template: object | null;
-    metadata?: DocumentMetadata;
+    referencesFormat: ReferencesFormat | null;
+    metadata: DocumentMetadata[];
 }
 
 let currentMainText: object | null = null
@@ -30,6 +24,17 @@ let currentPageSetup: object | null = null
 let currentSort: object | null = null
 let currentStyles: object | null = null
 let currentParatextual: object | null = null
+let currentReferencesFormat: ReferencesFormat | null = null
+let currentMetadata: DocumentMetadata[] = []
+
+
+export const setCurrentMetadata = (metadata: DocumentMetadata[]): void => {
+    currentMetadata = metadata;
+}
+
+export const getCurrentMetadata = (): DocumentMetadata[] => {
+    return currentMetadata
+}   
 
 /**
  * Sets the last folder path
@@ -168,6 +173,19 @@ export const getCurrentTemplate = (): object | null => {
  */
 export const setCurrentDocument = (document: DocumentData | null): void => {
     currentDocument = document
+    currentMainText = document?.mainText || null
+    currentApparatuses = document?.apparatuses || []
+    currentAnnotations = document?.annotations || null
+    //this part is new
+    const template = document?.template
+    currentLayoutTemplate = template?.['layoutTemplate'] || null
+    currentPageSetup = template?.['pageSetup'] || null
+    currentSort = template?.['sort'] || null
+    currentStyles = template?.['styles'] || null
+    currentParatextual = template?.['paratextual'] || null
+    //end of new part
+    currentReferencesFormat = document?.referencesFormat || null
+    currentMetadata = document?.metadata || []
 }
 
 /**
@@ -264,6 +282,23 @@ export const getCurrentParatextual = (): object | null => {
 }
 
 /**
+ * Sets the current references format
+ * @param referencesFormat - The references format to set
+ * @returns void
+ */
+export const setCurrentReferencesFormat = (referencesFormat: ReferencesFormat | null): void => {
+    currentReferencesFormat = referencesFormat
+}
+
+/**
+ * Gets the current references format
+ * @returns The current references format
+ */
+export const getCurrentReferencesFormat = (): ReferencesFormat | null => {
+    return currentReferencesFormat
+}
+
+/**
  * Creates a document object
  * @param document - The document to create
  * @returns The created document object
@@ -277,26 +312,48 @@ export async function createDocumentObject(document: DocumentData): Promise<obje
 }
 
 /**
- * Creates a document object
- * @param object - The object to create
- * @returns The created document object
+ * Creates a document object from file data, safely transforming snake_case to camelCase
+ * @param object - The object to create from (typically from JSON file with snake_case keys)
+ * @returns The created document object with camelCase keys
  */
-export async function createDocument(object: object): Promise<DocumentData> {
-    const document: DocumentData = {
-        ...object,
-        mainText: object['main_text'],
-        apparatuses: object['apparatuses'],
-        annotations: object['annotations'],
-        template: object['template'],
-        metadata: object['metadata'],
-        version: object['version'],
-        createdAt: object['created_at'],
-        updatedAt: object['updated_at'],
+export async function createDocument(object: Record<string, unknown>): Promise<DocumentData> {
+    // First, safely extract known fields with explicit mapping to avoid conflicts
+    const knownFields = {
+        version: (object.version || object.Version || '1.0') as string,
+        createdAt: (object.created_at || object.createdAt || new Date().toISOString()) as string,
+        updatedAt: (object.updated_at || object.updatedAt || new Date().toISOString()) as string,
+        mainText: (object.main_text || object.mainText || null) as object | null,
+        apparatuses: (object.apparatuses || []) as DocumentApparatus[],
+        annotations: (object.annotations || null) as object | null,
+        template: (object.template || null) as object | null,
+        referencesFormat: (object.references_format || object.referencesFormat || null) as ReferencesFormat | null,
+        metadata: (object.metadata || []) as DocumentMetadata[],
+    };
+
+    // Then handle any additional fields that might exist in the object
+    // Convert their keys to camelCase while avoiding conflicts with known fields
+    const knownFieldsSnakeCase = ['version', 'created_at', 'updated_at', 'main_text', 'apparatuses', 'annotations', 'template', 'references_format', 'metadata'];
+    const knownFieldsCamelCase = ['version', 'createdAt', 'updatedAt', 'mainText', 'apparatuses', 'annotations', 'template', 'referencesFormat', 'metadata'];
+
+    const additionalFields: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(object)) {
+        // Skip known fields that we've already handled
+        if (!knownFieldsSnakeCase.includes(key) && !knownFieldsCamelCase.includes(key)) {
+            const camelKey = _.camelCase(key);
+            // Only add if it doesn't conflict with known fields
+            if (!knownFieldsCamelCase.includes(camelKey)) {
+                additionalFields[camelKey] = value;
+            }
+        }
     }
 
-    const scDocument = await _.mapKeys(document, (__, key) => _.camelCase(key));
+    // Combine known fields with additional fields
+    const document: DocumentData = {
+        ...knownFields,
+        ...additionalFields,
+    };
 
-    return scDocument;
+    return document;
 }
 
 /**

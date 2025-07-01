@@ -72,7 +72,6 @@ const Ligature = Mark.create({
   addCommands() {
     return {
       setLigature: (type: LigatureType) => ({ commands }) => {
-        console.log('Setting ligature type:', type);
         return commands.setMark(this.name, { type });
       },
       unsetLigature: () => ({ commands }) => {

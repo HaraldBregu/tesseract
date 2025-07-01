@@ -16,10 +16,18 @@ export function getTemplatesPath(): string {
     : path.join(process.resourcesPath, 'buildResources', 'templates')
 }
 
+// export function getCachePath(): string {
+//   return is.dev
+//     ? path.join(app.getAppPath(), '.cache')
+//     : path.join(process.resourcesPath, '.cache')
+// }
+
 export function getCachePath(): string {
-  return is.dev
-    ? path.join(app.getAppPath(), '.cache')
-    : path.join(process.resourcesPath, '.cache')
+  // On Windows, app.getPath('userData') is already a per-user writable directory (e.g., C:\Users\<User>\AppData\Roaming\<AppName>)
+  // On macOS, it's ~/Library/Application Support/<AppName>
+  // On Linux, it's ~/.config/<AppName>
+  // Adding ".cache" as a subdirectory is safe and cross-platform.
+  return path.join(app.getPath('userData'), '.cache');
 }
 
 export function getStylesPath(): string {

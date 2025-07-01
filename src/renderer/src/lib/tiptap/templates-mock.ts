@@ -52,7 +52,7 @@ export const tocTemplate = (title?: string, content?: {} | any) => {
     return tocContent;
 };
 
-export const introTemplate = (title?: string, content?: {} | any) => {
+export const introTemplate = (title: string, content: {} | any | undefined) => {
     const introContent = [
         ...sectionDelimiter("introduction", title),
         {
@@ -88,6 +88,7 @@ export const textTemplate = (title?: string, content?: {} | any) => {
             attrs: {
                 level: 1,
                 indent: 0,
+                styleId: "13"
             },    
         }
     ]

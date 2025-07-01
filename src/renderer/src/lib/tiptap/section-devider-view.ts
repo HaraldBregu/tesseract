@@ -8,19 +8,19 @@ const SectionDividerView: React.FC<NodeViewProps> = ({ node }) => {
     return createElement(
         NodeViewWrapper,
         {
-            className: `relative select-none pointer-events-none section-divider-${sectionType}`
+            className: `relative select-none pointer-events-none section-divider-${sectionType} mt-4`
         },
         createElement(
             'div',
             {
-                className: 'text-[11px] font-semibold text-grey-50 my-1 mx-2 text-left section-divider',
+                className: 'text-[11px] font-semibold text-grey-50 my-1 text-left section-divider',
             },
             label
         ),
         createElement(
             'div',
             {
-                className: 'border-t border-grey-60 my-[10px] mx-[10px]'
+                className: 'border-t border-grey-60 my-[10px]'
             }
         )
     );

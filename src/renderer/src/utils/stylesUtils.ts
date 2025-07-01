@@ -1,4 +1,8 @@
+// CONSTANTS
 export const HEADING_CUSTOM_TYPES = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'CUSTOM'];
+export const HEADING_TYPES = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+export const BODY_TYPE = 'P';
+export const CUSTOM_TYPE = "CUSTOM";
 
 /**
  * Merge two arrays of style definitions with specific business rules.

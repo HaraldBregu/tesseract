@@ -1,4 +1,3 @@
-
 // @TODO: 
 type CustomMark = {
     id: string;
@@ -50,7 +49,9 @@ type Preferences = {
     customVersioningDirectory?: string;
     criterionLanguage?: string;
     criterionRegion?: string;
-    dateTimeFormat?: string;
+    dateTimeFormat?: string; // Keep for backwards compatibility
+    dateFormat?: string;
+    timeFormat?: string;
     historyActionsCount?: string;
 }
 
@@ -140,7 +141,7 @@ type ApparatusType = 'CRITICAL' | 'PAGE_NOTES' | 'SECTION_NOTES' | 'INNER_MARGIN
  * @property type - The type of the apparatus.
  */
 type DocumentApparatus = Pick<Apparatus, 'title' | 'type' | 'visible'> & {
-    content: object | null
+    content: Content
 }
 
 type FileNameExt = '.critx' | '.pdf' | '.png' | '.jpg' | '.jpeg'
@@ -157,10 +158,10 @@ type ElementAttribute = {
     textAlign: NodeTextAlign;
     color: string | null | undefined;
     lineHeight: string;
-    marginLeft: string;
-    marginRight: string;
-    marginTop: string;
-    marginBottom: string;
+    marginLeft: string | null;
+    marginRight: string | null;
+    marginTop: string | null;
+    marginBottom: string | null;
 }
 
 type TargetTypeStyle =
@@ -211,17 +212,19 @@ type TargetTypeStyle =
  * @property marginBottom - Bottom margin (e.g., "10px", "0.5em").
  */
 type Style = {
+    id: string;
     name: string;
     enabled: boolean;
     type: TargetTypeStyle;
+    level: number | undefined;
     fontWeight: string
     color: string
     fontFamily: string
     fontSize: string
-    align: NodeTextAlign;
-    lineHeight: string;
-    marginTop: string;
-    marginBottom: string;
+    align: NodeTextAlign | undefined;
+    lineHeight: string | undefined;
+    marginTop: string | undefined;
+    marginBottom: string | undefined;
 }
 
 interface ErrorDetails {
@@ -265,6 +268,12 @@ type Tab = {
     filePath: string | null
 }
 
+// Simplified tab structure for persistence that doesn't rely on runtime IDs
+type SimplifiedTab = {
+    filePath: string
+    selected: boolean
+    route: WebContentsRoute
+}
 
 type TocSettings = {
     show: boolean;
@@ -298,19 +307,7 @@ type Fonts = Record<string, {
     path: string;
     symbols: CharacterSet
 }>
-type Metadata = {
-    title: string;
-    author: string;
-    language: string;
-    license: string;
-    keywords: string;
-    status: string;
-    creationDate: string;
-    lastSavedDate: string;
-    subject?: string;
-    copyrightHolder?: string;
-    template: string;
-}
+
 
 type SiglumData = {
     value: string
@@ -336,25 +333,66 @@ type CharacterConfiguration = {
     shortcut: string | null;
 }
 
-type ReferenceFormat = {
+type ReferenceFormatChar = {
     bold: boolean;
     italic: boolean;
     underline: boolean;
     value: string | undefined;
 }
 
-type LemmaSeparator = ReferenceFormat
+type LemmaSeparator = ReferenceFormatChar
 
-type FormToTermSeparator = ReferenceFormat
+type FormToTermSeparator = ReferenceFormatChar
 
-type ReadingsSeparator = ReferenceFormat
+type ReadingsSeparator = ReferenceFormatChar
 
-type ApparatusEntriesSeparator = ReferenceFormat
+type ApparatusEntriesSeparator = ReferenceFormatChar
 
-type ReadingTypeAdd = ReferenceFormat
+type ReadingTypeAdd = ReferenceFormatChar
 
-type ReadingTypeOm = ReferenceFormat
+type ReadingTypeOm = ReferenceFormatChar
 
-type ReadingTypeTr = ReferenceFormat
+type ReadingTypeTr = ReferenceFormatChar
 
-type ReadingTypeDel = ReferenceFormat
+type ReadingTypeDel = ReferenceFormatChar
+
+type SeparatorOption = "none" | " ]" | "custom" | " -" | " :" | " ;";
+
+type ReadingTypeConfig = ReferenceFormatChar & {};
+
+type SeparatorOptions = Record<SeparatorKeys, { value: SeparatorOption; label: string }[]>
+
+type SeparatorKeys = "lemma_separator" | "from_to_separator" | "readings_separator" | "apparatus_separator";
+
+type ReadingKeys = "add_reading_type" | "om_reading_type" | "tr_reading_type" | "del_reading_type";
+
+type GuideColorsKeys = "lemma_color" | "sigla_color" | "reading_type_separator_color" | "comments_color" | "bookmarks_color"
+
+type NoteKeys = "page_note" | "section_note";
+
+type NotesConfig = {
+    numeration: string;
+    sectionLevel: string;
+    numberFormat: string;
+}
+
+
+type ListValueType = 'text' | 'number' | 'date' | 'list';
+type Typology = 'custom' | 'fixed'
+type DocumentMetadata = {
+    id: number
+    title: string,
+    description?: string,
+    optional: boolean,
+    isChecked?: boolean;
+    createdBy?: string,
+    editedBy?: string,
+    typology: Typology,
+    valueType?: ListValueType,
+    value?: string
+    tags?: string[]
+}
+type ReferencesFormat = Record<SeparatorKeys, ReferenceFormatChar>
+    & Record<ReadingKeys, ReadingTypeConfig>
+    & Record<GuideColorsKeys, string>
+    & Record<NoteKeys, NotesConfig>;

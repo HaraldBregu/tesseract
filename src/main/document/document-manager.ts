@@ -9,10 +9,12 @@ import {
     getCurrentAnnotations,
     getCurrentApparatuses,
     getCurrentMainText,
+    getCurrentMetadata,
     getCurrentTemplate,
     getLastFolderPath,
     setLastFolderPath,
     updateRecentDocuments,
+    getCurrentReferencesFormat,
 } from "./document";
 import { getSelectedTab, setFilePathForSelectedTab } from "../toolbar";
 import { readFileSavingDirectory, readDefaultDirectory } from "../store";
@@ -96,17 +98,19 @@ export const openDocument = async (filePath: string | null | undefined, onDone?:
 /**
  * Saves the current document
  * @param onDone - The callback to call when the document is saved
- * @returns void
+ * @param specificTab - Optional specific tab to save (if not provided, uses selected tab)
+ * @param suppressPopup - Optional flag to suppress the "Document updated!" popup (useful for auto-save)
+ * @returns Promise<boolean> - true if saved successfully, false if cancelled
  */
-export const saveDocument = async (onDone?: ((filePath: string) => void)): Promise<void> => {
-    const currentTab = getSelectedTab()
+export const saveDocument = async (onDone?: ((filePath: string) => void), specificTab?: Tab, suppressPopup?: boolean): Promise<boolean> => {
+    const currentTab = specificTab || getSelectedTab()
     const filePath = currentTab?.filePath
     const isNewDocument = !filePath
 
     if (isNewDocument)
-        await createNewDocument(onDone)
+        return await createNewDocument(onDone)
     else
-        await updateCurrentDocument(onDone)
+        return await updateCurrentDocument(onDone, currentTab, suppressPopup)
 }
 
 /**
@@ -262,13 +266,13 @@ export const closeApplication = async (): Promise<void> => {
     mainLogger.endTask(taskId, "Electron", "Application exited");
 }
 
-const updateCurrentDocument = async (onDone?: ((filePath: string) => void)): Promise<void> => {
+const updateCurrentDocument = async (onDone?: ((filePath: string) => void), specificTab?: Tab, suppressPopup?: boolean): Promise<boolean> => {
     const taskId = mainLogger.startTask("Electron", "Updating current document");
 
     const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+    if (!baseWindow) return false
 
-    const currentTab = getSelectedTab()
+    const currentTab = specificTab || getSelectedTab()
     const filePath = currentTab?.filePath
     assert(filePath, "Current tab has no file path");
 
@@ -283,20 +287,25 @@ const updateCurrentDocument = async (onDone?: ((filePath: string) => void)): Pro
         apparatuses: getCurrentApparatuses(),
         annotations: getCurrentAnnotations(),
         template: getCurrentTemplate(),
+        referencesFormat: getCurrentReferencesFormat(),
+        metadata: getCurrentMetadata(),
     });
 
     await fs.writeFile(filePath, JSON.stringify(updatedDocument, null, 2));
     onDone?.(filePath)
-    await dialog.showMessageBox(baseWindow, { message: 'Document updated!' });
+    if (!suppressPopup) {
+        await dialog.showMessageBox(baseWindow, { message: 'Document updated!' });
+    }
 
     mainLogger.endTask(taskId, "Electron", "Document updated");
+    return true
 }
 
-const createNewDocument = async (onDone?: ((filePath: string) => void)): Promise<void> => {
+const createNewDocument = async (onDone?: ((filePath: string) => void)): Promise<boolean> => {
     const taskId = mainLogger.startTask("Electron", "Creating new document");
 
     const baseWindow = getBaseWindow()
-    if (!baseWindow) return
+    if (!baseWindow) return false
 
     // New document
     const newDocument = await createDocumentObject({
@@ -307,10 +316,8 @@ const createNewDocument = async (onDone?: ((filePath: string) => void)): Promise
         apparatuses: getCurrentApparatuses(),
         annotations: getCurrentAnnotations(),
         template: getCurrentTemplate(),
-        metadata: {
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        }
+        referencesFormat: getCurrentReferencesFormat(),
+        metadata: getCurrentMetadata(),
     });
 
     // Determine the default directory based on file saving preferences
@@ -338,7 +345,7 @@ const createNewDocument = async (onDone?: ((filePath: string) => void)): Promise
         filters: [{ name: 'Criterion', extensions: ['critx'] }]
     });
 
-    if (result.canceled || !result.filePath) return
+    if (result.canceled || !result.filePath) return false
 
     // Update the last folder path when a file is saved
     setLastFolderPath(path.dirname(result.filePath));
@@ -348,4 +355,5 @@ const createNewDocument = async (onDone?: ((filePath: string) => void)): Promise
     await dialog.showMessageBox(baseWindow, { message: 'Document saved!' });
 
     mainLogger.endTask(taskId, "Electron", "New document created");
+    return true
 }
