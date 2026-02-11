@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # SOLID Principles
 Guidelines for implementing SOLID principles in the codebase.
 

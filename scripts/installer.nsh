@@ -24,6 +24,11 @@
 !define UNINSTALL_COMPLETE_IT "Disinstallazione completata"
 !define PRESERVING_TEMPLATES_IT "Conservazione dei template utente..."
 !define RESTORING_TEMPLATES_IT "Ripristino dei template utente..."
+!define CLEANING_USER_FILES_IT "Pulizia dei file utente (mantenendo solo i file predefiniti)..."
+!define RESTORING_DEFAULTS_IT "Ripristino dei template e stili predefiniti..."
+!define REMOVING_PRESERVED_IT "Rimozione dei file preservati..."
+!define UPDATING_DEFAULTS_IT "Aggiornamento dei file predefiniti con le versioni più recenti..."
+!define ENSURING_DEFAULTS_IT "Assicurando che i file predefiniti siano presenti..."
 
 !define OPTION_PAGE_TITLE_EN "Installation Options"
 !define OPTION_PAGE_SUBTITLE_EN "Customize installation options"
@@ -35,6 +40,11 @@
 !define UNINSTALL_COMPLETE_EN "Uninstallation completed"
 !define PRESERVING_TEMPLATES_EN "Preserving user templates..."
 !define RESTORING_TEMPLATES_EN "Restoring user templates..."
+!define CLEANING_USER_FILES_EN "Cleaning user files (keeping defaults only)..."
+!define RESTORING_DEFAULTS_EN "Restoring default templates and styles..."
+!define REMOVING_PRESERVED_EN "Removing preserved files..."
+!define UPDATING_DEFAULTS_EN "Updating default files with newest versions..."
+!define ENSURING_DEFAULTS_EN "Ensuring default files are present..."
 
 !define OPTION_PAGE_TITLE_FR "Options d'installation"
 !define OPTION_PAGE_SUBTITLE_FR "Personnaliser les options d'installation"
@@ -46,6 +56,11 @@
 !define UNINSTALL_COMPLETE_FR "Désinstallation terminée"
 !define PRESERVING_TEMPLATES_FR "Conservation des modèles utilisateur..."
 !define RESTORING_TEMPLATES_FR "Restauration des modèles utilisateur..."
+!define CLEANING_USER_FILES_FR "Nettoyage des fichiers utilisateur (conservation des fichiers par défaut uniquement)..."
+!define RESTORING_DEFAULTS_FR "Restauration des modèles et styles par défaut..."
+!define REMOVING_PRESERVED_FR "Suppression des fichiers conservés..."
+!define UPDATING_DEFAULTS_FR "Mise à jour des fichiers par défaut avec les versions les plus récentes..."
+!define ENSURING_DEFAULTS_FR "S'assurer que les fichiers par défaut sont présents..."
 
 !define OPTION_PAGE_TITLE_ES "Opciones de instalación"
 !define OPTION_PAGE_SUBTITLE_ES "Personaliza las opciones de instalación"
@@ -57,6 +72,11 @@
 !define UNINSTALL_COMPLETE_ES "Desinstalación completada"
 !define PRESERVING_TEMPLATES_ES "Conservando plantillas de usuario..."
 !define RESTORING_TEMPLATES_ES "Restaurando plantillas de usuario..."
+!define CLEANING_USER_FILES_ES "Limpiando archivos de usuario (manteniendo solo los archivos predeterminados)..."
+!define RESTORING_DEFAULTS_ES "Restaurando plantillas y estilos predeterminados..."
+!define REMOVING_PRESERVED_ES "Eliminando archivos conservados..."
+!define UPDATING_DEFAULTS_ES "Actualizando archivos predeterminados con las versiones más recientes..."
+!define ENSURING_DEFAULTS_ES "Asegurando que los archivos predeterminados estén presentes..."
 
 !define OPTION_PAGE_TITLE_DE "Installationsoptionen"
 !define OPTION_PAGE_SUBTITLE_DE "Installationsoptionen anpassen"
@@ -68,6 +88,11 @@
 !define UNINSTALL_COMPLETE_DE "Deinstallation abgeschlossen"
 !define PRESERVING_TEMPLATES_DE "Benutzervorlagen werden bewahrt..."
 !define RESTORING_TEMPLATES_DE "Benutzervorlagen werden wiederhergestellt..."
+!define CLEANING_USER_FILES_DE "Benutzerdateien werden bereinigt (nur Standarddateien beibehalten)..."
+!define RESTORING_DEFAULTS_DE "Standardvorlagen und -stile werden wiederhergestellt..."
+!define REMOVING_PRESERVED_DE "Konservierte Dateien werden entfernt..."
+!define UPDATING_DEFAULTS_DE "Standarddateien werden mit neuesten Versionen aktualisiert..."
+!define ENSURING_DEFAULTS_DE "Sicherstellen, dass Standarddateien vorhanden sind..."
 
 # Impostazioni per la selezione della lingua
 !define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
@@ -83,15 +108,7 @@
 !define MUI_FINISHPAGE_RUN_FUNCTION "RunApplicationAndExit"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
-!define MUI_FINISHPAGE_SHOWREADME ""
-!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
-!define MUI_FINISHPAGE_SHOWREADME_FUNCTION ExitInstaller
-# Il pulsante sarà impostato dinamicamente
-!define MUI_PAGE_CUSTOMFUNCTION_PRE FinishPagePre
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW FinishPageShow
-!define MUI_PAGE_CUSTOMFUNCTION_LEAVE FinishPageLeave
-!define MUI_FINISHPAGE_LINK "www.finconsgroup.com"
-!define MUI_FINISHPAGE_LINK_LOCATION "https://www.finconsgroup.com"
+
 
 # Definizioni per la pagina di elaborazione dell'uninstaller  
 !define MUI_UNPAGE_INSTFILES_SHOW un.InstfilesPageShow
@@ -110,7 +127,11 @@
 Page custom OptionsPageCreate OptionsPageLeave
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW FinishPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE FinishPageLeave
 !insertmacro MUI_PAGE_FINISH
+!undef MUI_PAGE_CUSTOMFUNCTION_SHOW
+!undef MUI_PAGE_CUSTOMFUNCTION_LEAVE
 
 # Definizione delle pagine dell'uninstaller
 !insertmacro MUI_UNPAGE_WELCOME
@@ -139,6 +160,11 @@ Var LocalizedRunText
 Var LocalizedCloseButton
 Var LocalizedPreservingTemplates
 Var LocalizedRestoringTemplates
+Var LocalizedCleaningUserFiles
+Var LocalizedRestoringDefaults
+Var LocalizedRemovingPreserved
+Var LocalizedUpdatingDefaults
+Var LocalizedEnsuringDefaults
 
 # Variabili per l'uninstaller
 Var UNINSTALL_EXECUTED
@@ -150,14 +176,6 @@ Function ExitInstaller
   SetAutoClose true
   StrCpy $INSTALLER_CLOSING "1"
   Quit
-FunctionEnd
-
-Function FinishPagePre
-  # Imposta dinamicamente il testo del pulsante chiudi
-  !ifdef MUI_FINISHPAGE_BUTTON
-    !undef MUI_FINISHPAGE_BUTTON
-  !endif
-  !define MUI_FINISHPAGE_BUTTON "$LocalizedCloseButton"
 FunctionEnd
 
 Function FinishPageShow
@@ -177,6 +195,15 @@ Function FinishPageShow
 FunctionEnd
 
 Function FinishPageLeave
+  # Se l'utente NON avvia Criterion, assicurati di uscire davvero dall'installer.
+  # In alcuni setup (electron-builder + custom callbacks) il wizard può riaprire.
+  FindWindow $0 "#32770" "" $HWNDPARENT
+  GetDlgItem $1 $0 1203 # ID checkbox "Run"
+  SendMessage $1 ${BM_GETCHECK} 0 0 $2
+  ${If} $2 != ${BST_CHECKED}
+    Call ExitInstaller
+  ${EndIf}
+
   StrCpy $INSTALLER_CLOSING "1"
 FunctionEnd
 
@@ -192,6 +219,68 @@ Function .onGUIEnd
     StrCpy $INSTALLER_CLOSING "1"
     Quit
   ${EndIf}
+FunctionEnd
+
+# Function to check if Criterion is running and prompt user if needed
+Function CheckAndCloseCriterion
+  # Check if Criterion is running
+  nsExec::Exec 'tasklist /FI "IMAGENAME eq Criterion.exe" /FO CSV | find /C "Criterion.exe"'
+  Pop $0
+  ${If} $0 != "0"
+    # Criterion is still running, try more aggressive termination first
+    DetailPrint "Criterion is still running, attempting aggressive termination..."
+    
+    # Try multiple termination methods
+    nsExec::Exec 'taskkill /F /IM "Criterion.exe" /T'
+    Sleep 2000
+    nsExec::Exec 'wmic process where "name=\'Criterion.exe\'" delete'
+    Sleep 2000
+    nsExec::Exec 'powershell -Command "Get-Process Criterion -ErrorAction SilentlyContinue | Stop-Process -Force"'
+    Sleep 2000
+    
+    # Check again
+    nsExec::Exec 'tasklist /FI "IMAGENAME eq Criterion.exe" /FO CSV | find /C "Criterion.exe"'
+    Pop $0
+    ${If} $0 != "0"
+      # Still running, show message to user
+      MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Criterion is still running after automatic termination attempts. Please close Criterion manually and click OK to continue, or click Cancel to abort the installation." IDOK retry_close IDCANCEL abort_install
+      
+      retry_close:
+        # Try to close again
+        nsExec::Exec 'taskkill /F /IM "Criterion.exe" /T'
+        Sleep 2000
+        
+        # Check again
+        nsExec::Exec 'tasklist /FI "IMAGENAME eq Criterion.exe" /FO CSV | find /C "Criterion.exe"'
+        Pop $0
+        ${If} $0 != "0"
+          MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Criterion is still running. Please ensure Criterion is completely closed and click OK to continue, or click Cancel to abort." IDOK retry_close IDCANCEL abort_install
+        ${EndIf}
+      
+      abort_install:
+        Abort "Installation aborted by user"
+    ${Else}
+      DetailPrint "Criterion successfully terminated"
+    ${EndIf}
+  ${Else}
+    DetailPrint "Criterion is not running"
+  ${EndIf}
+FunctionEnd
+
+# Function to unlock files that might be locked by the application
+Function UnlockFiles
+  DetailPrint "Attempting to unlock files..."
+  
+  # Try to unlock files using handle.exe if available
+  nsExec::Exec 'handle.exe -p Criterion.exe 2>nul'
+  
+  # Try to unlock files using PowerShell
+  nsExec::Exec 'powershell -Command "Get-Process Criterion -ErrorAction SilentlyContinue | ForEach-Object { $_.CloseMainWindow(); $_.Close() }"'
+  
+  # Wait for locks to be released
+  Sleep 2000
+  
+  DetailPrint "File unlock attempt completed"
 FunctionEnd
 
 Function .onInstSuccess
@@ -212,6 +301,11 @@ Function GetLocalizedStrings
     StrCpy $LocalizedCloseButton "${CLOSE_BUTTON_IT}"
     StrCpy $LocalizedPreservingTemplates "${PRESERVING_TEMPLATES_IT}"
     StrCpy $LocalizedRestoringTemplates "${RESTORING_TEMPLATES_IT}"
+    StrCpy $LocalizedCleaningUserFiles "${CLEANING_USER_FILES_IT}"
+    StrCpy $LocalizedRestoringDefaults "${RESTORING_DEFAULTS_IT}"
+    StrCpy $LocalizedRemovingPreserved "${REMOVING_PRESERVED_IT}"
+    StrCpy $LocalizedUpdatingDefaults "${UPDATING_DEFAULTS_IT}"
+    StrCpy $LocalizedEnsuringDefaults "${ENSURING_DEFAULTS_IT}"
   ${ElseIf} $LANGUAGE == 1033 # LANG_ENGLISH_US
     StrCpy $SelectedLanguage "en"
     StrCpy $InstallerLanguage "1"
@@ -223,6 +317,11 @@ Function GetLocalizedStrings
     StrCpy $LocalizedCloseButton "${CLOSE_BUTTON_EN}"
     StrCpy $LocalizedPreservingTemplates "${PRESERVING_TEMPLATES_EN}"
     StrCpy $LocalizedRestoringTemplates "${RESTORING_TEMPLATES_EN}"
+    StrCpy $LocalizedCleaningUserFiles "${CLEANING_USER_FILES_EN}"
+    StrCpy $LocalizedRestoringDefaults "${RESTORING_DEFAULTS_EN}"
+    StrCpy $LocalizedRemovingPreserved "${REMOVING_PRESERVED_EN}"
+    StrCpy $LocalizedUpdatingDefaults "${UPDATING_DEFAULTS_EN}"
+    StrCpy $LocalizedEnsuringDefaults "${ENSURING_DEFAULTS_EN}"
   ${ElseIf} $LANGUAGE == 2057 # LANG_ENGLISH_UK
     StrCpy $SelectedLanguage "en"
     StrCpy $InstallerLanguage "1"
@@ -234,6 +333,11 @@ Function GetLocalizedStrings
     StrCpy $LocalizedCloseButton "${CLOSE_BUTTON_EN}"
     StrCpy $LocalizedPreservingTemplates "${PRESERVING_TEMPLATES_EN}"
     StrCpy $LocalizedRestoringTemplates "${RESTORING_TEMPLATES_EN}"
+    StrCpy $LocalizedCleaningUserFiles "${CLEANING_USER_FILES_EN}"
+    StrCpy $LocalizedRestoringDefaults "${RESTORING_DEFAULTS_EN}"
+    StrCpy $LocalizedRemovingPreserved "${REMOVING_PRESERVED_EN}"
+    StrCpy $LocalizedUpdatingDefaults "${UPDATING_DEFAULTS_EN}"
+    StrCpy $LocalizedEnsuringDefaults "${ENSURING_DEFAULTS_EN}"
   ${ElseIf} $LANGUAGE == 1034 # LANG_SPANISH
     StrCpy $SelectedLanguage "es"
     StrCpy $InstallerLanguage "2"
@@ -245,6 +349,11 @@ Function GetLocalizedStrings
     StrCpy $LocalizedCloseButton "${CLOSE_BUTTON_ES}"
     StrCpy $LocalizedPreservingTemplates "${PRESERVING_TEMPLATES_ES}"
     StrCpy $LocalizedRestoringTemplates "${RESTORING_TEMPLATES_ES}"
+    StrCpy $LocalizedCleaningUserFiles "${CLEANING_USER_FILES_ES}"
+    StrCpy $LocalizedRestoringDefaults "${RESTORING_DEFAULTS_ES}"
+    StrCpy $LocalizedRemovingPreserved "${REMOVING_PRESERVED_ES}"
+    StrCpy $LocalizedUpdatingDefaults "${UPDATING_DEFAULTS_ES}"
+    StrCpy $LocalizedEnsuringDefaults "${ENSURING_DEFAULTS_ES}"
   ${ElseIf} $LANGUAGE == 1036 # LANG_FRENCH
     StrCpy $SelectedLanguage "fr"
     StrCpy $InstallerLanguage "3"
@@ -256,6 +365,11 @@ Function GetLocalizedStrings
     StrCpy $LocalizedCloseButton "${CLOSE_BUTTON_FR}"
     StrCpy $LocalizedPreservingTemplates "${PRESERVING_TEMPLATES_FR}"
     StrCpy $LocalizedRestoringTemplates "${RESTORING_TEMPLATES_FR}"
+    StrCpy $LocalizedCleaningUserFiles "${CLEANING_USER_FILES_FR}"
+    StrCpy $LocalizedRestoringDefaults "${RESTORING_DEFAULTS_FR}"
+    StrCpy $LocalizedRemovingPreserved "${REMOVING_PRESERVED_FR}"
+    StrCpy $LocalizedUpdatingDefaults "${UPDATING_DEFAULTS_FR}"
+    StrCpy $LocalizedEnsuringDefaults "${ENSURING_DEFAULTS_FR}"
   ${ElseIf} $LANGUAGE == 1031 # LANG_GERMAN
     StrCpy $SelectedLanguage "de"
     StrCpy $InstallerLanguage "4"
@@ -267,6 +381,11 @@ Function GetLocalizedStrings
     StrCpy $LocalizedCloseButton "${CLOSE_BUTTON_DE}"
     StrCpy $LocalizedPreservingTemplates "${PRESERVING_TEMPLATES_DE}"
     StrCpy $LocalizedRestoringTemplates "${RESTORING_TEMPLATES_DE}"
+    StrCpy $LocalizedCleaningUserFiles "${CLEANING_USER_FILES_DE}"
+    StrCpy $LocalizedRestoringDefaults "${RESTORING_DEFAULTS_DE}"
+    StrCpy $LocalizedRemovingPreserved "${REMOVING_PRESERVED_DE}"
+    StrCpy $LocalizedUpdatingDefaults "${UPDATING_DEFAULTS_DE}"
+    StrCpy $LocalizedEnsuringDefaults "${ENSURING_DEFAULTS_DE}"
   ${Else}
     StrCpy $SelectedLanguage "it"
     StrCpy $InstallerLanguage "0"
@@ -278,6 +397,11 @@ Function GetLocalizedStrings
     StrCpy $LocalizedCloseButton "${CLOSE_BUTTON_IT}"
     StrCpy $LocalizedPreservingTemplates "${PRESERVING_TEMPLATES_IT}"
     StrCpy $LocalizedRestoringTemplates "${RESTORING_TEMPLATES_IT}"
+    StrCpy $LocalizedCleaningUserFiles "${CLEANING_USER_FILES_IT}"
+    StrCpy $LocalizedRestoringDefaults "${RESTORING_DEFAULTS_IT}"
+    StrCpy $LocalizedRemovingPreserved "${REMOVING_PRESERVED_IT}"
+    StrCpy $LocalizedUpdatingDefaults "${UPDATING_DEFAULTS_IT}"
+    StrCpy $LocalizedEnsuringDefaults "${ENSURING_DEFAULTS_IT}"
   ${EndIf}
 FunctionEnd
 
@@ -339,6 +463,155 @@ Function OptionsPageLeave
   ${Else}
     StrCpy $SelectedLanguage "it"
   ${EndIf}
+  
+  # Handle user data based on choice (only for existing installations)
+  ${If} $APP_ALREADY_INSTALLED == "1"
+    # Check if Criterion is running and ask user to close it manually if needed
+    DetailPrint "Checking if Criterion is running..."
+    nsExec::Exec 'tasklist /FI "IMAGENAME eq Criterion.exe" /FO CSV | find /C "Criterion.exe"'
+    Pop $0
+    ${If} $0 != "0"
+      # Criterion is running, ask user to close it manually
+      MessageBox MB_OKCANCEL|MB_ICONINFORMATION "Criterion is currently running. Please close Criterion manually and click OK to continue with the installation, or click Cancel to abort." IDOK continue_install IDCANCEL abort_install
+      
+      continue_install:
+        # Check again if user closed it
+        nsExec::Exec 'tasklist /FI "IMAGENAME eq Criterion.exe" /FO CSV | find /C "Criterion.exe"'
+        Pop $0
+        ${If} $0 != "0"
+          MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Criterion is still running. Please ensure Criterion is completely closed and click OK to continue, or click Cancel to abort." IDOK continue_install IDCANCEL abort_install
+        ${EndIf}
+      
+      abort_install:
+        Abort "Installation aborted by user"
+    ${Else}
+      DetailPrint "Criterion is not running, proceeding with installation"
+    ${EndIf}
+    
+    ${If} $KEEP_CONFIG == "1"
+      # Keep Data is checked - backup all user templates and styles
+      SetDetailsPrint both
+      DetailPrint "Backing up user files before installation..."
+      SetDetailsPrint listonly
+      
+      ${If} ${FileExists} "$INSTDIR\resources\buildResources\templates\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedPreservingTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$TEMP\Criterion-templates-backup"
+        ClearErrors
+        CopyFiles /SILENT "$INSTDIR\resources\buildResources\templates\*.*" "$TEMP\Criterion-templates-backup\"
+        ${If} ${Errors}
+          DetailPrint "Warning: Could not backup some template files, continuing with installation"
+          ClearErrors
+        ${EndIf}
+      ${EndIf}
+      
+      ${If} ${FileExists} "$INSTDIR\resources\buildResources\styles\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedPreservingTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$TEMP\Criterion-styles-backup"
+        ClearErrors
+        CopyFiles /SILENT "$INSTDIR\resources\buildResources\styles\*.*" "$TEMP\Criterion-styles-backup\"
+        ${If} ${Errors}
+          DetailPrint "Warning: Could not backup some style files, continuing with installation"
+          ClearErrors
+        ${EndIf}
+      ${EndIf}
+      
+      # Also check for templates in the old location (backward compatibility)
+      ${If} ${FileExists} "$INSTDIR\buildResources\templates\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedPreservingTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$TEMP\Criterion-templates-backup"
+        ClearErrors
+        CopyFiles /SILENT "$INSTDIR\buildResources\templates\*.*" "$TEMP\Criterion-templates-backup\"
+        ${If} ${Errors}
+          DetailPrint "Warning: Could not backup some template files from old location, continuing with installation"
+          ClearErrors
+        ${EndIf}
+      ${EndIf}
+      
+      # Also check for styles in the old location (backward compatibility)
+      ${If} ${FileExists} "$INSTDIR\buildResources\styles\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedPreservingTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$TEMP\Criterion-styles-backup"
+        ClearErrors
+        CopyFiles /SILENT "$INSTDIR\buildResources\styles\*.*" "$TEMP\Criterion-styles-backup\"
+        ${If} ${Errors}
+          DetailPrint "Warning: Could not backup some style files from old location, continuing with installation"
+          ClearErrors
+        ${EndIf}
+      ${EndIf}
+    ${Else}
+      # Keep Data is unchecked - clean up user data files
+      SetDetailsPrint both
+      DetailPrint "Keep Data unchecked - cleaning up user data files..."
+      SetDetailsPrint listonly
+      
+      # Clean up app data with error handling
+      ${If} ${FileExists} "$APPDATA\criterion-store"
+        ClearErrors
+        RMDir /r "$APPDATA\criterion-store"
+        ${If} ${Errors}
+          DetailPrint "Warning: Could not remove criterion-store, some files may be in use"
+          ClearErrors
+        ${EndIf}
+      ${EndIf}
+      
+      ${If} ${FileExists} "$APPDATA\Criterion"
+        # Remove individual files to avoid directory locks
+        FindFirst $0 $1 "$APPDATA\Criterion\*.*"
+        ${If} $0 != ""
+          loop_cleanup_appdata:
+            ${If} $1 != ""
+              ${If} $1 != "."
+                ${If} $1 != ".."
+                  ClearErrors
+                  Delete /REBOOTOK "$APPDATA\Criterion\$1"
+                  ${If} ${Errors}
+                    DetailPrint "Warning: Could not remove $APPDATA\Criterion\$1, file may be in use"
+                    ClearErrors
+                  ${EndIf}
+                ${EndIf}
+              ${EndIf}
+              FindNext $0 $1
+              Goto loop_cleanup_appdata
+            ${EndIf}
+            FindClose $0
+        ${EndIf}
+      ${EndIf}
+      
+      # Clean up local app data with error handling
+      ${If} ${FileExists} "$LOCALAPPDATA\Criterion"
+        FindFirst $0 $1 "$LOCALAPPDATA\Criterion\*.*"
+        ${If} $0 != ""
+          loop_cleanup_localdata:
+            ${If} $1 != ""
+              ${If} $1 != "."
+                ${If} $1 != ".."
+                  ClearErrors
+                  Delete /REBOOTOK "$LOCALAPPDATA\Criterion\$1"
+                  ${If} ${Errors}
+                    DetailPrint "Warning: Could not remove $LOCALAPPDATA\Criterion\$1, file may be in use"
+                    ClearErrors
+                  ${EndIf}
+                ${EndIf}
+              ${EndIf}
+              FindNext $0 $1
+              Goto loop_cleanup_localdata
+            ${EndIf}
+            FindClose $0
+        ${EndIf}
+      ${EndIf}
+      
+      DetailPrint "User data cleanup completed"
+    ${EndIf}
+  ${EndIf}
 FunctionEnd
 
 # Definizione della macro preInit direttamente
@@ -355,17 +628,28 @@ FunctionEnd
   
   ${If} ${FileExists} "$INSTDIR\Criterion.exe"
     StrCpy $APP_ALREADY_INSTALLED "1"
+    
+    # Clean up old uninstaller registry entries
     ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}" "UninstallString"
     ${If} $0 != ""
       DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}"
     ${EndIf}
-    nsExec::Exec 'taskkill /F /IM "Criterion.exe" /T'
+    
+    # Process termination will be handled in OptionsPageLeave based on user choice
+    DetailPrint "Existing installation detected - process termination will be handled based on user choice"
+    
+    # Note: User file backup will be handled after user makes their choice
+    
+    # Clean up old installer files
     ${If} ${FileExists} "$EXEDIR\Criterion-setup-${VERSION}.exe"
-      DetailPrint "File di installazione esistente trovato: $EXEDIR\Criterion-setup-${VERSION}.exe"
-      DetailPrint "Tentativo di rimozione del file esistente..."
+      DetailPrint "Removing old installer file: $EXEDIR\Criterion-setup-${VERSION}.exe"
       Delete /REBOOTOK "$EXEDIR\Criterion-setup-${VERSION}.exe"
       Sleep 1000
     ${EndIf}
+    
+    # Note: Avoiding aggressive cleanup of uninstaller files to prevent security software conflicts
+    DetailPrint "Skipping uninstaller file cleanup to avoid security software conflicts"
+    
   ${Else}
     StrCpy $APP_ALREADY_INSTALLED "0"
   ${EndIf}
@@ -380,6 +664,9 @@ FunctionEnd
   StrCpy $INSTALL_EXECUTED "1"
   
   SetShellVarContext current
+  
+  # Note: Skipping aggressive cleanup to avoid security software conflicts
+  DetailPrint "Skipping additional cleanup to avoid security software conflicts"
   
   CreateDirectory "$APPDATA\Criterion\config-store"
   
@@ -401,20 +688,10 @@ FunctionEnd
   
   JsonWriteEnd:
   
-  ${If} $KEEP_CONFIG != "1"
-    RMDir /r "$APPDATA\criterion-store"
-    Delete "$APPDATA\Criterion\*.*"
-    RMDir /r "$APPDATA\Criterion\Session Storage"
-    RMDir /r "$APPDATA\Criterion\Local Storage"
-    Delete "$LOCALAPPDATA\Criterion\*"
-    RMDir /r "$LOCALAPPDATA\Criterion"
-    Goto EndPreInit
-  ${EndIf}
-  
+  # User data cleanup is now handled in OptionsPageLeave
+  # Only clean up cache and temporary files, not user data
   RMDir /r "$LOCALAPPDATA\Criterion\Cache"
   RMDir /r "$LOCALAPPDATA\Criterion\Code Cache"
-  RMDir /r "$APPDATA\Criterion\Session Storage"
-  RMDir /r "$APPDATA\Criterion\Local Storage"
   RMDir /r "$LOCALAPPDATA\Criterion\GPUCache"
   Delete "$LOCALAPPDATA\Criterion\*.log"
   RMDir /r "$TEMP\Criterion-updater"
@@ -422,55 +699,23 @@ FunctionEnd
   EndPreInit:
   
   ${If} $APP_ALREADY_INSTALLED == "1"
-    # Backup user templates before removing buildResources
-    ${If} ${FileExists} "$INSTDIR\resources\buildResources\templates\*.*"
-      SetDetailsPrint both
-      DetailPrint "$LocalizedPreservingTemplates"
-      SetDetailsPrint listonly
-      CreateDirectory "$TEMP\Criterion-templates-backup"
-      CopyFiles /SILENT "$INSTDIR\resources\buildResources\templates\*.*" "$TEMP\Criterion-templates-backup\"
-    ${EndIf}
-    
-    # Backup user styles before removing buildResources
-    ${If} ${FileExists} "$INSTDIR\resources\buildResources\styles\*.*"
-      SetDetailsPrint both
-      DetailPrint "$LocalizedPreservingTemplates"
-      SetDetailsPrint listonly
-      CreateDirectory "$TEMP\Criterion-styles-backup"
-      CopyFiles /SILENT "$INSTDIR\resources\buildResources\styles\*.*" "$TEMP\Criterion-styles-backup\"
-    ${EndIf}
-    
-    # Also check for templates in the old location (backward compatibility)
-    ${If} ${FileExists} "$INSTDIR\buildResources\templates\*.*"
-      SetDetailsPrint both
-      DetailPrint "$LocalizedPreservingTemplates"
-      SetDetailsPrint listonly
-      CreateDirectory "$TEMP\Criterion-templates-backup"
-      CopyFiles /SILENT "$INSTDIR\buildResources\templates\*.*" "$TEMP\Criterion-templates-backup\"
-    ${EndIf}
-    
-    # Also check for styles in the old location (backward compatibility)
-    ${If} ${FileExists} "$INSTDIR\buildResources\styles\*.*"
-      SetDetailsPrint both
-      DetailPrint "$LocalizedPreservingTemplates"
-      SetDetailsPrint listonly
-      CreateDirectory "$TEMP\Criterion-styles-backup"
-      CopyFiles /SILENT "$INSTDIR\buildResources\styles\*.*" "$TEMP\Criterion-styles-backup\"
-    ${EndIf}
+    # For existing installations, we need to backup user files BEFORE the new installation overwrites them
+    # This happens in preInit, so we just need to handle the restoration after installation
+    SetDetailsPrint both
+    DetailPrint "Handling existing installation - user files already backed up"
+    SetDetailsPrint listonly
     
     # Remove buildResources but preserve templates and styles
     RMDir /r "$INSTDIR\resources\buildResources\appIcons"
     RMDir /r "$INSTDIR\resources\buildResources\fileIcons"
     RMDir /r "$INSTDIR\resources\buildResources\icons"
     # Note: templates and styles directories are preserved via backup/restore process
-    Delete "$INSTDIR\resources\buildResources\appInfo.json"
     Delete "$INSTDIR\resources\buildResources\entitlements.mac.plist"
     Delete "$INSTDIR\resources\buildResources\icon.png"
     RMDir /r "$INSTDIR\buildResources\appIcons"
     RMDir /r "$INSTDIR\buildResources\fileIcons"
     RMDir /r "$INSTDIR\buildResources\icons"
     # Note: templates and styles directories are preserved via backup/restore process
-    Delete "$INSTDIR\buildResources\appInfo.json"
     Delete "$INSTDIR\buildResources\entitlements.mac.plist"
     Delete "$INSTDIR\buildResources\icon.png"
     
@@ -487,70 +732,114 @@ FunctionEnd
     SetDetailsPrint listonly
     SetOverwrite on
     
-    # Restore user templates after installation
-    ${If} ${FileExists} "$TEMP\Criterion-templates-backup\*.*"
+    # Restore templates and styles based on Keep Data setting
+    ${If} $KEEP_CONFIG == "1"
+      # Keep Data is checked - restore all user templates and styles
+      ${If} ${FileExists} "$TEMP\Criterion-templates-backup\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedRestoringTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$INSTDIR\resources\buildResources\templates"
+        CopyFiles /SILENT "$TEMP\Criterion-templates-backup\*.*" "$INSTDIR\resources\buildResources\templates\"
+        RMDir /r "$TEMP\Criterion-templates-backup"
+      ${EndIf}
+      
+      ${If} ${FileExists} "$TEMP\Criterion-styles-backup\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedRestoringTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$INSTDIR\resources\buildResources\styles"
+        CopyFiles /SILENT "$TEMP\Criterion-styles-backup\*.*" "$INSTDIR\resources\buildResources\styles\"
+        RMDir /r "$TEMP\Criterion-styles-backup"
+      ${EndIf}
+    ${Else}
+      # Keep Data is unchecked - remove user files, keep only defaults
       SetDetailsPrint both
-      DetailPrint "$LocalizedRestoringTemplates"
+      DetailPrint "$LocalizedCleaningUserFiles"
       SetDetailsPrint listonly
-      CreateDirectory "$INSTDIR\resources\buildResources\templates"
-      CopyFiles /SILENT "$TEMP\Criterion-templates-backup\*.*" "$INSTDIR\resources\buildResources\templates\"
-      RMDir /r "$TEMP\Criterion-templates-backup"
-    ${EndIf}
-    
-    # Restore user styles after installation
-    ${If} ${FileExists} "$TEMP\Criterion-styles-backup\*.*"
-      SetDetailsPrint both
-      DetailPrint "$LocalizedRestoringTemplates"
-      SetDetailsPrint listonly
-      CreateDirectory "$INSTDIR\resources\buildResources\styles"
-      CopyFiles /SILENT "$TEMP\Criterion-styles-backup\*.*" "$INSTDIR\resources\buildResources\styles\"
-      RMDir /r "$TEMP\Criterion-styles-backup"
+      
+      # User data cleanup was already handled in OptionsPageLeave
+      # No need to clean up installation directory files during installation
+      
     ${EndIf}
   ${Else}
-    # For fresh installations, check if there are preserved templates from previous uninstallation
-    SetDetailsPrint both
-    DetailPrint "Checking for preserved templates in: $APPDATA\Criterion\preserved-templates"
-    SetDetailsPrint listonly
-    
-    ${If} ${FileExists} "$APPDATA\Criterion\preserved-templates\*.*"
+    # For fresh installations, handle preserved templates and styles based on Keep Data setting
+    ${If} $KEEP_CONFIG == "1"
+      # Keep Data is checked - restore all preserved templates and styles
       SetDetailsPrint both
-      DetailPrint "$LocalizedRestoringTemplates"
+      DetailPrint "Checking for preserved templates in: $APPDATA\Criterion\preserved-templates"
       SetDetailsPrint listonly
-      CreateDirectory "$INSTDIR\resources\buildResources\templates"
-      CopyFiles /SILENT "$APPDATA\Criterion\preserved-templates\*.*" "$INSTDIR\resources\buildResources\templates\"
+      
+      ${If} ${FileExists} "$APPDATA\Criterion\preserved-templates\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedRestoringTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$INSTDIR\resources\buildResources\templates"
+        CopyFiles /SILENT "$APPDATA\Criterion\preserved-templates\*.*" "$INSTDIR\resources\buildResources\templates\"
+        SetDetailsPrint both
+        DetailPrint "Templates restored successfully to installation folder"
+        SetDetailsPrint listonly
+        # Remove preserved templates after successful restoration
+        RMDir /r "$APPDATA\Criterion\preserved-templates"
+      ${Else}
+        SetDetailsPrint both
+        DetailPrint "No preserved templates found for restoration"
+        SetDetailsPrint listonly
+      ${EndIf}
+      
+      # Check if there are preserved styles from previous uninstallation
       SetDetailsPrint both
-      DetailPrint "Templates restored to: $INSTDIR\resources\buildResources\templates"
+      DetailPrint "Checking for preserved styles in: $APPDATA\Criterion\preserved-styles"
       SetDetailsPrint listonly
-      # Remove preserved templates after successful restoration
-      RMDir /r "$APPDATA\Criterion\preserved-templates"
+      
+      ${If} ${FileExists} "$APPDATA\Criterion\preserved-styles\*.*"
+        SetDetailsPrint both
+        DetailPrint "$LocalizedRestoringTemplates"
+        SetDetailsPrint listonly
+        CreateDirectory "$INSTDIR\resources\buildResources\styles"
+        CopyFiles /SILENT "$APPDATA\Criterion\preserved-styles\*.*" "$INSTDIR\resources\buildResources\styles\"
+        SetDetailsPrint both
+        DetailPrint "Styles restored successfully to installation folder"
+        SetDetailsPrint listonly
+        # Remove preserved styles after successful restoration
+        RMDir /r "$APPDATA\Criterion\preserved-styles"
+      ${Else}
+        SetDetailsPrint both
+        DetailPrint "No preserved styles found for restoration"
+        SetDetailsPrint listonly
+      ${EndIf}
     ${Else}
+      # Keep Data is unchecked - clean up any preserved files and start fresh
       SetDetailsPrint both
-      DetailPrint "No preserved templates found for restoration"
+      DetailPrint "$LocalizedRemovingPreserved"
       SetDetailsPrint listonly
-    ${EndIf}
-    
-    # Check if there are preserved styles from previous uninstallation
-    SetDetailsPrint both
-    DetailPrint "Checking for preserved styles in: $APPDATA\Criterion\preserved-styles"
-    SetDetailsPrint listonly
-    
-    ${If} ${FileExists} "$APPDATA\Criterion\preserved-styles\*.*"
-      SetDetailsPrint both
-      DetailPrint "$LocalizedRestoringTemplates"
-      SetDetailsPrint listonly
-      CreateDirectory "$INSTDIR\resources\buildResources\styles"
-      CopyFiles /SILENT "$APPDATA\Criterion\preserved-styles\*.*" "$INSTDIR\resources\buildResources\styles\"
-      SetDetailsPrint both
-      DetailPrint "Styles restored to: $INSTDIR\resources\buildResources\styles"
-      SetDetailsPrint listonly
-      # Remove preserved styles after successful restoration
-      RMDir /r "$APPDATA\Criterion\preserved-styles"
-    ${Else}
-      SetDetailsPrint both
-      DetailPrint "No preserved styles found for restoration"
-      SetDetailsPrint listonly
+      
+      # Remove any preserved templates and styles
+      ${If} ${FileExists} "$APPDATA\Criterion\preserved-templates"
+        RMDir /r "$APPDATA\Criterion\preserved-templates"
+        SetDetailsPrint both
+        DetailPrint "Removed preserved templates"
+        SetDetailsPrint listonly
+      ${EndIf}
+      
+      ${If} ${FileExists} "$APPDATA\Criterion\preserved-styles"
+        RMDir /r "$APPDATA\Criterion\preserved-styles"
+        SetDetailsPrint both
+        DetailPrint "Removed preserved styles"
+        SetDetailsPrint listonly
+      ${EndIf}
     ${EndIf}
   ${EndIf}
+  
+  # Final verification of default files removed: defaults are now integrated in code.
+  
+  # Final cleanup to remove any files that might have been created during installation
+  DetailPrint "Performing final cleanup..."
+  
+  # Note: Skipping final cleanup to avoid security software conflicts
+  DetailPrint "Skipping final cleanup to avoid security software conflicts"
+  
+  # Note: All cleanup operations skipped to avoid security software conflicts
   
   StrCpy $INSTALLER_COMPLETED "1"
 !macroend
@@ -591,7 +880,7 @@ FunctionEnd
       ${If} ${FileExists} "$APPDATA\Criterion\preserved-templates"
         CopyFiles /SILENT "$INSTDIR\resources\buildResources\templates\*.*" "$APPDATA\Criterion\preserved-templates\"
         SetDetailsPrint both
-        DetailPrint "Templates preserved to: $APPDATA\Criterion\preserved-templates"
+        DetailPrint "Templates preserved successfully for future installation"
         SetDetailsPrint listonly
         
         # Verify files were actually copied
@@ -645,7 +934,7 @@ FunctionEnd
       ${If} ${FileExists} "$APPDATA\Criterion\preserved-styles"
         CopyFiles /SILENT "$INSTDIR\resources\buildResources\styles\*.*" "$APPDATA\Criterion\preserved-styles\"
         SetDetailsPrint both
-        DetailPrint "Styles preserved to: $APPDATA\Criterion\preserved-styles"
+        DetailPrint "Styles preserved successfully for future installation"
         SetDetailsPrint listonly
         
         # Verify files were actually copied
@@ -698,7 +987,7 @@ FunctionEnd
       ${If} ${FileExists} "$APPDATA\Criterion\preserved-templates"
         CopyFiles /SILENT "$INSTDIR\buildResources\templates\*.*" "$APPDATA\Criterion\preserved-templates\"
         SetDetailsPrint both
-        DetailPrint "Legacy templates preserved to: $APPDATA\Criterion\preserved-templates"
+        DetailPrint "Legacy templates preserved successfully for future installation"
         SetDetailsPrint listonly
       ${Else}
         SetDetailsPrint both
@@ -738,7 +1027,7 @@ FunctionEnd
       ${If} ${FileExists} "$APPDATA\Criterion\preserved-styles"
         CopyFiles /SILENT "$INSTDIR\buildResources\styles\*.*" "$APPDATA\Criterion\preserved-styles\"
         SetDetailsPrint both
-        DetailPrint "Legacy styles preserved to: $APPDATA\Criterion\preserved-styles"
+        DetailPrint "Legacy styles preserved successfully for future installation"
         SetDetailsPrint listonly
       ${Else}
         SetDetailsPrint both

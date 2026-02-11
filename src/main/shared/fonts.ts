@@ -4,6 +4,7 @@ import path from 'path';
 import * as fontkit from 'fontkit';
 import { unicodeName } from 'unicode-name';
 import { getCachePath } from './util';
+import { mainLogger } from './logger';
 
 if (!fs.existsSync(getCachePath())) {
     fs.mkdirSync(getCachePath());
@@ -14,34 +15,32 @@ const CACHE_FILE = path.join(getCachePath(), 'fonts.json');
 let fontCache = {};
 
 const unicodeSubsets: Subset[] = [
-    { "name": "Basic Latin", "start": 160, "end": 591 },
-    { "name": "Greek and Coptic", "start": 880, "end": 1023 },
-    { "name": "Cyrillic", "start": 1024, "end": 1279 },
-    { "name": "Cyrillic Supplement", "start": 1280, "end": 1327 },
-    { "name": "Hebrew", "start": 1424, "end": 1535 },
+    { "name": "Alchemical Symbols", "start": 128768, "end": 128895 },
     { "name": "Arabic", "start": 1536, "end": 1791 },
-    { "name": "Arabic Supplement", "start": 1872, "end": 1919 },
     { "name": "Arabic Extended-A", "start": 2208, "end": 2303 },
     { "name": "Arabic Presentation Forms-A", "start": 64336, "end": 65023 },
     { "name": "Arabic Presentation Forms-B", "start": 65136, "end": 65279 },
+    { "name": "Arabic Supplement", "start": 1872, "end": 1919 },
+    { "name": "Arrows", "start": 8592, "end": 8703 },
+    { "name": "Basic Latin", "start": 160, "end": 591 },
+    { "name": "Box Drawing", "start": 9472, "end": 9599 },
+    { "name": "Currency Symbols", "start": 8352, "end": 8399 },
+    { "name": "Cyrillic", "start": 1024, "end": 1279 },
+    { "name": "Cyrillic Supplement", "start": 1280, "end": 1327 },
     { "name": "Devanagari", "start": 2304, "end": 2431 },
     { "name": "Devanagari Extended", "start": 43296, "end": 43311 },
-    { "name": "Arrows", "start": 8592, "end": 8703 },
+    { "name": "Dingbats", "start": 9984, "end": 10175 },
+    { "name": "Emoticons", "start": 128512, "end": 128591 },
+    { "name": "Geometric Shapes", "start": 9632, "end": 9727 },
+    { "name": "Greek and Coptic", "start": 880, "end": 1023 },
+    { "name": "Hebrew", "start": 1424, "end": 1535 },
     { "name": "Mathematical Operators", "start": 8704, "end": 8959 },
     { "name": "Misc Technical", "start": 8960, "end": 9215 },
-    { "name": "Geometric Shapes", "start": 9632, "end": 9727 },
     { "name": "Misc Symbols", "start": 9728, "end": 9983 },
-    { "name": "Dingbats", "start": 9984, "end": 10175 },
-    { "name": "Currency Symbols", "start": 8352, "end": 8399 },
-    { "name": "Box Drawing", "start": 9472, "end": 9599 },
-    { "name": "General Punctuation", "start": 8192, "end": 8303 },
-    { "name": "Superscripts and Subscripts", "start": 8304, "end": 8351 },
-    { "name": "Spacing Modifier Letters", "start": 688, "end": 767 },
-    { "name": "Combining Diacritical Marks", "start": 768, "end": 879 },
     { "name": "Misc Symbols and Pictographs", "start": 127744, "end": 128511 },
-    { "name": "Emoticons", "start": 128512, "end": 128591 },
+    { "name": "Spacing Modifier Letters", "start": 688, "end": 767 },
+    { "name": "Superscripts and Subscripts", "start": 8304, "end": 8351 },
     { "name": "Transport and Map Symbols", "start": 128640, "end": 128767 },
-    { "name": "Alchemical Symbols", "start": 128768, "end": 128895 },
 ];
 
 const getSystemFontDirs = (): string[] =>  {
@@ -68,7 +67,7 @@ const walk = (dir: string): string[] => {
             }
         }
     } catch {
-        console.log('error');
+        console.error('error');
     }
     return results;
 }
@@ -108,7 +107,7 @@ const scanFonts = (): Fonts => {
                     fonts[font.familyName] = fontData;
                 }
             } catch {
-                console.log(filePath, 'error loading font file');
+                console.error(filePath, 'error loading font file');
             }
         }
     }
@@ -134,10 +133,8 @@ export const getSymbols = (fontName: string): CharacterSet[] => {
 }; 
 
 const initializeFonts = (): void => {
-    // Load cache from disk
+    const fontTaskId = mainLogger.startTask("Font", "Initializing fonts");
     try {
-        console.log('file exists => ', fs.existsSync(CACHE_FILE));
-        const startTime = Date.now();
         if (fs.existsSync(CACHE_FILE)) {
             const raw = fs.readFileSync(CACHE_FILE, 'utf-8');
             fontCache = JSON.parse(raw);
@@ -145,9 +142,9 @@ const initializeFonts = (): void => {
             fontCache = scanFonts();
             saveCacheToFile();
         }
-        console.log(`${Object.keys(fontCache).length} font load time => `, Date.now() - startTime);
+        mainLogger.endTask(fontTaskId, 'Font', 'Font list initialized');
     } catch (err) {
-        console.warn('Failed to read font cache:', err);
+        mainLogger.endTask(fontTaskId, 'Font', 'Font list error initializing');
     }
 }
 

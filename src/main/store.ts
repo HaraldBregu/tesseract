@@ -1,32 +1,50 @@
 import Store from 'electron-store'
 import { defaultSpecialCharacterConfig } from './shared/constants';
+import { SimplifiedTab } from './types';
 
 const store = new Store({
     defaults: {
+        statusbarVisible: true,
+        statusbarHideItems: [],
         toolbarIsVisible: true,
         toolbarAdditionalItems: [],
         specialCharacterConfig: defaultSpecialCharacterConfig,
         fileNameDisplay: 'full',
         rememberLayout: true,
+        pdfQuality: '4',
         lastPageSetup: null,
         recentFilesCount: 10,
         theme: 'system',
         commentPreviewLimit: '20',
         bookmarkPreviewLimit: '20',
         fileSavingDirectory: 'last',
-        defaultDirectory: '~/Username/Documents/',
+        defaultDirectory: '~/Select/your/path/',
         automaticFileSave: 'never',
         versioningDirectory: 'default',
-        customVersioningDirectory: '~/Username/Documents/',
+        customVersioningDirectory: '~/Select/your/path/',
         criterionLanguage: 'en',
         criterionRegion: 'IT',
-        dateTimeFormat: 'DD/MM/YYYY HH:MM:SS', // Keep for backwards compatibility
-        dateFormat: 'DD/MM/YYYY',
-        timeFormat: 'HH:MM',
+        dateFormat: 'yyyy/MM/dd HH:mm:ss',
         historyActionsCount: '10',
-        layoutTabs: []
+        layoutTabs: [],
+        statusBarConfig: ['pageNumber', 'wordCount', 'zoom'],
+        zoom: '100',
+        tabs: [],
+        simplifiedLayoutTabs: [],
+        tabsState: [],
+        lastFolderPath: null,
+        recentDocuments: [],
+        appLanguage: 'en'
     },
 });
+
+export const saveBaseAuthToken = (token: string): void => store.set('baseAuthToken', token)
+export const getBaseAuthToken = (): string | null => store.get('baseAuthToken') as string | null
+export const deleteBaseAuthToken = (): void => store.delete('baseAuthToken')
+
+export const saveUser = (user: User): void => store.set('user', user)
+export const getUser = (): User | null => store.get('user') as User | null
+export const deleteUser = (): void => store.delete('user')
 
 export const setTabs = (tabs: Tab[]): void => store.set('tabs', tabs)
 
@@ -49,6 +67,12 @@ export const updateTabFilePath = (id: number, filePath: string): void => {
     }
     setTabs(tabs)
 }
+
+export const setUpdatedTabsState = (tabs: TabInfo[]): void => store.set('tabsState', tabs)
+
+export const getUpdatedTabsState = (): TabInfo[] => store.get('tabsState', []) as TabInfo[]
+
+export const resetUpdatedTabsState = (): void => store.set('tabsState', [])
 
 export const storeLastFolderPath = (folderPath: string | null): void => store.set('lastFolderPath', folderPath)
 
@@ -80,11 +104,15 @@ export const readFileNameDisplay = (): 'full' | 'filename' => store.get('fileNam
 
 export const storeRecentFilesCount = (count: number): void => store.set('recentFilesCount', count)
 
-export const readRecentFilesCount = (): number => store.get('recentFilesCount', 10) as number
+export const readRecentFilesCount = (): number => store.get('recentFilesCount', 10)
 
 export const storeRememberLayout = (remember: boolean): void => store.set('rememberLayout', remember)
 
-export const readRememberLayout = (): boolean => store.get('rememberLayout', true) as boolean
+export const readRememberLayout = (): boolean => store.get('rememberLayout', true)
+
+export const storePdfQuality = (quality: string): void => store.set('pdfQuality', quality)
+
+export const readPdfQuality = (): string => store.get('pdfQuality', '4')
 
 export const storeLastPageSetup = (pageSetup: unknown): void => store.set('lastPageSetup', pageSetup)
 
@@ -96,52 +124,59 @@ export const readTheme = (): 'light' | 'dark' | 'system' => store.get('theme', '
 
 export const storeCommentPreviewLimit = (limit: string): void => store.set('commentPreviewLimit', limit)
 
-export const readCommentPreviewLimit = (): string => store.get('commentPreviewLimit', '20') as string
+export const readCommentPreviewLimit = (): string => store.get('commentPreviewLimit', '20')
 
 export const storeBookmarkPreviewLimit = (limit: string): void => store.set('bookmarkPreviewLimit', limit)
 
-export const readBookmarkPreviewLimit = (): string => store.get('bookmarkPreviewLimit', '20') as string
+export const readBookmarkPreviewLimit = (): string => store.get('bookmarkPreviewLimit', '20')
 
 export const storeFileSavingDirectory = (directory: string): void => store.set('fileSavingDirectory', directory)
 
-export const readFileSavingDirectory = (): string => store.get('fileSavingDirectory', 'last') as string
+export const readFileSavingDirectory = (): string => store.get('fileSavingDirectory', 'last')
 
 export const storeDefaultDirectory = (directory: string): void => store.set('defaultDirectory', directory)
 
-export const readDefaultDirectory = (): string => store.get('defaultDirectory', '~/Username/Documents/') as string
+export const readDefaultDirectory = (): string => store.get('defaultDirectory', '~/Select/your/path/')
 
 export const storeAutomaticFileSave = (setting: string): void => store.set('automaticFileSave', setting)
 
-export const readAutomaticFileSave = (): string => store.get('automaticFileSave', 'never') as string
+export const readAutomaticFileSave = (): string => store.get('automaticFileSave', 'never')
 
 export const storeVersioningDirectory = (directory: string): void => store.set('versioningDirectory', directory)
 
-export const readVersioningDirectory = (): string => store.get('versioningDirectory', 'default') as string
+export const readVersioningDirectory = (): string => store.get('versioningDirectory', 'default')
 
 export const storeCustomVersioningDirectory = (directory: string): void => store.set('customVersioningDirectory', directory)
 
-export const readCustomVersioningDirectory = (): string => store.get('customVersioningDirectory', '~/Username/Documents/') as string
+export const readCustomVersioningDirectory = (): string => store.get('customVersioningDirectory', '~/Select/your/path/')
 
 export const storeCriterionLanguage = (language: string): void => store.set('criterionLanguage', language)
 
-export const readCriterionLanguage = (): string => store.get('criterionLanguage', 'en') as string
+export const readCriterionLanguage = (): string => store.get('criterionLanguage', 'en')
 
 export const storeCriterionRegion = (region: string): void => store.set('criterionRegion', region)
 
-export const readCriterionRegion = (): string => store.get('criterionRegion', 'IT') as string
-
-export const storeDateTimeFormat = (format: string): void => store.set('dateTimeFormat', format)
-
-export const readDateTimeFormat = (): string => store.get('dateTimeFormat', 'DD/MM/YYYY HH:MM:SS') as string
+export const readCriterionRegion = (): string => store.get('criterionRegion', 'IT')
 
 export const storeDateFormat = (format: string): void => store.set('dateFormat', format)
 
-export const readDateFormat = (): string => store.get('dateFormat', 'DD/MM/YYYY') as string
-
-export const storeTimeFormat = (format: string): void => store.set('timeFormat', format)
-
-export const readTimeFormat = (): string => store.get('timeFormat', 'HH:MM') as string
+export const readDateFormat = (): string => store.get('dateFormat', 'yyyy/MM/dd HH:mm:ss')  
 
 export const storeHistoryActionsCount = (count: string): void => store.set('historyActionsCount', count)
 
-export const readHistoryActionsCount = (): string => store.get('historyActionsCount', '10') as string
+export const readHistoryActionsCount = (): string => store.get('historyActionsCount', '10')
+
+export const toggleStatusbarVisibility = (): void => {
+    const currentVisibility = store.get('statusbarVisible', true) as boolean;
+    store.set('statusbarVisible', !currentVisibility);
+};
+
+export const readStatusbarVisibility = (): boolean => store.get('statusbarVisible', true) as boolean;
+
+export const readStatusBarConfig = (): string[] => store.get('statusBarConfig', ['pageNumber', 'wordCount', 'zoom']) as string[];
+
+export const storeStatusBarConfig = (config: string[]): void => store.set('statusBarConfig', config);
+
+export const storeZoom = (zoom: string): void => store.set('zoom', zoom);
+
+export const readZoom = (): string => store.get('zoom', '100') as string;

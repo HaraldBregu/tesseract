@@ -1,6 +1,21 @@
 {
   "welcome": "Welcome to Criterion!",
+  "welcomeView": {
+    "subtitle": "Create and edit critical text editions",
+    "newDocument": "New Document",
+    "openDocument": "Open Document",
+    "recentFiles": "Recent Files"
+  },
   "selectLanguage": "Select your preferred language:",
+  "fileViewer": {
+    "unsupportedFile": {
+      "title": "Unable to upload file",
+      "message": "The selected file is not supported or is invalid.",
+      "fileType": "File type: {{type}}",
+      "supportedFormats": "Supported formats: .critx, .pdf, .png, .jpg, .jpeg",
+      "tryAgain": "Try again"
+    }
+  },
   "editor": {
     "sectionTypes": {
       "body": "Body",
@@ -31,6 +46,28 @@
         "label": "Reviewing",
         "info": "Suggest changes"
       }
+    }
+  },
+  "document": {
+    "unsupportedVersion": {
+      "title": "Unsupported document version",
+      "message": "The critix file you are trying to open is not supported by this version of Criterion."
+    },
+    "alreadyOpen": {
+      "title": "Document already open",
+      "message": "The document you are trying to open is already open in another tab."
+    }
+  },
+  "styles": {
+    "unsupportedVersion": {
+      "title": "Unsupported style version",
+      "message": "The style file you are trying to import is not supported by this version of Criterion."
+    }
+  },
+  "template": {
+    "unsupportedVersion": {
+      "title": "Unsupported template version",
+      "message": "The template file you are trying to import is not supported by this version of Criterion."
     }
   },
   "toolbar": {
@@ -68,7 +105,7 @@
     "note": "Note",
     "siglum": "Siglum",
     "citation": "Citation",
-    "readingSeperator": "Reading Separator",
+    "readingSeparator": "Reading Separator",
     "readingType": "Reading Type",
     "comment": "Comment",
     "bookmark": "Bookmark",
@@ -78,10 +115,13 @@
     "spacing": "Spacing",
     "list": "List",
     "search": "Find",
+    "notifications": "Notifications",
     "printPreview": "Print Preview",
     "listNumber": "Numbered List",
     "listUppercase": "Uppercase Letter List",
     "listLowercase": "Lowercase Letter List",
+    "listUpperRoman": "Uppercase Roman Numerals",
+    "listLowerRoman": "Lowercase Roman Numerals",
     "listBullet": "Bullet List",
     "listBulletEmpty": "Empty Bullet List",
     "listBulletSquare": "Square Bullet List",
@@ -92,6 +132,56 @@
     "editLink": "Edit Link",
     "removeLink": "Remove Link"
   },
+  "notifications": {
+    "title": "Notifications",
+    "description": "View your recent notifications and updates.",
+    "empty": "No notifications at the moment.",
+    "emptyTitle": "No notifications found",
+    "emptyDescription": "Try adjusting your filters",
+    "searchPlaceholder": "Search by name...",
+    "markAllAsRead": "Mark all as read",
+    "clearFilters": "Clear filters",
+    "resultsCount": "{{count}} results",
+    "resultsCount_one": "{{count}} result",
+    "loading": "Loading notifications...",
+    "filters": {
+      "allActions": "All actions",
+      "sendInvitation": "Send invitation",
+      "resendInvitation": "Resend invitation",
+      "revokeAccess": "Revoke access",
+      "shareNewVersion": "Share new version",
+      "deleteDocument": "Delete document",
+      "acceptInvitation": "Accept invitation",
+      "declineInvitation": "Decline invitation",
+      "download": "Download",
+      "downloadNewVersion": "Download new version",
+      "invitationExpired": "Invitation expired",
+      "passwordChanged": "Password changed",
+      "allTime": "All time",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days"
+    },
+    "roles": {
+      "collaborator": "Collaborator",
+      "owner": "Owner",
+      "viewer": "Viewer"
+    },
+    "types": {
+      "send_invitation": "Shared with you",
+      "resend_invitation": "Shared with you",
+      "revoke_access": "Your access has been revoked",
+      "share_new_version": "New document version shared with you",
+      "delete_document": "Document deleted",
+      "accept_invitation": "Collaboration accepted",
+      "decline_invitation": "Invitation declined",
+      "download": "Downloaded",
+      "download_new_version": "Downloaded new version",
+      "invitation_expired": "Invitation expired",
+      "password_changed": "Your Password has been changed"
+    }
+  },
   "dividerSections": {
     "toc": "Table of Contents",
     "introduction": "Introduction",
@@ -99,25 +189,44 @@
     "bibliography": "Bibliography",
     "appendix": "Appendix"
   },
-  "linkPlaceholder": "Link to an external URL eg. https://example.com or http://example.com",
+  "linkPlaceholder": "Insert the web page link here",
+  "customizeStatusBar": {
+    "title": "Customize Status Bar",
+    "show": "Show",
+    "totalWords": "Total Words",
+    "totalCharacters": "Total Characters",
+    "lastEditDate": "Last Edit Date",
+    "author": "Author",
+    "zoom": "Zoom",
+    "words": "Words",
+    "characters": "Characters"
+  },
   "menu": {
     "file": {
       "label": "File",
-      "new": "New",
-      "open": "Open",
+      "new": "New...",
+      "newDescription": "Create a new document from scratch or from a template.",
+      "open": "Open...",
+      "openDescription": "Open an existing document from your device.",
       "openRecent": "Open Recent",
+      "openRecentDescription": "Quickly reopen documents you've worked on recently.",
       "noRecentDocuments": "No recent documents",
       "import": "Import",
       "close": "Close",
-      "save": "Save",
-      "saveAs": "Save as",
+      "closeDescription": "Close the current document without exiting the application.",
+      "save": "Save...",
+      "saveDescription": "Save changes to the current document using its existing name and location.",
+      "saveAs": "Save as...",
+      "saveAsDescription": "Save the document with a new name or location.",
       "duplicate": "Duplicate",
-      "rename": "Rename",
-      "moveTo": "Move To",
+      "rename": "Rename...",
+      "renameDescription": "Change the name of the current document.",
+      "moveTo": "Move To...",
+      "moveToDescription": "Relocate the document to a different folder or storage location.",
       "revertTo": {
         "label": "Revert To",
         "lastSaved": "Last Saved",
-        "browse": "Browse All Versions"
+        "browse": "Browse All Versions..."
       },
       "shareForReview": "Share For Review...",
       "lock": "Lock...",
@@ -125,40 +234,65 @@
       "exportTo": {
         "label": "Export To",
         "pdf": "PDF",
+        "pdfDescription": "Export the document as a PDF for sharing or printing.",
         "odt": "ODT",
         "xml": "XML/TEI",
+        "xmlDescription": "Export the document in XML/TEI format for scholarly or archival use.",
         "exportTemplate": "Export Template"
       },
       "language&Region": "Language & Region...",
       "saveAsTemplate": "Save as Template...",
+      "saveAsTemplateDescription": "Save the current document as a reusable template for future projects.",
       "metadata": "Metadata...",
+      "metadataDescription": "View or edit document metadata (e.g., title, author, keywords).",
       "pageSetup": "Page Setup...",
-      "print": "Print..."
+      "pageSetupDescription": "Adjust page size, margins, orientation, and other layout settings.",
+      "print": "Print...",
+      "printDescription": "Send the document to a printer with preview and print options.",
+      "signin": "Sign In",
+      "signout": "Sign Out",
+      "shareForCollaborator": "Invite collaborators",
+      "sharedFiles": "Shared documents"
     },
     "edit": {
       "label": "Edit",
       "find": {
         "label": "Find",
+        "description": "Search for specific text and optionally replace it with different text.",
         "findAndReplace": "Find and Replace",
-        "findNext": "Find Next",
-        "findPrevious": "Find Previous",
+        "findNext": "Find Next...",
+        "findPrevious": "Find Previous...",
         "jumpToSelection": "Jump to Selection"
       },
       "undo": "Undo",
+      "undoDescription": "Revert your last action.",
       "redo": "Redo",
+      "redoDescription": "Restore an action that was undone.",
       "cut": "Cut",
+      "cutDescription": "Remove selected content and copy it to the clipboard.",
       "copy": "Copy",
+      "copyDescription": "Copy selected content to the clipboard.",
       "copyStyle": "Copy Style",
+      "copyStyleDescription": "Copy the formatting of selected text for reuse.",
       "paste": "Paste",
+      "pasteDescription": "Insert clipboard content at the current cursor position.",
       "pasteStyle": "Paste Style",
+      "pasteStyleDescription": "Apply previously copied formatting to selected text.",
       "pasteAndMatchStyle": "Paste And Match Style",
       "pasteTextWithoutFormatting": "Paste Text Without Formatting",
+      "pasteTextWithoutFormattingDescription": "Paste clipboard text as plain text, discarding all original styling.",
       "delete": "Delete",
+      "deleteDescription": "Permanently remove selected content.",
       "duplicateSelection": "Duplicate Selection",
       "selectAll": "Select All",
-      "deSelectAll": "Deselect All"
+      "selectAllDescription": "Select all content in the current document or field.",
+      "deSelectAll": "Deselect All",
+      "deSelectAllDescription": "Clear any active selection."
     },
     "settings": "Settings",
+    "preferences": "Preferences",
+    "preferencesDescription": "Customize how Criterion behaves — adjust editing, display, saving, and interface options to match your workflow.",
+    "preferencesWindowTitle": "Criterion Preferences",
     "reload": "Reload",
     "toggleDevTools": "Toggle Developer Tools",
     "language": {
@@ -173,22 +307,32 @@
       "label": "Insert",
       "section": "Section",
       "comment": "Comment",
+      "commentDescription": "Add an editorial or explanatory note to the selected text.",
       "bookmark": "Bookmark",
+      "bookmarkDescription": "Insert a named marker to quickly navigate to this location later.",
       "highlight": "Highlight References",
       "link": "Link",
+      "linkDescription": "Add a hyperlink to a web address, document section, or external resource.",
       "image": "Image",
       "symbol": "Symbol",
+      "symbolDescription": "Insert a special character or symbol not available on the keyboard.",
       "object": "Object",
       "table": "Table",
       "shapesAndLines": "Shapes and Lines",
       "pageBreak": "Page Break",
+      "pageBreakDescription": "Force the text to start on a new page at the cursor position.",
       "sectionBreak": "Section Break",
       "lineNumber": {
         "label": "Line Number",
         "none": "None",
-        "each5Line": "Each 5 Line",
+        "noneDescription": "Hide line numbers in the document.",
+        "each5Line": "Every 5 Line",
+        "each5LineDescription": "Show line numbers at 5-line intervals (e.g., 5, 10, 15…).",
+        "eachLine": "Every Line",
         "every10Lines": "Every 10 Lines",
-        "every15Lines": "Every 15 Lines"
+        "every10LinesDescription": "Show line numbers at 10-line intervals (e.g., 10, 20, 30…).",
+        "every15Lines": "Every 15 Lines",
+        "every15LinesDescription": "Show line numbers at 15-line intervals (e.g., 15, 30, 45…)."
       },
       "pageNumber": "Page Number",
       "date": "Date",
@@ -199,15 +343,31 @@
     "references": {
       "label": "References",
       "addNote": "Add Note",
+      "addNoteDescription": "Insert a scholarly apparatus note (e.g., critical, section, page, inner, outer) using the selected apparatus layer.",
       "addNoteInInnerMargin": "Add Note in Inner Margin",
       "addNoteInOuterMargin": "Add Note in Outer Margin",
       "swapMargin": "Swap Margin",
-      "addReadingSeparator": "Add Reading",
+      "swapMarginDescription": "Move the current note to the opposite margin (e.g., from left to right or vice versa).",
+      "addReadingType": "Add Reading Type",
+      "addReadingTypeDescription": "Tag a reading with a specific editorial classification (e.g., addition, omission, correction).",
+      "addReading": "Add Reading",
+      "addReadingSeparator": "Add Reading Separator",
+      "addReadingSeparatorDescription": "Insert a visual or logical separator between variant readings in an apparatus note.",
+      "addReadingTypeAdd": "Add Reading Type (add.)",
+      "addReadingTypeOm": "Add Reading Type (om.)",
+      "addReadingTypeTr": "Add Reading Type (tr.)",
+      "addReadingTypeDel": "Add Reading Type (del.)",
+      "addReadingTypeCustom": "Custom Reading Type",
       "addSiglum": "Add Siglum",
+      "addSiglumDescription": "Insert a manuscript or source siglum (abbreviation) into the current note.",
       "siglaSetup": "Sigla Setup...",
+      "siglaSetupDescription": "Define, edit, or manage the list of sigla (source identifiers) used in your project.",
       "addCitation": "Add Citation",
+      "addCitationDescription": "Insert a reference to a bibliographic entry within the text or notes.",
       "bibliography": "Bibliography...",
+      "bibliographyDescription": "View, edit, or manage the document's bibliography entries.",
       "referencesFormat": "References Format...",
+      "referencesFormatDescription": "Choose or customize the reading separator, reading type separator, guide colors, page/section notes appearance.",
       "addApparatus": {
         "label": "Add Apparatus",
         "critical": "Critical",
@@ -222,69 +382,119 @@
       "font": {
         "label": "Font",
         "bold": "Bold",
+        "boldDescription": "Make selected text bold.",
         "italic": "Italic",
+        "italicDescription": "Make selected text italic.",
         "underline": "Underline",
+        "underlineDescription": "Add an underline to selected text.",
         "strikethrough": "Strikethrough",
+        "strikethroughDescription": "Draw a line through selected text to indicate deletion or revision.",
         "superscript": "Superscript",
+        "superscriptDescription": "Raise and shrink selected text (e.g., for footnotes or exponents).",
         "subscript": "Subscript",
+        "subscriptDescription": "Lower and shrink selected text (e.g., for chemical formulas).",
         "npc": "Nonprinting Characters",
+        "npcDescription": "Show or hide invisible characters like spaces, tabs, and paragraph marks.",
         "characterSpacing": {
           "label": "Character Spacing",
           "normal": "None",
+          "normalDescription": "Use default letter spacing.",
           "tighten": "Tighten",
-          "loosen": "Loosen"
+          "tightenDescription": "Reduce space between characters.",
+          "loosen": "Loosen",
+          "loosenDescription": "Increase space between characters."
         },
         "ligature": {
           "label": "Ligature",
           "default": "Use Default",
+          "defaultDescription": "Apply standard typographic ligatures based on the font.",
           "none": "Use None",
-          "all": "Use All"
+          "noneDescription": "Disable all ligatures.",
+          "all": "Use All",
+          "allDescription": "Enable all available ligatures in the font."
         },
-        "captalization": {
-          "label": "Captalization",
+        "capitalization": {
+          "label": "Capitalization",
           "none": "None",
+          "noneDescription": "Use original text casing without automatic changes.",
           "allCaps": "All Caps",
+          "allCapsDescription": "Display selected text in uppercase letters.",
           "smallCaps": "Small Caps",
+          "smallCapsDescription": "Show uppercase letters at small-cap height.",
           "titleCase": "Title Case",
-          "startCase": "Start Case"
+          "titleCaseDescription": "Capitalize the first letter of each major word.",
+          "startCase": "Start Case",
+          "startCaseDescription": "Capitalize only the first letter of the first word."
         }
       },
       "text": {
         "label": "Text",
         "alignLeft": "Align Left",
+        "alignLeftDescription": "Align text to the left margin.",
         "alignCenter": "Align Center",
+        "alignCenterDescription": "Center text between margins.",
         "alignRight": "Align Right",
+        "alignRightDescription": "Align text to the right margin.",
         "justify": "Justify",
+        "justifyDescription": "Align text to both left and right margins.",
         "increaseIndent": "Increase Indent Level",
+        "increaseIndentDescription": "Move the selected paragraph farther from the left margin.",
         "decreaseIndent": "Decrease Indent Level",
+        "decreaseIndentDescription": "Move the selected paragraph closer to the left margin.",
         "spacing": {
           "label": "Spacing",
           "single": "Single",
+          "singleDescription": "Set line spacing to one line height.",
           "1_15": "1.15",
+          "1_15Description": "Apply slightly expanded single line spacing.",
           "oneAndHalf": "1.5",
-          "double": "Double"
+          "oneAndHalfDescription": "Set line spacing to one and a half lines.",
+          "double": "Double",
+          "doubleDescription": "Set line spacing to two lines.",
+          "custom": "Custom Spacing",
+          "customDescription": "Define custom line or paragraph spacing."
         }
       },
       "list": {
         "number": "1",
+        "numberDescription": "Apply numbered list format using digits.",
         "maxLetter": "A",
+        "maxLetterDescription": "Apply numbered list format using uppercase letters.",
         "lowerLetter": "a",
+        "lowerLetterDescription": "Apply numbered list format using lowercase letters.",
+        "maxRoman": "I",
+        "maxRomanDescription": "Apply numbered list format using uppercase Roman numerals.",
+        "lowerRoman": "i",
+        "lowerRomanDescription": "Apply numbered list format using lowercase Roman numerals.",
         "point": "●",
+        "pointDescription": "Apply bulleted list format using solid bullets.",
         "emptyPoint": "○",
+        "emptyPointDescription": "Apply bulleted list format using open bullets.",
         "square": "■",
+        "squareDescription": "Apply bulleted list format using square bullets.",
         "label": "List",
         "bullet": "Bullet",
         "numbering": "Numbering",
-        "resumeNumbering": "Resume Numbering",
-        "continuePreviousNumbering": "Continue previous Numbering"
+        "resumeNumbering": "Resume Numbering...",
+        "resumeNumberingDescription": "Continue numbering from a previous list at the appropriate next number.",
+        "continuePreviousNumbering": "Continue previous Numbering",
+        "continuePreviousNumberingDescription": "Automatically link to and continue the numbering of the most recent list."
+      },
+      "pageNumber": {
+        "label": "Page Number...",
+        "description": "Insert page numbers in headers, footers."
       },
       "sectionsStyle": "Sections Style...",
+      "sectionsStyleDescription": "Apply or manage formatting styles for document sections (e.g., headings, apparatus layers).",
       "table": "Table",
       "shapesAndLines": "Shapes and Lines",
       "removeLink": "Remove Link",
+      "removeLinkDescription": "Delete the hyperlink from selected linked text.",
       "changeTemplate": "Change Template",
+      "changeTemplateDescription": "Apply a different document template, updating styles and layout.",
       "layout": {
         "label": "Layout...",
+        "description": "Adjust overall document layout settings (e.g., columns, spacing, section breaks).",
         "pageSetup": {
           "label": "Page Setup",
           "component": {
@@ -309,19 +519,20 @@
         }
       },
       "toc": {
-        "label": "Table of Contents..."
+        "label": "Table of Contents...",
+        "description": "Edit the content and formatting of the Table of Contents."
       },
       "lineNumber": {
-        "label": "Line Number..."
+        "label": "Line Number...",
+        "description": "Configure or insert line numbers in the document."
       },
-      "header": {
-        "label": "Header..."
-      },
-      "footer": {
-        "label": "Footer..."
-      },
-      "pageNumber": {
-        "label": "Page Number..."
+      "headerFooter": {
+        "header": "Header...",
+        "headerDescription": "Edit the content and formatting of the page header.",
+        "footer": "Footer...",
+        "footerDescription": "Edit the content and formatting of the page footer.",
+        "label": "Header && Footer...",
+        "description": "Edit the content and formatting of the header and footer."
       }
     },
     "tools": {
@@ -336,12 +547,14 @@
       "review": "Review",
       "acceptAllChanges": "Accept All Changes",
       "rejectAllChanges": "Reject All Changes",
-      "addOns": "Add-ons"
+      "addOns": "Add-ons",
+      "customizeShortcuts": "Customize Keyboard Shortcuts"
     },
     "keyboard": {
       "label": "Keyboard",
       "showMap": "Show Map",
       "customizeShortcuts": "Customize Shortcuts",
+      "customizeShortcutsDescription": "Customize keyboard shortcuts to match your preferences.",
       "none": "None",
       "arabic": "Arabic",
       "armenian": "Armenian",
@@ -358,16 +571,23 @@
         "apparatus4": "Apparatus 4 (Inner Margin)",
         "pippo": "Pippo (Critical)"
       },
-      "headerFooter": "Header && Footer",
+      "headerFooter": "Header & Footer",
       "tableOfContents": "Table of Contents",
+      "tableOfContentsDescription": "Display or hide the document's interactive table of contents.",
       "toolbar": "Toolbar",
+      "toolbarDescription": "Show or hide the main toolbar with quick-access formatting and editing tools.",
       "customizeToolbar": "Customize Toolbar...",
+      "customizeToolbarDescription": "Add, remove, or rearrange buttons on the toolbar to suit your workflow.",
       "statusBar": "Status Bar",
-      "customizeStatusBar": "Customize Status Bar",
+      "statusBarDescription": "Show or hide the status bar at the bottom of the window (displays page info, word count, etc.).",
+      "customizeStatusBar": "Customize Status Bar...",
+      "customizeStatusBarDescription": "Choose which information (e.g., total words, total characters, author) appears in the status bar.",
       "printPreview": "Print Preview",
+      "printPreviewDescription": "View how the document will look when printed — before sending it to the printer.",
       "showTabsAlignedHorizontally": "Show All Tabs Aligned Horizontally",
       "showTabsAlignedVertically": "Show All Tabs Aligned Vertically",
       "zoom": "Zoom",
+      "zoomDescription": "Adjust the display size of the document (zoom in/out or fit to screen).",
       "enterFullScreen": "Enter Full Screen",
       "goTo": {
         "label": "Go To",
@@ -375,11 +595,12 @@
         "previousPage": "Previous Page",
         "firstPage": "First Page",
         "lastPage": "Last Page",
-        "page": "Page"
+        "page": "Page..."
       },
       "synchronizeViews": "Synchronize Views",
       "synchronizeDocuments": "Synchronize Documents",
-      "expandCollapse": "Expand & Collapse",
+      "expandCollapse": "Expand and Collapse",
+      "expandCollapseDescription": "Toggle between expanded view (show all content) and collapsed view (hide sections/notes for focus).",
       "thesaurus": "Thesaurus"
     },
     "window": {
@@ -401,15 +622,19 @@
       "untitled": "Untitled"
     },
     "help": {
+      "search": "Search []",
       "label": "Help",
       "criterionHelp": "Criterion Help",
+      "criterionHelpDescription": "Open the built-in help guide or user manual to find answers, tutorials, or feature explanations.",
       "faqs": "FAQs",
       "forum": "Forum",
       "whatsNewInCriterion": "What's New in Criterion",
       "reportAnIssue": "Report an Issue",
+      "submitTicket": "Submit a ticket",
       "criterionFeedback": "Criterion Feedback",
       "checkUpdates": "Check for Updates...",
-      "about": "About Criterion"
+      "about": "About Criterion",
+      "aboutDescription": "View version information, licensing details, and credits for the Criterion application."
     }
   },
   "about": {
@@ -419,6 +644,7 @@
   },
   "buttons": {
     "cancel": "Cancel",
+    "resetAll": "Reset All",
     "ok": "Ok",
     "confirm": "Confirm",
     "save": "Save",
@@ -429,7 +655,182 @@
     "paste": "Paste",
     "insert": "Insert",
     "acknowledgements": "Acknowledgements",
-    "licenseAgreement": "License Agreement"
+    "licenseAgreement": "License Agreement",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "print": "Print",
+    "saveAndApply": "Save and apply to the whole document",
+    "export": "Export",
+    "remove": "Remove"
+  },
+  "bibliography": {
+    "title": "Bibliographies",
+    "create": "Add",
+    "import": "Import",
+    "name": "Name",
+    "citation": "Citation Style",
+    "help": "Help",
+    "empty": {
+      "title": "Create a Bibliography before adding citations"
+    },
+    "error": {
+      "title": "Bibliography already exists",
+      "maxLength": "Bibliography name cannot be longer than 50 characters"
+    },
+    "delete": "You are about to delete the bibliography. Are you sure you want to proceed?",
+    "importDialog": {
+      "title": "Bibliography already exists. Replace?"
+    },
+    "references": {
+      "title": "References",
+      "addButton": "Add Reference",
+      "create": "New Bibliographic Reference",
+      "edit": "Edit Reference",
+      "use": "Use",
+      "search": "Search",
+      "sources": {
+        "book": "Book",
+        "book_section": "Book Section",
+        "journal": "Journal / Article"
+      },
+      "delete": "You are about to delete the bibliographic reference. Are you sure you want to proceed?",
+      "fields": {
+        "sourceType": "Type of Source",
+        "title": "Title",
+        "editor": "Editor",
+        "author": "Author",
+        "bookTitle": "Book Title",
+        "series": "Series",
+        "seriesNumber": "Series Number",
+        "volume": "Volume",
+        "numberOfVolumes": "Number of Volumes",
+        "issue": "Issue",
+        "doi": "DOI",
+        "place": "Place",
+        "publisher": "Publisher",
+        "date": "Date",
+        "pages": "Pages",
+        "shortTitle": "Short Title",
+        "url": "URL",
+        "accessed": "Accessed"
+      },
+      "placeholders": {
+        "title": "Enter title...",
+        "editor": "Enter editor...",
+        "author": "Enter author name, press Enter...",
+        "bookTitle": "Enter book title...",
+        "series": "Enter series...",
+        "seriesNumber": "Enter series number...",
+        "volume": "Enter volume...",
+        "numberOfVolumes": "Enter number of volumes...",
+        "issue": "Enter issue...",
+        "doi": "e.g. 10.1000/xyz123",
+        "place": "Enter place...",
+        "publisher": "Enter publisher...",
+        "date": "e.g. 2024-01-15",
+        "pages": "e.g. 123-145",
+        "shortTitle": "Enter short title...",
+        "url": "https://...",
+        "accessed": "e.g. 2024-01-15"
+      },
+      "validations": {
+        "title": {
+          "required": "Title is required.",
+          "pattern": "Title should be proper text."
+        },
+        "editor": {
+          "required": "Editor is required.",
+          "pattern": "Editor should be proper text."
+        },
+        "author": {
+          "required": "Author is required.",
+          "pattern": "Author names must be comma-separated."
+        },
+        "bookTitle": {
+          "required": "Book Title is required.",
+          "pattern": "Book Title should be proper text."
+        },
+        "series": {
+          "required": "Series is required.",
+          "pattern": "Series should be proper text."
+        },
+        "seriesNumber": {
+          "required": "Series Number is required.",
+          "pattern": "Series Number should be proper text."
+        },
+        "volume": {
+          "required": "Volume is required.",
+          "pattern": "Volume should be proper text."
+        },
+        "numberOfVolumes": {
+          "required": "Number of Volumes is required.",
+          "pattern": "Number of Volumes should be proper text."
+        },
+        "issue": {
+          "required": "Issue is required.",
+          "pattern": "Issue should be proper text."
+        },
+        "doi": {
+          "required": "DOI is required.",
+          "pattern": "DOI must be a valid DOI format."
+        },
+        "place": {
+          "required": "Place is required.",
+          "pattern": "Place should be proper text."
+        },
+        "publisher": {
+          "required": "Publisher is required.",
+          "pattern": "Publisher should be proper text."
+        },
+        "date": {
+          "required": "Date is required.",
+          "pattern": "Date must be in YYYY-MM-DD or MM-DD-YYYY or DD-MM-YYYY or MM/DD/YYYY or DD/MM/YYYY or YYYY/MM/DD format."
+        },
+        "pages": {
+          "required": "Pages is required.",
+          "pattern": "Pages must be a range or list like '123-125,128'."
+        },
+        "shortTitle": {
+          "required": "Short Title is required.",
+          "pattern": "Short Title should be proper text."
+        },
+        "url": {
+          "required": "URL is required.",
+          "pattern": "URL must start with http:// or https://."
+        },
+        "accessed": {
+          "required": "Accessed is required.",
+          "pattern": "Accessed date must be in YYYY-MM-DD or MM-DD-YYYY or DD-MM-YYYY or MM/DD/YYYY or DD/MM/YYYY or YYYY/MM/DD format."
+        }
+      }
+    }
+  },
+  "citations": {
+    "styleOptions": {
+      "chicago17AuthDate": {
+        "title": "Chicago",
+        "description": "17th ed., author-date"
+      },
+      "chicago17NoteBib": {
+        "title": "Chicago",
+        "description": "17th ed., note-bibliography"
+      }
+    },
+    "insertDialog": {
+      "title": "Insert Citation"
+    }
+  },
+  "printSetup": {
+    "includeExport": "Include in Export",
+    "includePrint": "Include in print",
+    "include": "Include",
+    "toc": "Table of Contents",
+    "introduction": "Introduction",
+    "critical": "Critical",
+    "bibliography": "Bibliography"
   },
   "symbols": {
     "label": "Symbols",
@@ -442,6 +843,10 @@
   },
   "referencesFormat": {
     "title": "References Format",
+    "warningBadge": {
+      "title": "Warning:",
+      "message": "The 'Save' and 'Save & Apply to Entire Document' functions serve the same purpose here: both apply the settings to the entire document."
+    },
     "tabs": {
       "separators": "Separators",
       "readingTypes": "Reading Types",
@@ -464,6 +869,8 @@
     "bold": "Bold",
     "italic": "Italic",
     "underline": "Underline",
+    "customize": "Customize",
+    "numberFormat": "Number Format",
     "separator": {
       "none": "None",
       "bracket": "Bracket ( ] )",
@@ -480,12 +887,12 @@
       "highlights": "Highlights"
     },
     "highlight": {
-      "none": "none",
-      "pink": "pink",
-      "yellow": "yellow",
-      "blue": "blue",
-      "gray": "gray",
-      "mint": "mint"
+      "none": "None",
+      "pink": "Pink",
+      "yellow": "Yellow",
+      "blue": "Blue",
+      "gray": "Gray",
+      "mint": "Mint"
     },
     "pageNotes": "Page Notes",
     "sectionNotes": "Section Notes",
@@ -496,11 +903,12 @@
       "section": "Restarts at every section:"
     },
     "sectionLevel": {
-      "1": "Level 1",
-      "2": "Level 2",
-      "3": "Level 3",
-      "4": "Level 4",
-      "5": "Level 5"
+      "1": "Title",
+      "2": "Heading 1",
+      "3": "Heading 2",
+      "4": "Heading 3",
+      "5": "Heading 4",
+      "6": "Heading 5"
     }
   },
   "customSpacing": {
@@ -511,7 +919,21 @@
   },
   "resumeNumbering": {
     "label": "Start from",
-    "title": "Resume Numbering"
+    "title": "Resume Numbering",
+    "listTypeInfo": "List type",
+    "preview": "Preview",
+    "valid": "Valid format",
+    "error": {
+      "invalid": "Invalid format",
+      "tooLarge": "Value too large (max 9999)"
+    },
+    "listType": {
+      "decimal": "numbers (1, 2, 3...)",
+      "lowerAlpha": "lowercase letters (a, b, c...)",
+      "upperAlpha": "uppercase letters (A, B, C...)",
+      "lowerRoman": "lowercase roman (i, ii, iii...)",
+      "upperRoman": "uppercase roman (I, II, III...)"
+    }
   },
   "pageNumber": {
     "label": "Page number",
@@ -589,7 +1011,7 @@
     "label": "Line number",
     "show": {
       "label": "Show",
-      "description": "Line numbers are shown in critical text only.",
+      "description": "Line numbers are shown near the text inserted into Introduction, Critical Text, Bibliography.",
       "none": "None",
       "everyFive": "Every 5 lines",
       "everyTen": "Every 10 lines",
@@ -603,25 +1025,151 @@
     "all": "All",
     "default": "Default"
   },
-  "metadata":{
-    "title":"Metadata",
-    "license":"License",
-    "creationDate":"Creation date",
-    "lastSavedDate":"Last saved date",
-    "titleDoc":"Title",
-    "subject":"Subject",
-    "author":"Author",
-    "copyrightHolder":"Copyright Holder",
-    "keywords":"Keywords",
-    "status":"Status",
-    "template":"Template",
-    "language":"Language"
+  "metadata": {
+    "title": "Metadata",
+    "license": "License",
+    "creationDate": "Creation date",
+    "lastSavedDate": "Last saved date",
+    "titleDoc": "Title",
+    "subject": "Subject",
+    "author": "Author",
+    "copyrightHolder": "Copyright Holder",
+    "keywords": "Keywords",
+    "keywordsPlaceholder": "Write down the keyword and press enter...",
+    "status": "Status",
+    "template": "Template",
+    "language": "Language",
+    "version": "Version",
+    "persistentIdentifier": {
+      "label": "Persistent Identifier",
+      "description": "A DOI or PID or other permanent ID allowing to uniquely identify the document"
+    },
+    "manager": {
+      "label": "Manager",
+      "description": "The name of the manager or supervisor overseeing the document's creation or project."
+    },
+    "company": {
+      "label": "Company",
+      "description": "The name of the organization or business associated with the document."
+    },
+    "publisher": {
+      "label": "Publisher",
+      "description": "The name of the organization or business publishing the \"final\" version of the document."
+    },
+    "licenseInformation": {
+      "label": "License Information",
+      "description": "The content or URL to the document that describes the license information."
+    },
+    "category": {
+      "label": "Category",
+      "description": "A classification or type of the document, such as \"Report,\" \"Proposal,\" or \"Research.\""
+    },
+    "comments": {
+      "label": "Comments",
+      "description": "General notes or remarks about the document, often used for additional context."
+    },
+    "lastAuthor": {
+      "label": "Last Author",
+      "description": "The name of the last person to save or edit the document."
+    },
+    "revisionNumber": {
+      "label": "Revision Number",
+      "description": "Tracks the number of times the document has been saved."
+    },
+    "totalEditingTime": {
+      "label": "Total Editing Time",
+      "description": "The cumulative amount of time spent editing the document."
+    },
+    "lastPrintedDate": {
+      "label": "Last Printed Date",
+      "description": "The date and time when the document was last printed."
+    },
+    "contentStatus": {
+      "label": "Content Status",
+      "description": "Describes the current condition or usage state of the document, often for workflow purposes."
+    },
+    "contentType": {
+      "label": "Content Type",
+      "description": "A technical descriptor for the document's format, e.g., \"application/vnd.openxmlformats-officedocument.wordprocessingml.document.\""
+    },
+    "wordCount": {
+      "label": "Word Count",
+      "description": "The total number of words in the document."
+    },
+    "characterCountWithSpaces": {
+      "label": "Character Count (with spaces)",
+      "description": "The total number of characters, including spaces."
+    },
+    "characterCountNoSpaces": {
+      "label": "Character Count (no spaces)",
+      "description": "The total number of characters, excluding spaces."
+    },
+    "lineCount": {
+      "label": "Line Count",
+      "description": "The total number of lines in the document."
+    },
+    "paragraphCount": {
+      "label": "Paragraph Count",
+      "description": "The total number of paragraphs in the document."
+    },
+    "pageCount": {
+      "label": "Page Count",
+      "description": "The total number of pages in the document."
+    },
+    "customName": {
+      "label": "Custom Name",
+      "description": "The user-defined name of the custom property, such as \"Project Name\" or \"Deadline.\""
+    },
+    "valueType": {
+      "label": "Value Type",
+      "description": "The type of value associated with the custom property, such as Text, Date, Number, or Yes/No."
+    },
+    "value": {
+      "label": "Value",
+      "description": "The specific information or data tied to the custom property, entered by the user."
+    },
+    "buttons": {
+      "addMetadata": "Add Metadata",
+      "optionalMetadata": "Choose from Criterion optional metadata",
+      "customMetadata": "Create custom metadata",
+      "edit": "Edit"
+    },
+    "detailName": "Detail Name",
+    "valueCustom": "Value",
+    "itemText": "Text String",
+    "itemNumber": "Number",
+    "itemDate": "Date",
+    "itemList": "List",
+    "placeholderText": "Ex. text value",
+    "placeholderNumber": "Ex. 123",
+    "placeholderDate": "Ex. 2023-10-01",
+    "exampleList": "Ex. red, yellow, blue",
+    "newMetadata": "New Metadata",
+    "placeholderCustom": "Enter values, comma separated...",
+    "statusList": {
+      "draft": "Draft",
+      "inReview": "In review",
+      "final": "Final"
+    }
+  },
+  "findAndReplace": {
+    "title": "Find and Replace",
+    "noResults": "No results found",
+    "find": "Find",
+    "maxChars": "Maximum {{max}} characters allowed",
+    "replace": "Replace",
+    "replaceAll": "Replace All",
+    "next": "Next",
+    "previous": "Previous",
+    "caseSensitive": "Case Sensitive",
+    "wholeWords": "Whole Words",
+    "searchCriteria": "Search Criteria"
   },
   "pageSetup": {
     "title": "Choose Layout",
     "confirmationModal": {
-      "title": "Are you sure you want to delete \"{{apparatus}}\" permanently?",
-      "description": "All contents in \"{{apparatus}}\" will be permanently deleted from everywhere."
+      "title": "Are you sure you want to permanently delete \"{{apparatus}}\" ?",
+      "description": "All notes for \"{{apparatus}}\" with any comments related to the text will be permanently deleted and it will not be possible to undo this action."
     },
     "component": {
       "configurationSubtitle": "Document setup",
@@ -657,7 +1205,8 @@
       "header": "Header",
       "footer": "Footer",
       "innerMarginNote": "Inner margin note",
-      "outerMarginNote": "Outer margin note"
+      "outerMarginNote": "Outer margin note",
+      "marginNote": "Margin note"
     },
     "position": {
       "left": "Left",
@@ -693,12 +1242,18 @@
       "level6Format": "Level 6 format"
     },
     "sections": {
-      "introduction": "Introduction",
       "criticalText": {
         "start": "Start critical text",
         "end": "End critical text"
       },
-      "bibliography": "Bibliography"
+      "bibliography": {
+        "start": "Start bibliography",
+        "end": "End bibliography"
+      },
+      "introduction": {
+        "start": "Start introduction",
+        "end": "End introduction"
+      }
     },
     "navigation": {
       "placeholder": "Table of Contents"
@@ -708,7 +1263,26 @@
     "title": "Bookmarks",
     "edit": "Edit",
     "delete": "Delete",
-    "move": "Move"
+    "move": "Move",
+    "uncategorised": "Uncategorised",
+    "category": {
+      "uncategorized": "Uncategorized",
+      "title": "Select Category",
+      "filterPlaceholder": "Filter categories...",
+      "cancel": "Cancel",
+      "select": "Select"
+    },
+    "search_placeholder": "Search bookmarks...",
+    "no_results_found": "No bookmarks found",
+    "edit_mode": {
+      "title_placeholder": "Title",
+      "description_placeholder": "Add a description...",
+      "description_error_message": "The description must be less than {{length}} characters.",
+      "category_title_error_message_min_length": "The category title must be at least {{length}} characters long.",
+      "category_title_error_message_max_length": "The category title must be less than {{length}} characters.",
+      "title_error_message_min_length": "The title must be at least {{length}} characters long.",
+      "title_error_message_max_length": "The title must be less than {{length}} characters."
+    }
   },
   "delete_bookmark_dialog": {
     "title": "If you continue, you will delete the bookmark",
@@ -720,6 +1294,7 @@
     }
   },
   "delete_bookmark_category_dialog": {
+    "nav_title": "Delete bookmark category",
     "title": "If you continue, you will delete every bookmarks in the category",
     "description": "Do you want to continue? If yes please click on \"Delete\" button, if no click on \"Cancel\" button; alternatively move the all bookmarks to another caregory created with the \"Move\" button",
     "buttons": {
@@ -748,7 +1323,26 @@
     "title": "Comments",
     "edit": "Edit",
     "delete": "Delete",
-    "move": "Move"
+    "move": "Move",
+    "uncategorised": "Uncategorised",
+    "category": {
+      "uncategorized": "Uncategorized",
+      "title": "Select Category",
+      "filterPlaceholder": "Filter categories...",
+      "cancel": "Cancel",
+      "select": "Select"
+    },
+    "search_placeholder": "Search comments...",
+    "no_results_found": "No comments found",
+    "edit_mode": {
+      "title_placeholder": "Title",
+      "title_error_message_min_length": "The title must be at least {{length}} characters long.",
+      "title_error_message_max_length": "The title must be less than {{length}} characters.",
+      "description_placeholder": "Add a description...",
+      "description_error_message": "The title must be less than {{length}} characters.",
+      "category_title_error_message_min_length": "The category title must be at least {{length}} characters long.",
+      "category_title_error_message_max_length": "The category title must be less than {{length}} characters."
+    }
   },
   "delete_comment_dialog": {
     "title": "If you continue, you will delete the comment",
@@ -760,6 +1354,7 @@
     }
   },
   "delete_comment_category_dialog": {
+    "nav_title": "Delete comment category",
     "title": "If you continue, you will delete every comments in the category",
     "description": "Do you want to continue? If yes please click on \"Delete\" button, if no click on \"Cancel\" button; alternatively move the all comments to another caregory created with the \"Move\" button",
     "buttons": {
@@ -819,7 +1414,15 @@
   },
   "delete_apparatus_dialog": {
     "title": "Delete apparatus",
-    "description": "You are about to delete existing text. Are you sure you want to proceed?",
+    "description": "You are about to permanently delete all existing apparatus notes and any comments associated with the text. Are you sure you want to proceed? It will not be possible to undo this action!",
+    "buttons": {
+      "cancel": "Cancel",
+      "delete": "Delete"
+    }
+  },
+  "delete_apparatus_entry_dialog": {
+    "title": "Delete apparatus note",
+    "description": "You are about to permanently delete the apparatus note and any comments associated with the text. Are you sure you want to proceed? It will not be possible to undo this action!",
     "buttons": {
       "cancel": "Cancel",
       "delete": "Delete"
@@ -884,6 +1487,12 @@
         "title": "Restore Criterion layout",
         "rememberLastLayout": "Remember the last visual layout",
         "rememberLastLayoutDescription": "Saves and restores the last visual layout of the editing session."
+      },
+      "pdfQuality": {
+        "title": "PDF quality",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
       },
       "recentFiles": {
         "title": "Recent files to open",
@@ -959,32 +1568,588 @@
     "buttons": {
       "cancel": "Cancel",
       "resetToDefault": "Reset to Default",
-      "ok": "OK"
+      "ok": "Ok"
     },
-    "comingSoon": "Account settings coming soon..."
+    "account": {
+      "title": "Criterion Access",
+      "subtitle": "View and manage your personal information",
+      "settings": "Account settings",
+      "notSignedIn": "Not signed in",
+      "signInPrompt": "Sign in to access your documents and sync your settings",
+      "noInstitution": "No institution",
+      "editProfile": "Edit Profile",
+      "email": "Email",
+      "emailCannotBeChanged": "Email cannot be changed",
+      "name": "Name",
+      "namePlaceholder": "John",
+      "surname": "Surname",
+      "surnamePlaceholder": "Doe",
+      "institution": "Institution/Home University",
+      "institutionPlaceholder": "University of Example",
+      "keywords": "Keywords (max 8)",
+      "keywordsPlaceholder": "Add a keyword...",
+      "keywordsHint": "No keywords added",
+      "changePassword": "Change Password",
+      "saveProfile": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "Profile updated successfully",
+      "saveError": "Failed to update profile",
+      "passwordResetSent": "Password reset email sent",
+      "passwordResetError": "Failed to send password reset email",
+      "notLoggedIn": "Not logged in",
+      "loginPrompt": "Please sign in to view and manage your account",
+      "close": "Close",
+      "deleteAccount": "Delete account",
+      "deleteAccountDialog": {
+        "title": "Delete Account",
+        "description": "Are you sure you want to delete your account? This action is irreversible.",
+        "warning": "All your data, documents, and personal information will be permanently deleted. You will be logged out immediately.",
+        "confirm": "Delete Account",
+        "cancel": "Cancel"
+      },
+      "deleteSuccess": "Account deleted successfully",
+      "deleteError": "Failed to delete account",
+      "changePasswordDialog": {
+        "currentPassword": "Current Password",
+        "currentPasswordPlaceholder": "Enter current password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm Password",
+        "submit": "Change Password",
+        "submitting": "Changing...",
+        "success": "Password changed successfully",
+        "successDescription": "Your password has been updated",
+        "logoutNotice": "You will be signed out and returned to the login screen",
+        "error": "Failed to change password",
+        "errorUnauthorized": "Sign-in failed. Check your credentials and try again.",
+        "errorUserNotFound": "User not found",
+        "errorMaxRequests": "Too many requests. Please try again later",
+        "errorInvalidInput": "Invalid input data",
+        "errorUnknown": "An unexpected error occurred. Please try again later"
+      }
+    },
+    "comingSoon": "Account settings coming soon...",
+    "save": {
+      "success": "Preferences saved successfully",
+      "error": "Failed to save preferences"
+    }
+  },
+  "reading_type": {
+    "title": "Select Reading Type",
+    "cancel": "Cancel",
+    "select": "Select"
+  },
+  "reading_type_custom": {
+    "title": "Custom Reading Type",
+    "cancel": "Cancel",
+    "insert": "Insert"
   },
   "siglum": {
-    "title": "Siglum",
+    "title": "Sigla",
     "save": "Save",
     "create": "Create",
     "cancel": "Cancel",
     "import": "Import",
     "export": "Export",
-    "manuscripts": "Manuscripts*",
+    "manuscripts": "Manuscript(s)*",
     "description": "Description",
     "empty": {
       "title": "Create siglum before adding notes"
+    },
+    "errors": {
+      "siglumExists": "Siglum already exists"
+    },
+    "messages": {
+      "charactersRemaining": "characters remaining"
     },
     "importDialog": {
       "title": "There are {{count}} siglums that are already present in the document. Do you want to replace them?",
       "replace": "Replace",
       "cancel": "Cancel",
-      "keepBoth": "Keep both"
+      "keepBoth": "Keep both",
+      "versionNotSupported": "The siglum file you are trying to import is not supported by this version of Criterion."
     },
     "insertDialog": {
-      "title": "Insert siglum",
+      "title": "Add Sigla",
       "cancel": "Cancel",
-      "insert": "Insert"
+      "insert": "Insert",
+      "filterPlaceholder": "Filter sigla..."
     }
+  },
+  "criterion": {
+    "label": "Criterion",
+    "checkForUpdates": "Check for Updates",
+    "provideFeedback": "Provide Criterion Feedback",
+    "hide": "Hide Criterion",
+    "hideOthers": "Hide Others",
+    "showAll": "Show All",
+    "quit": "Quit Criterion"
+  },
+  "confirmChangeTemplateModal": {
+    "title": "Template Change",
+    "description": {
+      "warning": "Warning: The new template will remove the following number of apparatuses:",
+      "irreversible": "If the document has not been previously saved, this content will be permanently lost. We recommend saving the document before proceeding.",
+      "continue": "Do you want to proceed anyway?"
+    },
+    "apparatusType": {
+      "critical": "Critical",
+      "pageNotes": "Page Notes",
+      "sectionNotes": "Section Notes",
+      "innerMargin": "Inner Margin",
+      "outerMargin": "Outer Margin"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "confirm": "Proceed"
+    }
+  },
+  "textMenu": {
+    "insertBibliography": "Insert Bibliography",
+    "updateTableOfContents": "Update Table of Contents",
+    "import": "Import",
+    "paste": "Paste",
+    "pasteWithNotes": "Paste with notes",
+    "showNoteHighlights": "Show Note highlights",
+    "showCommentHighlights": "Show Comment highlights",
+    "showBookmarksHighlights": "Show Bookmarks highlights"
+  },
+  "export": {
+    "apparatusType": "Apparatus Type",
+    "apparatusTitle": "Apparatus Title",
+    "lemma": "Lemma",
+    "apparatusEntry": "Apparatus Entry",
+    "reading": "Reading %d%"
+  },
+  "apparatusesMenu": {
+    "swapMargin": "Swap Margin",
+    "changeType": "Change type",
+    "rename": "Rename",
+    "hide": "Hide",
+    "delete": "Delete",
+    "export": "Export",
+    "showNoteHighlights": "Show Note highlights",
+    "showCommentHighlights": "Show Comment highlights",
+    "showInPrint": "Show in print"
+  },
+  "pdf": {
+    "generating": "PDF generation in progress...",
+    "error": "Error during PDF generation",
+    "noPdfToDisplay": "No PDF to display",
+    "loading": "Loading PDF...",
+    "unknownError": "Unknown error during PDF generation",
+    "regenerationError": "Error during PDF regeneration",
+    "compilationFailed": "PDF not generated: LaTeX compilation failed",
+    "regenerate": "Regenerate PDF",
+    "preview": {
+      "notAvailable": "Warning! The Print preview of the current document is not available. Please regenerate the print preview.",
+      "failedToLoad": "Failed to load Print Preview PDF",
+      "invalidDataFormat": "Invalid PDF data format for print preview"
+    },
+    "viewer": {
+      "fileNotFound": "PDF file not found or no longer available",
+      "failedToLoad": "Failed to load PDF file",
+      "invalidDataFormat": "Invalid PDF file format"
+    },
+    "export": {
+      "saveTo": "Save PDF to...",
+      "title": "Generating PDF...",
+      "detail": "The operation will continue in the background and may take several seconds. A message will be shown when the PDF is generated.",
+      "successTitle": "PDF generated successfully!",
+      "successDetail": "The file has been saved",
+      "errorTitle": "Error during PDF generation",
+      "errorDetail": "An error occurred: {{errorMessage}}"
+    }
+  },
+  "keyboardShortcuts": {
+    "title": "Customize Keyboard Shortcuts",
+    "categories": "Categories:",
+    "commands": "Commands:",
+    "keyboardShortcut": "Keyboard Shortcut",
+    "defaultShortcut": "Default Keyboard shortcut",
+    "missingShortcut": "No Keyboard Shortcut assigned",
+    "newShortcut": "New Keyboard Shortcut",
+    "placeholder": "Click here and press a shortcut to create a new one",
+    "pressKeys": "Press keys...",
+    "helpTextMac": "Press a key combination (e.g., Cmd+Shift+Z). You cannot use modifiers alone.",
+    "helpTextWinLinux": "Press a key combination (e.g., Ctrl+Shift+Z). You cannot use modifiers alone.",
+    "conflictMessage": "This shortcut is already assigned to \"{{conflict}}\". Please choose a different shortcut or remove it from the conflicting command first.",
+    "reservedShortcut": "This shortcut is reserved by the system and cannot be assigned. Please choose a different shortcut.",
+    "assign": "Assign",
+    "description": "Description",
+    "selectCommand": "Select a command to customize its shortcut",
+    "resetConfirmation": "Are you sure you want to reset all shortcuts to default? This action cannot be undone.",
+    "successMessage": "Shortcut assigned successfully!",
+    "errorMessage": "Failed to assign shortcut. Please try again.",
+    "errorUnknown": "An unexpected error occurred. Please try again or contact support if the issue persists.",
+    "reservedDevTools": "This shortcut is reserved by DevTools and cannot be assigned.",
+    "reservedOS": "This shortcut is reserved by the operating system and cannot be assigned.",
+    "reservedMacOption": "On macOS, Option+letter/number produces special characters and cannot be used as shortcuts. Use Cmd+Option+Key instead.",
+    "validation": {
+      "needsModifier": "Letters and numbers require at least one modifier ({{modifier}} or Alt).",
+      "needsModifierExample": "Example: {{modifier}}+{{key}} or Alt+{{key}}",
+      "shiftOnlyNotAllowed": "Shift alone is not sufficient for letters/numbers. Add {{modifier}} or Alt.",
+      "shiftOnlyExample": "Example: {{modifier}}+Shift+{{key}}",
+      "modifiersOnly": "You pressed only modifiers. Add a key (letter, number, F-key, or special key).",
+      "modifiersOnlyExample": "Example: {{modifiers}}+S or {{modifiers}}+F1",
+      "functionKeyValid": "Function key {{key}} is valid! You can also add modifiers.",
+      "functionKeyExample": "Example: {{key}} or {{modifier}}+{{key}}",
+      "validShortcut": "Valid shortcut! Click 'Assign' to save it.",
+      "validShortcutFormat": "Format: {{shortcut}}",
+      "tooManyModifiers": "Maximum 3 modifiers allowed ({{modifier}}+Alt+Shift).",
+      "escapeNotAllowed": "Escape key cannot be used as a shortcut.",
+      "tabNotRecommended": "Tab key is not recommended as it may interfere with navigation.",
+      "macOptionConflict": "On macOS, Option+letter/number produces special characters (like å, ∑, ™) and cannot be used as shortcuts.",
+      "macOptionConflictExample": "Use Cmd+Option+{{key}} instead of Option+{{key}} alone."
+    },
+    "subcategories": {
+      "Export To": "Export To",
+      "Add Reading Type": "Add Reading Type",
+      "Font": "Font",
+      "Text": "Text",
+      "List": "List"
+    }
+  },
+  "tei": {
+    "export": {
+      "title": "XML/TEI Export in Progress...",
+      "detail": "The operation will continue in the background and may take several seconds. A message will be shown when the XML/TEI file is generated.",
+      "successTitle": "XML/TEI file generated successfully!",
+      "successDetail": "The file has been saved",
+      "errorTitle": "Error during XML/TEI generation",
+      "errorDetail": "An error occurred: {{errorMessage}}",
+      "unknownError": "Unknown error during XML/TEI generation"
+    },
+    "dialog": {
+      "title": "Export document as XML/TEI",
+      "description": "The document will be exported in XML/TEI format. Click 'Export' to proceed."
+    }
+  },
+  "main_editor": {
+    "bubble_menu": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "note": "Note",
+      "comment": "Comment",
+      "bookmark": "Bookmark",
+      "link": "Link"
+    },
+    "apparatus_option": {
+      "title": "Apparatuses list",
+      "items": "items",
+      "escape_to_close": "ESC to close"
+    },
+    "comment_category": {
+      "title": "Comment categories",
+      "items": "items",
+      "escape_to_close": "ESC to close"
+    },
+    "bookmark_category": {
+      "title": "Bookmark categories",
+      "items": "items",
+      "escape_to_close": "ESC to close"
+    },
+    "context_menu": {
+      "formatting": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "underline": "Underline"
+      },
+      "alignment": {
+        "left": "Align Left",
+        "center": "Align Center",
+        "right": "Align Right",
+        "justify": "Align Justify"
+      },
+      "actions": {
+        "siglum": "Siglum",
+        "citation": "Citation",
+        "note": "Note",
+        "comment": "Comment",
+        "save": {
+          "success": "Settings saved",
+          "error": "Unable to save settings"
+        },
+        "bookmark": "Bookmark",
+        "link": "Link",
+        "cut": "Cut",
+        "copy": "Copy",
+        "paste": "Paste"
+      }
+    }
+  },
+  "apparatus_editor": {
+    "bubble_menu": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "comment": "Comment",
+      "link": "Link"
+    },
+    "comment_category": {
+      "title": "Comment categories",
+      "items": "items",
+      "escape_to_close": "ESC to close"
+    },
+    "context_menu": {
+      "formatting": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "underline": "Underline"
+      },
+      "actions": {
+        "siglum": "Siglum",
+        "citation": "Citation",
+        "reading_type": "Reading type",
+        "reading_separator": "Reading separator",
+        "comment": "Comment",
+        "link": "Link",
+        "cut": "Cut",
+        "copy": "Copy",
+        "paste": "Paste"
+      }
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in to your account",
+      "subtitle": "Enter your credentials to access your dashboard",
+      "email": "Email address",
+      "emailPlaceholder": "name@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "loginSuccess": "Login successful",
+      "loginSuccessDescription": "Welcome back! You have been signed in successfully.",
+      "loginError": "Login failed",
+      "loginErrorDescription": "Invalid email or password. Please try again.",
+      "orContinueWith": "Or continue with",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "errorToastTitle": "Login failed",
+      "errorToastCredentialsDescription": "Invalid email or password. Please try again.",
+      "errorToastInputDataDescription": "Input data are not valid.",
+      "errorToastUserUnverifiedDescription": "User is not verified.",
+      "errorToastUserNotFoundDescription": "User not found.",
+      "errorToastUnknownDescription": "An unexpected error occurred.",
+      "errorToastServiceDescription": "Exception in the service call."
+    },
+    "signUp": {
+      "title": "Create an account",
+      "subtitle": "Enter your details to get started",
+      "name": "Name",
+      "namePlaceholder": "John",
+      "surname": "Surname",
+      "surnamePlaceholder": "Doe",
+      "email": "Email",
+      "emailPlaceholder": "name@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••••••••",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "••••••••••••••",
+      "institution": "Institution/Home University",
+      "institutionPlaceholder": "University of Example",
+      "keywords": "Keywords (max 8)",
+      "keywordsPlaceholder": "Type and press Enter",
+      "keywordsCount": "{{count}}/8 keywords",
+      "addKeyword": "Add",
+      "acceptTerms": "I accept the",
+      "termsOfUse": "Terms of Use",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy",
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "errorToastTitle": "Registration failed",
+      "errorToastUnknownDescription": "An unexpected error occurred.",
+      "errorToastEmailNotVerifiedDescription": "Email not verified.",
+      "errorToastEmailAlreadyExistsDescription": "The provided email is already in use.",
+      "errorToastInvalidDataDescription": "The provided data is not valid.",
+      "errorToastServiceDescription": "Exception in the service call."
+    },
+    "verifyEmailAccount": {
+      "backToSignUp": "Back to sign up",
+      "backToSignIn": "Back to sign in",
+      "title": "Verify your email",
+      "subtitle": "We've sent a verification code to your email address.",
+      "code": "Verification code",
+      "codePlaceholder": "000000",
+      "submit": "Verify code",
+      "submitting": "Verifying...",
+      "noCode": "Didn't receive the code?",
+      "resend": "Resend",
+      "errorToastTitle": "Verification failed",
+      "errorToastInvalidCodeDescription": "The verification code is incorrect. Please check and try again.",
+      "errorToastInvalidDataDescription": "Input data are not valid.",
+      "errorToastUserNotFoundDescription": "User not found.",
+      "errorToastUnknownDescription": "An unexpected error occurred.",
+      "errorToastServiceDescription": "Exception in the service call."
+    },
+    "forgotPassword": {
+      "backToSignIn": "Back to sign in",
+      "title": "Forgot password?",
+      "subtitle": "No worries, we'll send you reset instructions.",
+      "email": "Email address",
+      "emailPlaceholder": "name@example.com",
+      "submit": "Send reset code",
+      "submitting": "Sending..."
+    },
+    "verifyCode": {
+      "backToSignIn": "Back to sign in",
+      "title": "Verify your email",
+      "subtitle": "We've sent a verification code to your email address.",
+      "code": "Verification code",
+      "codePlaceholder": "000000",
+      "submit": "Verify code",
+      "submitting": "Verifying...",
+      "noCode": "Didn't receive the code?",
+      "resend": "Resend"
+    },
+    "verificationSuccess": {
+      "title": "Email verified!",
+      "subtitle": "Your email has been successfully verified. You can now sign in to your account.",
+      "continue": "Continue to sign in"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordMax": "Password must be at most 255 characters",
+      "passwordLowercase": "Password must contain at least one lowercase letter",
+      "passwordUppercase": "Password must contain at least one uppercase letter",
+      "passwordDigit": "Password must contain at least one digit",
+      "passwordSymbol": "Password must contain at least one symbol (!#@&%$)",
+      "passwordWhitespace": "Password must not contain whitespace",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsMismatch": "Passwords don't match",
+      "passwordDifferent": "New password must be different from current password",
+      "nameRequired": "Name is required",
+      "nameMin": "Name must be at least 2 characters",
+      "nameMax": "Name must be at most 50 characters",
+      "nameInvalidChars": "Name can only contain letters, spaces and apostrophes",
+      "surnameRequired": "Surname is required",
+      "surnameMin": "Surname must be at least 2 characters",
+      "surnameMax": "Surname must be at most 50 characters",
+      "surnameInvalidChars": "Surname can only contain letters, spaces and apostrophes",
+      "keywordsMax": "Maximum 8 keywords allowed",
+      "keywordEmpty": "Keyword cannot be empty",
+      "keywordMax": "Each keyword must be at most 40 characters",
+      "keywordsTotalLength": "Total length of all keywords must be at most 255 characters",
+      "institutionMax": "Institution must be at most 255 characters",
+      "institutionInvalidChars": "Institution can only contain letters, spaces and apostrophes",
+      "acceptTermsRequired": "You must accept the terms and privacy policy",
+      "codeRequired": "Verification code is required",
+      "codeLength": "Code must be 6 digits"
+    },
+    "branding": {
+      "title": "Criterion",
+      "subtitle": "Critical Text Edition Platform"
+    },
+    "logout": {
+      "title": "Sign out of your account?",
+      "subtitle": "Are you sure you want to sign out of:",
+      "warning": "This will sign you out of your account and all connected services.",
+      "cancel": "Cancel",
+      "submit": "Sign out",
+      "submitting": "Signing out..."
+    },
+    "userNotVerified": {
+      "title": "Account not verified",
+      "description": "This account is not verified.",
+      "instruction": "Please verify your email address to continue using the application.",
+      "verify": "Verify"
+    },
+    "required": "*"
+  },
+  "share": {
+    "title": "Share Document with Collaborators",
+    "document": "Document",
+    "documentOwner": "Document Owner",
+    "searchForCollaborators": "Search for Collaborators",
+    "searchPlaceholder": "Name or Email",
+    "searchResults": "Search Results",
+    "noResults": "No collaborators found",
+    "add": "Add",
+    "added": "Added",
+    "recipients": "Recipients",
+    "invitationMessage": "Invitation Message",
+    "invitationMessagePlaceholder": "Enter a message for your collaborators (max 255 characters)...",
+    "cancel": "Cancel",
+    "send": "Send",
+    "sending": "Sending...",
+    "error": "Error",
+    "errorLoadingDocument": "Failed to load document information",
+    "errorSharing": "Failed to share document",
+    "successTitle": "Document shared",
+    "successDescription": "The document has been successfully shared with the selected collaborators"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "save": "Save",
+    "close": "Close"
+  },
+  "sharedFiles": {
+    "title": "Shared documents",
+    "myFiles": "My documents",
+    "sharedWithMe": "Document invitations",
+    "filters": "Filters",
+    "file": "File",
+    "owner": "Owner",
+    "collaborator": "Collaborator",
+    "collaborators": "Collaborators",
+    "collaboratorsList": "Collaborators List",
+    "invitationStatus": "Status",
+    "actions": "Actions",
+    "dateOfFirstSharing": "First sharing",
+    "dateOfLastSharing": "Last sharing",
+    "deadlineForInvitation": "Invitation expiration",
+    "dateOfDownload": "Download date",
+    "searchByFileName": "Search by file name...",
+    "searchByOwner": "Search by owner...",
+    "searchByCollaborator": "Search by collaborator...",
+    "allStatuses": "All statuses",
+    "viewCollaborators": "View collaborators ({{count}})",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+    "accept": "Accept",
+    "decline": "Decline",
+    "download": "Download",
+    "downloadNewVersion": "Download New Version",
+    "share": "Share",
+    "upload": "Upload",
+    "delete": "Delete",
+    "close": "Close",
+    "revoke": "Revoke",
+    "resendInvite": "Resend Invite",
+    "noActionsAvailable": "No actions available",
+    "notDownloaded": "Not downloaded",
+    "noFilesFound": "No files found",
+    "inFocus": "In Focus",
+    "saved": "Saved",
+    "activeDocumentTitle": "Active document:",
+    "activeDocumentDescription": "Documents highlighted in blue are currently open and in focus in Criterion editor. Collaborative actions (Share, Upload, Delete) are only enabled for the document you're actively working on.",
+    "newVersionAvailableTitle": "New version available:",
+    "newVersionAvailableDescription": "Rows highlighted in red indicate that a new version of the document has been uploaded by the owner. Download the latest version to access the most recent changes.",
+    "acceptSuccess": "Invitation accepted successfully",
+    "declineSuccess": "Invitation declined",
+    "downloadSuccess": "Document downloaded successfully",
+    "shareSuccess": "Document shared successfully",
+    "uploadSuccess": "Document uploaded successfully",
+    "deleteSuccess": "Document removed from sharing",
+    "revokeSuccess": "Access revoked successfully",
+    "resendSuccess": "Invitation resent successfully",
+    "revokeConfirmTitle": "Revoke Invitation",
+    "revokeConfirmDescription": "Are you sure you want to revoke this invitation? The collaborator will no longer be able to accept it."
   }
 }

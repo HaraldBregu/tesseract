@@ -4,14 +4,30 @@ import { CSS } from '@dnd-kit/utilities';
 import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
 import { DndContext, KeyboardSensor, PointerSensor, pointerWithin, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import Copy from "@/components/icons/Copy";
-import Button from "@/components/ui/button";
 import DragHandle from "@/components/icons/DragHandle";
-import Delete from "@/components/icons/Delete";
-import { getNextName } from '@/utils/stylesUtils';
-import { v4 as uuidv4 } from 'uuid'
-
+import { getNextName } from '@/utils/constants';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import AppButton from './app/app-button';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from 'react-i18next';
+import IconDelete from './app/icons/IconDelete';
+import IconCopy from './app/icons/IconCopy';
+
+function renderStyledName(name: string, item: Style): React.ReactNode {
+  let content: React.ReactNode = name;
+
+  if (item.underline) {
+    content = <u>{content}</u>;
+  }
+  if (item.italic) {
+    content = <em>{content}</em>;
+  }
+  if (item.bold) {
+    content = <strong>{content}</strong>;
+  }
+
+  return content;
+}
 
 function SortableStyleItem({ id, item, onDelete, onDuplicate, selected, onStyleSelect }) {
   const {
@@ -24,65 +40,92 @@ function SortableStyleItem({ id, item, onDelete, onDuplicate, selected, onStyleS
   } = useSortable({ id });
 
   const { isDark } = useTheme();
+  const { t } = useTranslation();
+
+  const textColor = selected || isDark ? "white" : item.color;
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onStyleSelect();
+    }
+  };
+
   return (
-    <div
+    <button
       ref={setNodeRef}
       {...attributes}
       onClick={onStyleSelect}
+      onKeyDown={handleKeyDown}
       style={style}
       className={clsx(
-        'flex items-center justify-between px-3 py-2 select-none rounded',
-        isDragging && 'opacity-50',
-        selected && 'bg-[#0625ac] text-white',
+        "flex items-center px-3 py-2 select-none rounded text-left",
+        isDragging && "opacity-50",
+        selected && "bg-[#0625ac] text-white",
       )}
+      aria-pressed={selected}
+      type="button"
     >
-      <div className="flex items-center gap-2">
-        <span className="cursor-grab" {...listeners}>
-          <DragHandle size={20} color={selected && 'white'} className="dark:text-white" />
-        </span>
+      <span className="cursor-grab flex-shrink-0 mr-2" {...listeners}>
+        <DragHandle
+          size={20}
+          color={selected && "white"}
+          className="dark:text-white"
+        />
+      </span>
+      <div className="flex-1 min-w-0">
         <span
-          className="truncate"
+          className="truncate block"
           style={{
             fontFamily: item.fontFamily,
             fontSize: item.fontSize,
             fontWeight: item.fontWeight,
-            // color: selected ? 'white' : item.color,
-            color: selected ? 'white' : isDark ? 'white' : item.color,
-            display: 'inline-block',
-            maxWidth: '9.5rem',
+            color: textColor,
           }}
         >
-          {item.name}
+          {renderStyledName(item.name, item)}
         </span>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-shrink-0 ml-2">
         {item.name.split(".").length < 3 && (
-          <Button
-            variant="icon"
-            size="iconMini"
-            intent="secondary"
-            icon={<Copy size={20} color={selected && 'white'} />}
-            onClick={onDuplicate}
-          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AppButton
+                variant={selected ? "styles-selected" : "styles"}
+                size="icon-xs"
+                onClick={onDuplicate}
+              >
+                <IconCopy />
+              </AppButton>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {t("buttons.duplicate")}
+            </TooltipContent>
+          </Tooltip>
         )}
-        {item.type === "CUSTOM" && <Button
-          variant="icon"
-          size="iconMini"
-          intent="secondary"
-          icon={<Delete size={20} color={selected && 'white'} />}
-          onClick={onDelete}
-        />}
+        {item.type === "CUSTOM" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AppButton
+                variant={selected ? "styles-selected" : "styles"}
+                size="icon-xs"
+                onClick={onDelete}
+              >
+                <IconDelete />
+              </AppButton>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{t("buttons.delete")}</TooltipContent>
+          </Tooltip>
+        )}
       </div>
-    </div>
+    </button>
   );
 }
-
 
 function SortableStylesList({ styles, onStylesChange, selectedStyle, onStyleSelect }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -97,83 +140,88 @@ function SortableStylesList({ styles, onStylesChange, selectedStyle, onStyleSele
     useSensor(KeyboardSensor)
   );
 
-  return (
-    <DndContext
-      collisionDetection={pointerWithin}
-      sensors={sensors}
-      modifiers={[restrictToFirstScrollableAncestor]}
-      onDragEnd={({ active, over }) => {
-        if (!over || active.id === over.id) return;
+  const handleDelete = (item: Style) => {
+    onStylesChange(prev => prev.filter(i => i.id !== item.id));
+    setTimeout(() => {
+      onStyleSelect(styles[0]);
+    }, 0);
+  };
 
-        const oldIndex = styles.findIndex(i => i.id === active.id);
-        const newIndex = styles.findIndex(i => i.id === over.id);
+  const handleDuplicate = (item: Style) => {
+    const existingNames = styles.map(i => i.name);
+    const newName = getNextName(item.name, existingNames);
 
-        if (oldIndex !== -1 && newIndex !== -1) {
-          const newItems = arrayMove(styles, oldIndex, newIndex);
-          onStylesChange(newItems);
+    const clone = {
+      ...item,
+      id: crypto.randomUUID(),
+      name: newName,
+      type: "CUSTOM",
+      level: undefined
+    } satisfies Style;
 
-          if (newIndex === newItems.length - 1) {
-            setTimeout(() => {
-              if (scrollRef.current) {
-                scrollRef.current.scrollTo({
-                  top: scrollRef.current.scrollHeight,
-                  behavior: 'smooth',
-                });
-              }
-            }, 0);
+    const index = styles.findIndex(i => i.id === item.id);
+    const newList = [...styles];
+    newList.splice(index + 1, 0, clone);
+
+    onStylesChange(newList);
+
+    // should handle this as unique state update
+    setTimeout(() => {
+      onStyleSelect(clone);
+    }, 0);
+  };
+
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = styles.findIndex(i => i.id === active.id);
+    const newIndex = styles.findIndex(i => i.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const newItems = arrayMove(styles, oldIndex, newIndex);
+      onStylesChange(newItems);
+
+      if (newIndex === newItems.length - 1) {
+        setTimeout(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollTo({
+              top: scrollRef.current.scrollHeight,
+              behavior: 'smooth',
+            });
           }
-        }
-      }}
-    >
-      <SortableContext items={styles.map(i => i.id)} strategy={verticalListSortingStrategy}>
-        <div
-          ref={scrollRef}
-          className="max-h-[400px] overflow-y-auto pb-10"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {styles.map(item => (
-            <SortableStyleItem
-              key={item.id}
-              id={item.id}
-              item={item}
-              onStyleSelect={() => onStyleSelect(item)}
-              selected={selectedStyle?.id === item.id}
-              onDelete={() => {
-                onStylesChange(prev => prev.filter(i => i.id !== item.id));
+        }, 0);
+      }
+    }
+  };
 
-                // should handle this as unique state update
-                setTimeout(() => {
-                  onStyleSelect(styles[0])
-                }, 0)
-              }}
-              onDuplicate={() => {
-                const existingNames = styles.map(i => i.name);
-                const newName = getNextName(item.name, existingNames);
-
-                const clone = {
-                  ...item,
-                  id: uuidv4(),
-                  name: newName,
-                  type: "CUSTOM",
-                  level: undefined
-                } satisfies Style;
-
-                const index = styles.findIndex(i => i.id === item.id);
-                const newList = [...styles];
-                newList.splice(index + 1, 0, clone);
-
-                onStylesChange(newList);
-
-                // should handle this as unique state update
-                setTimeout(() => {
-                  onStyleSelect(clone);
-                }, 0);
-              }}
-            />
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+  return (
+    <TooltipProvider>
+      <DndContext
+        collisionDetection={pointerWithin}
+        sensors={sensors}
+        modifiers={[restrictToFirstScrollableAncestor]}
+        onDragEnd={handleDragEnd}>
+        <SortableContext
+          items={styles.map(i => i.id)}
+          strategy={verticalListSortingStrategy}>
+          <div
+            ref={scrollRef}
+            className="h-[27rem] overflow-y-auto py-2 flex flex-col">
+            {styles.map(item => (
+              <SortableStyleItem
+                key={item.id}
+                id={item.id}
+                item={item}
+                onStyleSelect={() => onStyleSelect(item)}
+                selected={selectedStyle?.id === item.id}
+                onDelete={() => handleDelete(item)}
+                onDuplicate={() => handleDuplicate(item)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </TooltipProvider>
   );
 }
 

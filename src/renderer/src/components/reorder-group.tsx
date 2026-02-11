@@ -18,13 +18,12 @@ const ReorderGroup = <T,>({
         <Reorder.Group
             as="ul"
             axis="y"
-            onReorder={(newTabs) => onReorder(newTabs)}
+            onReorder={onReorder}
             className={cn(
                 "flex flex-col w-full",
                 className
             )}
-            values={items}
-        >
+            values={items}>
             <AnimatePresence>
                 {children}
             </AnimatePresence>

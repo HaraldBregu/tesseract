@@ -1,12 +1,20 @@
-import path from "path";
-import * as _ from 'lodash-es';
-import { app, BaseWindow, dialog, ipcMain, MenuItem, net, protocol, shell } from "electron";
-import { MenuItemId } from "./shared/types";
+import path from "node:path";
+import { app, BaseWindow, dialog, ipcMain, MenuItem, net, protocol, screen, shell } from "electron";
+import { MenuItemId, SimplifiedTab } from "./types";
 import i18next from "i18next";
-import Backend from "i18next-fs-backend";
-import { mainLogger } from "./shared/logger.js";
+import { mainLogger } from "./shared/logger";
 import fontList from "font-list";
-import os from "os";
+import os from "node:os";
+import { Worker } from 'node:worker_threads';
+import { is, platform } from "@electron-toolkit/utils";
+import {
+  promises,
+  existsSync,
+  statSync,
+  readdirSync,
+  writeFileSync,
+  copyFileSync,
+} from "node:fs";
 import {
   getBaseWindow,
   getToolbarWebContentsView,
@@ -15,9 +23,41 @@ import {
   toolbarWebContentsViewSend,
   closeChildWindow,
   childWindowSend,
+  getChildWindow,
+  openAuthWindow,
+  openLogoutWindow,
+  getLogoutWindow,
+  openFindAndReplaceWindow,
+  getFindAndReplaceWindow,
+  openShareDocumentWindow,
+  getShareDocumentWindow,
+  openSharedDocumentsWindow,
+  getSharedDocumentsWindow,
 } from "./main-window";
-import * as fsSync from "fs";
-import { getLocalesPath, getRootUrl, getStylesPath, getTemplatesPath } from "./shared/util.js";
+import {
+  buildExportableSiglaObject,
+  buildExportableStylesObject,
+  buildExportableTemplateObject,
+  checkSignature,
+  checkVersion,
+  convertPath,
+  devToolsToggleHandler,
+  downloadsDirectoryPath,
+  getRootUrl,
+  initializei18next,
+  MIN_SIGLUM_VERSION_SUPPORTED,
+  MIN_STYLE_VERSION_SUPPORTED,
+  MIN_TEMPLATE_VERSION_SUPPORTED,
+  readFile,
+  readObject,
+  saveTemplate,
+  setRecentDocuments,
+  showCloseConfirmation,
+  stylesFolderPath,
+  templatesFolderPath,
+  updateAppSettingsLanguage,
+  updateRecentDocuments
+} from "./shared/util";
 import {
   closeWebContentsViewWithId,
   getWebContentsViewsIds,
@@ -28,6 +68,7 @@ import {
   selectedWebContentsViewSend,
   setSelectedWebContentsViewWithId,
   createWebContentsView,
+  selectContentViewAfterClosingTabWithId,
   showWebContentsView,
 } from "./content";
 import {
@@ -37,31 +78,22 @@ import {
   renameDocument,
   saveDocument,
   saveDocumentAs,
+  savePdf,
+  cleanupOldTempDirectories,
+  getExportPath,
+  generatePDF,
+  saveFileAtPath,
+  generateTEI,
+  openDocumentAtPath,
+  getDocumentObject,
+  downloadDocument,
+  openDocumentDialog,
+  loadDocumentFromPath,
+  saveFile,
 } from "./document/document-manager";
-import { promises as fs } from "fs";
-import {
-  createDocument,
-  getCurrentDocument,
-  setCurrentAnnotations,
-  setCurrentApparatuses,
-  setCurrentMainText,
-  setCurrentDocument,
-  setCurrentLayoutTemplate,
-  setCurrentPageSetup,
-  setCurrentParatextual,
-  setCurrentSort,
-  setCurrentStyles,
-  setRecentDocuments,
-  updateRecentDocuments,
-  getCurrentMetadata,
-  setCurrentMetadata,
-  setCurrentReferencesFormat,
-  getCurrentReferencesFormat,
-} from "./document/document";
-import { setDisabledReferencesMenuItemsIds } from "./menu/items/references-menu";
-import { setApparatusSubMenuObjectItems, setEnableTocVisibilityMenuItem, setTocVisible, setToolbarVisible } from "./menu/items/view-menu";
-import { fileTypeToRouteMapping, Route, routeToMenuMapping, typeTypeToRouteMapping } from "./shared/constants";
-import { setFilePathForSelectedTab } from "./toolbar";
+import { createDocument } from "./document/document";
+import { fileTypeToRouteMapping, LINK_TO_SUPPORT_PAGE, routeToMenuMapping, typeTypeToRouteMapping } from "./shared/constants";
+import { getSelectedTab, setFilePathForSelectedTab } from "./toolbar";
 import {
   getTabs,
   readAppLanguage,
@@ -75,6 +107,8 @@ import {
   readFileNameDisplay,
   storeRememberLayout,
   readRememberLayout,
+  storePdfQuality,
+  readPdfQuality,
   storeLastPageSetup,
   readLastPageSetup,
   updateTabFilePath,
@@ -100,35 +134,98 @@ import {
   readCriterionLanguage,
   storeCriterionRegion,
   readCriterionRegion,
-  storeDateTimeFormat,
-  readDateTimeFormat,
   storeDateFormat,
   readDateFormat,
-  storeTimeFormat,
-  readTimeFormat,
   storeHistoryActionsCount,
   readHistoryActionsCount,
   setSimplifiedLayoutTabs,
+  setUpdatedTabsState,
+  getUpdatedTabsState,
+  toggleStatusbarVisibility,
+  readStatusbarVisibility,
+  readStatusBarConfig,
+  storeStatusBarConfig,
+  readZoom,
+  storeZoom,
   getSimplifiedLayoutTabs,
+  deleteBaseAuthToken,
 } from "./store";
 import { initializeAutoSave, updateAutoSave, cleanupAutoSave } from "./auto-save";
-import { setEnableTocSettingsMenu } from "./menu/items/format-menu";
 import { ApplicationMenu } from "./menu/menu";
 import initializeFonts, { getSymbols, getFonts, getSubsets } from "./shared/fonts";
 import { initializeThemeManager } from "./theme-manager";
-import { v4 as uuidv4 } from 'uuid';
+import { createFreshTooltipWindow, getTooltipWindow } from "./tooltip-window";
+import parseBibtexFile from "./bibtex-parser";
+import { DocumentTabManager } from "./document/document-tab";
+import { JSONContent } from "@tiptap/core";
+import {
+  createWelcomeWebContentsView,
+  getWelcomeWebContentsView,
+  showWelcomeView,
+  hideWelcomeView,
+} from "./welcome-view";
+import {
+  confirmReplacmentStylesMessageBox,
+  corruptedFileMessageBox,
+  invalidSiglumContentMessageBox,
+  invalidSiglumJSONMessageBox,
+  misssingSignatureMessageBox,
+  misssingVersionMessageBox,
+  showSaveTemplateMessageBoxWarning,
+  siglumExportSuccessMessageBox,
+  stylesExportSuccessMessageBox,
+  unsupportedVersionMessageBox,
+  openSiglaDialog,
+  openStylesDialog,
+  saveSiglaDialog,
+  saveStylesDialog,
+  openImportTemplateDialog,
+  invalidContentMessageBox,
+  invalidJSONMessageBox,
+  showNoMoreReplacementsMessageBox,
+  openFolder,
+} from "./shared/dialogs";
+import { initializeFileOpeningHandlers, getPendingFilePath, clearPendingFilePath } from "./file-opening-handler";
+import { updateMenuShortcuts, setOnClickMenuItemFn } from "./shared/shortcut-handler";
+import { keyboardShortcutsManager } from "./shared/keyboard-shortcuts-manager";
+import { createSignature, equalSignature } from "./shared/signature";
+import { handleUserIpc } from "./services/user-ipc-service";
+import { handleInviteIpc } from "./services/invite-ipc-service";
+import { handleDocumentIpc } from "./services/document-ipc-service";
+import { handleNotificationIpc } from "./services/notification-ipc-service";
+import { registerChatHandlers } from "./services/chat-ipc-service";
+import { uploadDocument } from "./services/base-service";
 
-// Global state to track if current document has changes
-let currentDocumentHasChanges = false;
+// Setup file opening event handlers VERY early - before app.whenReady()
+// This must be done before any other app initialization
+initializeFileOpeningHandlers({
+  getWindow: getBaseWindow,
+  onFileOpen: (filePath: string) => onDocumentOpened(filePath)
+});
 
-// Add command line switches to prevent sandbox and security issues in AppImage
-if (process.platform === 'linux') {
-  app.commandLine.appendSwitch('no-sandbox');
-  app.commandLine.appendSwitch('disable-setuid-sandbox');
-  app.commandLine.appendSwitch('disable-dev-shm-usage');
+// Increase memory limits and optimize garbage collection for Windows large document handling
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=8192');
+app.commandLine.appendSwitch('js-flags', '--max-semi-space-size=512');
+
+// Additional Windows-specific optimizations for large documents
+if (process.platform === 'win32') {
+  app.commandLine.appendSwitch('js-flags', '--expose-gc');
+  app.commandLine.appendSwitch('disable-background-timer-throttling');
+  app.commandLine.appendSwitch('disable-renderer-backgrounding');
 }
 
-// .critx protocol configuration
+// Linux switches
+// IMPORTANT: keep this early (before app.whenReady())
+if (process.platform === 'linux') {
+  // Common on constrained environments (e.g. small /dev/shm)
+  app.commandLine.appendSwitch('disable-dev-shm-usage');
+
+  if (is.dev) {
+    app.commandLine.appendSwitch('enable-logging');
+    app.commandLine.appendSwitch('enable-dev-tools');
+  }
+}
+
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
     app.setAsDefaultProtocolClient("critx", process.execPath, [
@@ -154,62 +251,91 @@ protocol.registerSchemesAsPrivileged([
   }
 ])
 
-const handleAppClose = (closeFileFn: () => Promise<void>) =>
-  async (event: Electron.Event): Promise<void> => {
-    event.preventDefault();
+const handleLayoutPreservation = async (): Promise<void> => {
+  if (readRememberLayout()) {
+    try {
+      const currentTabs = getTabs();
+      mainLogger.info("Layout", `rememberLayout is enabled. Found ${currentTabs?.length || 0} current tabs`);
 
-    // Save current tabs if rememberLayout is enabled
-    if (readRememberLayout()) {
-      try {
-        const currentTabs = getTabs();
-        mainLogger.info("Layout", `rememberLayout is enabled. Found ${currentTabs?.length || 0} current tabs`);
+      if (currentTabs && currentTabs.length > 0) {
+        // Only save tabs that have file paths (opened documents)
+        const validTabs = currentTabs.filter(tab => tab.filePath && tab.filePath !== null);
+        mainLogger.info("Layout", `Filtered to ${validTabs.length} valid tabs with file paths`);
 
-        if (currentTabs && currentTabs.length > 0) {
-          // Only save tabs that have file paths (opened documents)
-          const validTabs = currentTabs.filter(tab => tab.filePath && tab.filePath !== null);
-          mainLogger.info("Layout", `Filtered to ${validTabs.length} valid tabs with file paths`);
+        // Create simplified tab objects that don't rely on runtime IDs
+        const simplifiedTabs: SimplifiedTab[] = validTabs.map(tab => ({
+          filePath: tab.filePath!,
+          selected: tab.selected,
+          route: tab.route,
+        }));
 
-          // Create simplified tab objects that don't rely on runtime IDs
-          const simplifiedTabs: SimplifiedTab[] = validTabs.map(tab => ({
-            filePath: tab.filePath!,
-            selected: tab.selected,
-            route: tab.route,
-          }));
+        simplifiedTabs.forEach((tab, index) => {
+          mainLogger.info("Layout", `Tab ${index}: ${tab.filePath} (route: ${tab.route}, selected: ${tab.selected})`);
+        });
 
-          simplifiedTabs.forEach((tab, index) => {
-            mainLogger.info("Layout", `Tab ${index}: ${tab.filePath} (route: ${tab.route}, selected: ${tab.selected})`);
-          });
-
-          console.log("simplifiedTabs on close:", simplifiedTabs);
-
-          setSimplifiedLayoutTabs(simplifiedTabs);
-          mainLogger.info("Layout", `Saved ${simplifiedTabs.length} simplified tabs for layout restoration`);
-        } else {
-          mainLogger.info("Layout", "No tabs to save");
-        }
-      } catch (err) {
-        mainLogger.error("Layout", "Error saving tabs for layout restoration", err as Error);
+        setSimplifiedLayoutTabs(simplifiedTabs);
+        mainLogger.info("Layout", `Saved ${simplifiedTabs.length} simplified tabs for layout restoration`);
+      } else {
+        mainLogger.info("Layout", "No tabs to save");
       }
-    } else {
-      mainLogger.info("Layout", "rememberLayout is disabled, not saving tabs");
+    } catch (err) {
+      mainLogger.error("Layout", "Error saving tabs for layout restoration", err as Error);
+    }
+  } else {
+    mainLogger.info("Layout", "rememberLayout is disabled, not saving tabs");
+  }
+}
+
+const handleAppClose = (closeFileFn: () => Promise<void>) => async (event: Electron.Event): Promise<void> => {
+  !is.dev && event.preventDefault();
+
+  try {
+    // Save current layout if enabled
+    await handleLayoutPreservation().catch(err => {
+      mainLogger.error("AppClose", "Error saving layout", err as Error);
+    });
+
+    const currentTabs = getTabs();
+
+    if (currentTabs.length === 0) {
+      await closeFileFn();
+      return;
     }
 
-    await closeFileFn();
-  };
+    // Close each document, prompting for unsaved changes
+    // performTabClose automatically selects the next tab after each close
+    let closingCancelled = false;
 
+    for (let i = 0; i < currentTabs.length; i++) {
+      const wasSuccessfullyClosed = await closeCurrentDocument();
 
+      if (!wasSuccessfullyClosed) {
+        closingCancelled = true;
+        break;
+      }
+    }
 
-/**
- * Consolidated language change function that handles all necessary operations consistently.
- * This function replaces the previous scattered language change logic and ensures:
- * - Consistent storage in both app settings mechanisms
- * - Proper error handling and logging
- * - Complete notification of all UI components (webContents, toolbar, child windows)
- * - Menu rebuilding with new language
- * - Recent documents update with new language
- * 
- * @param language - The language code to change to (e.g., 'en', 'it', 'de', 'fr', 'es')
- */
+    if (!closingCancelled) {
+      await closeFileFn();
+    }
+  } catch (err) {
+    mainLogger.error("AppClose", "Error during app closure", err as Error);
+  }
+}
+
+function openPreferencesWindow(options?: { account?: boolean }): void {
+  const accountParam = options?.account ? "?account=1" : "";
+  const url = getRootUrl() + "preferences" + accountParam;
+  const existingWindow = getChildWindow();
+  if (existingWindow && !existingWindow.isDestroyed()) {
+    existingWindow.focus();
+  } else {
+    openChildWindow(url, {
+      title: i18next.t('menu.preferencesWindowTitle'),
+    });
+  }
+}
+
 const changeLanguageComprehensive = async (language: string): Promise<void> => {
   const taskId = mainLogger.startTask("Electron", `Changing language to: ${language}`);
   try {
@@ -227,6 +353,7 @@ const changeLanguageComprehensive = async (language: string): Promise<void> => {
     // Store language in both storage mechanisms for consistency
     storeAppLanguage(language);
     storeCriterionLanguage(language);
+    updateAppSettingsLanguage(language);
 
     // Change i18next language
     await i18next.changeLanguage(language);
@@ -258,71 +385,106 @@ const changeLanguageComprehensive = async (language: string): Promise<void> => {
 };
 
 const registerIpcListeners = (): void => {
-  // Debounced handler for critical text updates to prevent excessive updates
-  let updateCriticalTextTimeout: NodeJS.Timeout | null = null;
 
-  ipcMain.on("update-critical-text", async (_event, data: object | null) => {
-    const taskId = mainLogger.startTask("Document", "Processing critical text update");
+  ipcMain.on('no-more-replacements', () => {
+    if (!getFindAndReplaceWindow()) return;
+    showNoMoreReplacementsMessageBox(getFindAndReplaceWindow()!).catch(err => {
+      mainLogger.error("Electron", "Failed to show no more replacements message box via IPC", err as Error);
+    });
+  });
 
-    try {
-      // Clear previous timeout to debounce rapid updates
-      if (updateCriticalTextTimeout) {
-        clearTimeout(updateCriticalTextTimeout);
+  ipcMain.on("open-logout-window", () => {
+    openLogoutWindow()
+  })
+
+  ipcMain.on("close-logout-window", () => {
+    const logoutWindow = getLogoutWindow();
+    if (!logoutWindow)
+      return;
+    logoutWindow.close();
+  })
+
+  ipcMain.on("close-auth-window", () => {
+    const authWindow = getChildWindow();
+    if (!authWindow)
+      return;
+    authWindow.close();
+  })
+
+  ipcMain.on("close-share-document-window", () => {
+    const shareDocumentWindow = getShareDocumentWindow();
+    if (!shareDocumentWindow)
+      return;
+    shareDocumentWindow.close();
+  })
+
+  ipcMain.on("close-shared-files-window", () => {
+    const sharedDocumentsWindow = getSharedDocumentsWindow();
+    if (!sharedDocumentsWindow)
+      return;
+    sharedDocumentsWindow.close();
+  })
+
+  ipcMain.on("logout", () => {
+    deleteBaseAuthToken()
+    ApplicationMenu.build(onClickMenuItem)
+  })
+
+  ipcMain.on("update-auth-status", () => {
+    toolbarWebContentsViewSend("update-auth-status");
+  })
+
+  // Notification toggle: AppTabs -> Main -> Active Editor Tab (or Welcome View if no tabs)
+  ipcMain.on("toggle-notification-panel", () => {
+    const selectedView = getSelectedWebContentsView();
+    if (selectedView?.webContents) {
+      selectedView.webContents.send('toggle-notification-panel');
+    } else {
+      // Fallback to welcome view when no document tabs are open
+      const welcomeView = getWelcomeWebContentsView();
+      if (welcomeView?.webContents) {
+        welcomeView.webContents.send('toggle-notification-panel');
       }
-
-      updateCriticalTextTimeout = setTimeout(async () => {
-        try {
-          // Validate data
-          if (!data || typeof data !== 'object') {
-            mainLogger.info("Document", "Invalid critical text data received");
-            toolbarWebContentsViewSend("main-text-changed", false);
-            return;
-          }
-
-          // Set the current main text
-          setCurrentMainText(data);
-
-          // Get the document's main text for comparison
-          const currentDocument = getCurrentDocument();
-          const existingMainText = currentDocument?.mainText;
-
-          // Determine if document has changes
-          let hasChanges = false;
-          if (!existingMainText) {
-            // If no existing text, consider it changed if we have new data
-            hasChanges = true;
-          } else {
-            // Use deep comparison to detect changes
-            hasChanges = !await _.isEqual(data, existingMainText);
-          }
-
-          // Update global change state
-          currentDocumentHasChanges = hasChanges;
-
-          // Notify toolbar about the change state
-          toolbarWebContentsViewSend("main-text-changed", hasChanges);
-
-          mainLogger.endTask(taskId, "Document", `Critical text updated, hasChanges: ${hasChanges}`);
-        } catch (err) {
-          mainLogger.error("Document", "Error processing critical text update", err as Error);
-          toolbarWebContentsViewSend("main-text-changed", false);
-        }
-      }, 300); // 300ms debounce delay
-
-    } catch (err) {
-      mainLogger.error("Document", "Error handling critical text update", err as Error);
     }
-  });
+  })
 
-  // Enhanced annotations update handler
-  ipcMain.on("update-annotations", (_event, data: object | null) => {
-    setCurrentAnnotations(data);
-  });
+  // Account panel toggle: AppTabs -> Main -> Active Editor Tab (or Welcome View if no tabs)
+  ipcMain.on("toggle-account-panel", () => {
+    const selectedView = getSelectedWebContentsView();
+    if (selectedView?.webContents) {
+      selectedView.webContents.send('toggle-account-panel');
+    } else {
+      // Fallback to welcome view when no document tabs are open
+      const welcomeView = getWelcomeWebContentsView();
+      if (welcomeView?.webContents) {
+        welcomeView.webContents.send('toggle-account-panel');
+      }
+    }
+  })
+
+  // Notification count update: Editor Tab -> Main -> AppTabs
+  ipcMain.on("update-notification-count", (_event, count: number) => {
+    toolbarWebContentsViewSend("update-notification-count", count);
+  })
+
+  // New document request: WelcomeView -> Main -> AppTabs
+  ipcMain.on("menu:new-document", () => {
+    toolbarWebContentsViewSend("create-new-document");
+    ApplicationMenu
+      .setIsNewDocument(true)
+      .build(onClickMenuItem);
+  })
+
+  ipcMain.on("tabs-current-state-changed", (_event, tabs: TabInfo[]) => {
+    setUpdatedTabsState(tabs)
+  })
+
   ipcMain.on("set-electron-language", (_event, language: string) => {
     changeLanguageComprehensive(language).catch(err => {
       mainLogger.error("Electron", "Failed to change language via IPC", err as Error);
     });
   });
+
   ipcMain.on("request-system-fonts", async (event) => {
     try {
       const fonts = await fontList.getFonts();
@@ -333,10 +495,76 @@ const registerIpcListeners = (): void => {
       event.reply("receive-system-fonts", []);
     }
   });
+
+  ipcMain.handle('tooltip:show', async (_event, { x, y, text }: { x: number, y: number, text: string }) => {
+    try {
+      const tooltip = createFreshTooltipWindow();
+
+      // Wait for the window to be fully ready
+      await new Promise<void>(resolve => {
+        if (tooltip.webContents.isLoading()) {
+          tooltip.webContents.once('dom-ready', () => {
+            setTimeout(resolve, 100); // Extra time for scripts to load
+          });
+        } else {
+          setTimeout(resolve, 50); // Small delay even if not loading
+        }
+      });
+
+      // Set position and text
+      let newY = y;
+      if (platform.isWindows) {
+        newY = y + 30;
+      }
+      tooltip.setPosition(Math.round(x), Math.round(newY));
+      tooltip.webContents.send('tooltip:set-text', text || 'Untitled');
+
+      // Show after a small delay to allow rendering
+      setTimeout(() => {
+        if (!tooltip.isDestroyed()) {
+          tooltip.showInactive();
+        }
+      }, 150);
+
+    } catch (err) {
+      mainLogger.error("Tooltip", "Error showing tooltip", err as Error);
+      console.error('❌ Tooltip error:', err);
+    }
+  });
+
+  ipcMain.handle('tooltip:hide', () => {
+    const tooltipWindow = getTooltipWindow()
+    if (tooltipWindow && !tooltipWindow.isDestroyed() && tooltipWindow.isVisible())
+      tooltipWindow.hide();
+  });
+
+  ipcMain.on('tooltip:resize', (_event, { width, height }: { width: number, height: number }) => {
+    const tooltipWindow = getTooltipWindow()
+    if (!tooltipWindow || tooltipWindow.isDestroyed()) return;
+
+    const newWidth = Math.max(width, 20);
+    const newHeight = Math.max(height, 16);
+    tooltipWindow.setSize(newWidth, newHeight);
+
+    // Reposition tooltip if it goes off-screen
+    const [currentX, currentY] = tooltipWindow.getPosition();
+    const { x: screenX, y: screenY, width: screenWidth, height: screenHeight } = screen.getDisplayNearestPoint({ x: currentX, y: currentY }).workArea;
+    const margin = 10;
+
+    const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(value, max));
+
+    const newX = clamp(currentX, screenX + margin, screenX + screenWidth - newWidth - margin);
+    const newY = clamp(currentY, screenY + margin, screenY + screenHeight - newHeight - margin);
+
+    if (newX !== currentX || newY !== currentY) {
+      tooltipWindow.setPosition(Math.round(newX), Math.round(newY));
+    }
+  });
+
   ipcMain.on("open-external-file", async (_, filePath: string) => {
     const taskId = mainLogger.startTask("Electron", "Opening external link");
     try {
-      await shell.openExternal(filePath);
+      await shell.openExternal(filePath, { activate: true, logUsage: true });
       mainLogger.endTask(taskId, "Electron", "External link opened");
     } catch (err) {
       mainLogger.error(
@@ -346,109 +574,43 @@ const registerIpcListeners = (): void => {
       );
     }
   });
+
   ipcMain.on("open-choose-layout-modal", async () => {
-    // Always show the template modal
     selectedWebContentsViewSend("receive-open-choose-layout-modal");
   });
 
-  // When a new tab from FrontEnd is created it sends the filepath to the main process
-  // The main process reads the file and sends the document to the FrontEnd
+  ipcMain.on("open-change-template-modal", async () => {
+    selectedWebContentsViewSend("show-change-template-modal");
+  })
+
   ipcMain.on("document-opened-at-path", async (_, filepath: string, fileType: FileType) => {
     const taskId = mainLogger.startTask("Document", `Loading document at path: ${filepath}`);
 
     try {
       switch (fileType) {
         case "critx": {
-          // Enhanced error handling for file reading and parsing
-          if (!fsSync.existsSync(filepath)) {
-            mainLogger.error("Document", `File not found: ${filepath}`);
-            await dialog.showMessageBox(getBaseWindow()!, {
-              type: 'error',
-              message: 'File not found',
-              detail: `The file "${filepath}" could not be found.`
-            });
-            return;
-          }
-
-          let fileContent: string;
-          try {
-            fileContent = await fs.readFile(filepath, "utf8");
-          } catch (readError) {
-            mainLogger.error("Document", `Error reading file: ${filepath}`, readError as Error);
-            await dialog.showMessageBox(getBaseWindow()!, {
-              type: 'error',
-              message: 'Error reading file',
-              detail: `Could not read the file "${filepath}".`
-            });
-            return;
-          }
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let documentObject: Record<string, any>;
-          try {
-            documentObject = JSON.parse(fileContent);
-          } catch (parseError) {
-            mainLogger.error("Document", `Error parsing JSON in file: ${filepath}`, parseError as Error);
-            await dialog.showMessageBox(getBaseWindow()!, {
-              type: 'error',
-              message: 'Invalid file format',
-              detail: `The file "${filepath}" contains invalid JSON and cannot be opened.`
-            });
-            return;
-          }
-
-          // Validate document structure
-          if (!documentObject || typeof documentObject !== 'object') {
-            mainLogger.error("Document", `Invalid document structure in file: ${filepath}`);
-            await dialog.showMessageBox(getBaseWindow()!, {
-              type: 'error',
-              message: 'Invalid document',
-              detail: `The file "${filepath}" does not contain a valid document structure.`
-            });
-            return;
-          }
-
-          // Log document structure for debugging
-          mainLogger.info("Document", `Document structure - has main_text: ${documentObject.main_text !== undefined}, main_text type: ${typeof documentObject.main_text}`);
-
-          // Handle missing or null main_text gracefully
-          if (documentObject.main_text === undefined || documentObject.main_text === null) {
-            mainLogger.info("Document", `Document has empty main_text, initializing with default structure`);
-            // Initialize with empty document structure compatible with the editor
-            documentObject.main_text = {
-              type: "doc",
-              content: []
-            };
-          }
+          const documentObject = getDocumentObject()
+          if (!documentObject)
+            return
 
           const document = await createDocument(documentObject);
+          const tabs = getTabs();
+          const selectedTab = tabs.find((tab) => tab.selected);
+          const tabId = selectedTab?.id || null;
 
-          // Validate the created document before using it
-          if (!document || typeof document !== 'object') {
-            mainLogger.error("Document", `Failed to create valid document from: ${filepath}`);
-            await dialog.showMessageBox(getBaseWindow()!, {
-              type: 'error',
-              message: 'Document creation failed',
-              detail: `Could not create a valid document from "${filepath}".`
-            });
+          if (!tabId) {
+            mainLogger.error("Document", `No tab ID available for: ${filepath}`);
             return;
           }
 
-          // Ensure critical fields are present
-          if (!document.version || !document.createdAt || !document.updatedAt) {
-            mainLogger.info("Document", `Document missing critical metadata, using defaults: ${filepath}`);
-            document.version = document.version || '1.0';
-            document.createdAt = document.createdAt || new Date().toISOString();
-            document.updatedAt = document.updatedAt || new Date().toISOString();
-          }
+          DocumentTabManager
+            .setId(tabId)
+            .setPath(filepath)
+            .setDocument(document)
+            .setTouched(false)
+            .sendUpdate()
 
-          setCurrentDocument(document);
-          setFilePathForSelectedTab(filepath);
-
-          // Send transformed document data to renderer to ensure consistency
-          // Use the camelCase version that matches the main process state
-          selectedWebContentsViewSend("load-document", document);
-          selectedWebContentsViewSend("load-document-apparatuses", document.apparatuses || []);
+          updateTabFilePath(tabId, filepath);
 
           mainLogger.endTask(taskId, "Document", `Document loaded successfully: ${filepath}`);
         } break;
@@ -474,17 +636,6 @@ const registerIpcListeners = (): void => {
     }
   });
 
-  ipcMain.on('application:updateToolbarAdditionalItems', (_, items) => {
-    storeToolbarAdditionalItems(items);
-    getWebContentsViews().forEach((webContentView) =>
-      webContentView.webContents.send(
-        "toolbar-additional-items",
-        readToolbarAdditionalItems()
-      )
-    );
-  });
-
-
   ipcMain.on("select-folder-path", async (event) => {
     const taskId = mainLogger.startTask("Dialog", "Opening folder selection dialog");
     try {
@@ -506,80 +657,219 @@ const registerIpcListeners = (): void => {
     }
   });
 
-};
-
-export function changeLanguageGlobal(lang: string): void {
-  // Use the comprehensive language change function
-  changeLanguageComprehensive(lang).catch(err => {
-    mainLogger.error("Electron", "Failed to change language globally", err as Error);
-  });
-}
-
-const showCloseConfirmation = async (): Promise<boolean> => {
-  const baseWindow = getBaseWindow();
-  if (!baseWindow) return false;
-
-  const result = await dialog.showMessageBox(baseWindow, {
-    message: i18next.t('close_document_dialog.title'),
-    detail: i18next.t('close_document_dialog.description'),
-    buttons: [i18next.t('buttons.cancel'), i18next.t('buttons.confirm')],
-    type: "warning",
+  ipcMain.on("open-auth-modal", () => {
+    openAuthWindow()
   });
 
-  return result.response === 1;
+  ipcMain.on("open-auth-from-preferences", () => {
+    closeChildWindow();
+    setTimeout(() => {
+      openAuthWindow();
+    }, 100);
+  });
+
+  ipcMain.handle("application:openPreferencesWindow", (_event, options?: { account?: boolean }) => {
+    openPreferencesWindow(options);
+  });
 };
 
-const closeCurrentDocument = async (): Promise<void> => {
-  const taskId = mainLogger.startTask("Electron", "Closing current document");
+const performTabClose = async (tabId: number): Promise<void> => {
+  const taskId = mainLogger.startTask("Electron", `Performing tab close for ID: ${tabId}`);
+  // Select the next tab BEFORE closing
+  selectContentViewAfterClosingTabWithId(tabId);
+  // Update DocumentTabManager to point to the new current tab BEFORE removing the old one
+  // This ensures that any subsequent operations (like save) use the correct tab context
+  const webContentsViews = getWebContentsViews();
+  if (webContentsViews.length > 1) {
+    DocumentTabManager.setCurrentTab();
+  }
 
-  // Check if document has unsaved changes using global state
-  if (currentDocumentHasChanges) {
-    const shouldClose = await showCloseConfirmation();
-    if (!shouldClose) {
-      mainLogger.endTask(taskId, "Electron", "File close cancelled by user");
-      return;
+  toolbarWebContentsViewSend("close-current-document", tabId);
+
+  const tabs = closeWebContentsViewWithId(tabId);
+  const route = tabs.find((tab) => tab.selected)?.route;
+  const menuViewMode = routeToMenuMapping[route];
+  const selectedTab = tabs.find((tab) => tab.selected);
+  const isNewDocument = !selectedTab || !selectedTab.filePath || selectedTab.filePath === null;
+
+  // Notify the newly selected tab about the tab change (simulate tabs:select behavior)
+  const newSelectedTabId = selectedTab?.id;
+  if (newSelectedTabId) {
+    const selectedView = getSelectedWebContentsView();
+    if (selectedView) {
+      selectedView.webContents.send('tab-selected', newSelectedTabId);
     }
   }
 
-  // Proceed with closing
-  const toolbarWebContentsView = getToolbarWebContentsView()
-  const currentWebContentsView = getSelectedWebContentsView()
-  const tabId = currentWebContentsView?.webContents.id ?? -1
+  if (process.platform === 'win32') {
+    // On Windows, add significant delay to allow complete resource cleanup for large documents
+    // Force garbage collection if available, then rebuild menu after substantial delay
+    if (global.gc) {
+      global.gc();
+    }
 
-  toolbarWebContentsView?.webContents.send("close-current-document", tabId);
+    // Wait for the cleanup delay with proper async handling
+    await new Promise<void>((resolve) => {
+      setTimeout((): void => {
+        // Check if the window still exists before rebuilding menu
+        // During app shutdown, this timer might fire after the window is destroyed
+        const baseWindow = getBaseWindow();
+        if (!baseWindow || baseWindow.isDestroyed()) {
+          mainLogger.info("Electron", "Window destroyed, skipping menu rebuild during shutdown");
+          resolve();
+          return;
+        }
 
-  const tabs = closeWebContentsViewWithId(tabId)
-  const route = tabs.find((tab) => tab.selected)?.route
-  const menuViewMode = routeToMenuMapping[route]
+        DocumentTabManager
+          .removeWithId(tabId)
 
-  const selectedTab = tabs.find((tab) => tab.selected)
-  const isNewDocument = !selectedTab || !selectedTab.filePath || selectedTab.filePath === null
+        ApplicationMenu
+          .setIsNewDocument(isNewDocument)
+          .setMenuViewMode(menuViewMode)
+          .build(onClickMenuItem);
+        mainLogger.endTask(taskId, "Electron", "Tab closed successfully");
+        resolve();
+      }, 200); // 200ms delay for Windows large document cleanup
+    });
+  } else {
+    DocumentTabManager
+      .removeWithId(tabId)
 
-  // Reset change state when closing
-  currentDocumentHasChanges = false;
-
-  ApplicationMenu
-    .setIsNewDocument(isNewDocument)
-    .setMenuViewMode(menuViewMode)
-    .build(onClickMenuItem)
-
-  mainLogger.endTask(taskId, "Electron", "File closed");
+    ApplicationMenu
+      .setIsNewDocument(isNewDocument)
+      .setMenuViewMode(menuViewMode)
+      .build(onClickMenuItem);
+    mainLogger.endTask(taskId, "Electron", "Tab closed successfully");
+  }
 };
 
-async function onDocumentOpened(filePath: string): Promise<void> {
+const closeCurrentDocument = async (): Promise<boolean> => {
+  const taskId = mainLogger.startTask("Electron", "Closing current document");
+
+  const currentWebContentsView = getSelectedWebContentsView();
+  const tabId = currentWebContentsView?.webContents.id || -1;
+
+  if (tabId === -1) {
+    mainLogger.endTask(taskId, "Electron", "No current document to close");
+    return true;
+  }
+
+  const tabsState = getUpdatedTabsState();
+  const currentTabState = tabsState.find((tab) => tab.id === tabId);
+
+  mainLogger.info("Document", `Attempting to close document. Has changes`);
+
+  if (currentTabState?.changed) {
+    const baseWindow = getBaseWindow();
+    if (!baseWindow)
+      return false;
+
+    const shouldClose = await showCloseConfirmation(baseWindow);
+    switch (shouldClose) {
+      case 0: {
+        const saveSuccessful = await saveDocument(onDocumentSaved);
+        if (saveSuccessful) {
+          await performTabClose(tabId);
+          mainLogger.endTask(taskId, "Electron", "Document saved and closed");
+          return true;
+        } else {
+          mainLogger.endTask(taskId, "Electron", "Save failed, document not closed");
+          return false;
+        }
+      }
+      case 1:
+        await performTabClose(tabId);
+        mainLogger.endTask(taskId, "Electron", "Document closed without saving");
+        return true;
+      case 2:
+      default:
+        mainLogger.endTask(taskId, "Electron", "File close cancelled by user");
+        return false;
+    }
+  } else {
+    await performTabClose(tabId);
+    mainLogger.endTask(taskId, "Electron", "Document closed (no changes)");
+    return true;
+  }
+};
+
+const checkCurrentTabIsOpened = async (filePath: string): Promise<boolean> => {
+  const currentTabs = getTabs();
+  const isDocumentAlreadyOpen = currentTabs.some(tab => tab.filePath === filePath);
+
+  if (isDocumentAlreadyOpen) {
+    const openedDocumentTab = currentTabs.find(tab => tab.filePath === filePath);
+    const baseWindow = getBaseWindow();
+    if (baseWindow && openedDocumentTab) {
+      await dialog.showMessageBox(baseWindow, {
+        type: 'warning',
+        title: i18next.t('document.alreadyOpen.title'),
+        message: i18next.t('document.alreadyOpen.message'),
+        buttons: ['OK']
+      });
+
+      setSelectedWebContentsViewWithId(openedDocumentTab.id);
+      toolbarWebContentsViewSend("tab-selected", openedDocumentTab.id);
+
+      const webContentsViews = getWebContentsViews();
+      webContentsViews.forEach(webContentView => {
+        webContentView.webContents.send('tab-selected', openedDocumentTab.id);
+      });
+
+      const route = openedDocumentTab.route;
+      const menuViewMode = routeToMenuMapping[route];
+
+      ApplicationMenu
+        .setIsNewDocument(false)
+        .setMenuViewMode(menuViewMode)
+        .build(onClickMenuItem);
+
+      DocumentTabManager.setCurrentTab();
+    }
+    return true;
+  }
+
+  return false;
+}
+
+const SUPPORTED_FILE_TYPES = ['critx', 'pdf', 'png', 'jpg', 'jpeg'];
+
+async function onDocumentOpened(filePath: string, skipDuplicateCheck = false): Promise<void> {
   const fileNameParsed = path.parse(filePath);
   const fileNameBase = fileNameParsed.base;
   const fileNameExt = fileNameParsed.ext as FileNameExt;
   const fileType = fileNameExt.slice(1) as FileType;
 
-  currentDocumentHasChanges = false;
-  getToolbarWebContentsView()?.webContents.send(
-    "document-opened",
-    filePath,
-    fileNameBase,
-    fileType,
-  );
-  updateRecentDocuments(filePath);
+  // Check if file type is supported before creating a tab
+  if (!SUPPORTED_FILE_TYPES.includes(fileType)) {
+    mainLogger.info("Document", `Unsupported file type: ${fileType} for file: ${filePath}`);
+    const baseWindow = getBaseWindow();
+    if (baseWindow) {
+      await dialog.showMessageBox(baseWindow, {
+        type: 'warning',
+        title: i18next.t('fileViewer.unsupportedFile.title'),
+        message: i18next.t('fileViewer.unsupportedFile.message'),
+        detail: `${i18next.t('fileViewer.unsupportedFile.fileType', { type: `.${fileType}` })}\n${i18next.t('fileViewer.unsupportedFile.supportedFormats')}`,
+        buttons: ['OK']
+      });
+    }
+    return;
+  }
+
+  // Hide welcome view when opening a document
+  const baseWindow = getBaseWindow();
+  if (baseWindow) {
+    hideWelcomeView(baseWindow);
+  }
+
+  if (!skipDuplicateCheck) {
+    const skipOpening = await checkCurrentTabIsOpened(filePath);
+    if (skipOpening) {
+      return;
+    }
+  }
+
+  toolbarWebContentsViewSend("document-opened", filePath, fileNameBase, fileType);
 
   ApplicationMenu
     .setIsNewDocument(false)
@@ -589,10 +879,12 @@ async function onDocumentOpened(filePath: string): Promise<void> {
 function onDocumentSaved(filePath: string): void {
   const fileNameParsed = path.parse(filePath);
   const fileNameBase = fileNameParsed.base;
-  currentDocumentHasChanges = false;
+
   toolbarWebContentsViewSend("document-saved", fileNameBase);
   toolbarWebContentsViewSend("main-text-changed", false);
   updateRecentDocuments(filePath);
+  selectedWebContentsViewSend("document-saved");
+
   ApplicationMenu.build(onClickMenuItem)
   const selectedContentView = getSelectedWebContentsView()
   if (!selectedContentView)
@@ -600,6 +892,11 @@ function onDocumentSaved(filePath: string): void {
 
   const selectedContentViewId = selectedContentView?.webContents.id
   updateTabFilePath(selectedContentViewId, filePath)
+
+  DocumentTabManager
+    .setCurrentTab()
+    .setTouched(false)
+    .sendUpdate()
 
   ApplicationMenu
     .setIsNewDocument(false)
@@ -610,32 +907,25 @@ function onDocumentRenamed(filename: string): void {
   toolbarWebContentsViewSend("document-renamed", filename);
 }
 
-function onClickMenuItem(menuItem: MenuItem, data?: string): void {
+function onClickMenuItem(menuItem: MenuItem, data?: object | string | null): void {
   const typeId: MenuItemId = menuItem.id as MenuItemId;
 
   switch (typeId) {
-    // Settings menu
     case MenuItemId.PREFERENCES: {
-      const url = getRootUrl() + "preferences"
-      openChildWindow(url, { title: "Criterion Preferences" })
+      openPreferencesWindow();
     }
       break;
-    // File menu
     case MenuItemId.NEW_FILE:
-      currentDocumentHasChanges = false;
       toolbarWebContentsViewSend("create-new-document");
-      setCurrentDocument(null)
       ApplicationMenu
         .setIsNewDocument(true)
         .build(onClickMenuItem)
       break;
     case MenuItemId.OPEN_FILE:
-      openDocument(null, onDocumentOpened);
+      openDocument(onDocumentOpened);
       break;
     case MenuItemId.OPEN_RECENT_FILE:
-      openDocument(data, onDocumentOpened);
-      break;
-    case MenuItemId.IMPORT_FILE:
+      openDocumentAtPath(data as string, onDocumentOpened);
       break;
     case MenuItemId.CLOSE_FILE:
       closeCurrentDocument();
@@ -652,23 +942,14 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.MOVE_FILE:
       moveDocument();
       break;
-    case MenuItemId.REVERT_FILE_TO:
-      break;
-    case MenuItemId.SHARE_FOR_REVIEW:
-      break;
-    case MenuItemId.LOCK_FILE:
-      break;
-    case MenuItemId.UNLOCK_FILE:
-      break;
-    case MenuItemId.EXPORT_TO:
-      break;
     case MenuItemId.EXPORT_TO_PDF:
+      selectedWebContentsViewSend('print-options', {
+        export: true,
+        print: false
+      });
       break;
-    case MenuItemId.EXPORT_TO_ODT:
-      break;
-    case MenuItemId.EXPORT_TO_XML:
-      break;
-    case MenuItemId.LANGUAGE_AND_REGION:
+    case MenuItemId.EXPORT_TO_XML_TEI:
+      selectedWebContentsViewSend('export-tei-setup');
       break;
     case MenuItemId.SAVE_AS_TEMPLATE:
       selectedWebContentsViewSend('save-as-template');
@@ -680,15 +961,30 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend('page-setup')
       break;
     case MenuItemId.PRINT:
+      selectedWebContentsViewSend('print-options', {
+        print: true,
+        export: false
+      });
       break;
+    case MenuItemId.AUTHENTICATION:
+      openAuthWindow()
+      break;
+    case MenuItemId.LOGOUT:
+      openLogoutWindow()
+      break;
+    case MenuItemId.CHAT:
+      selectedWebContentsViewSend('open-chat');
+      break;
+    case MenuItemId.SHARE_FOR_COLLABORATOR:
+      openShareDocumentWindow()
+      break;
+    case MenuItemId.SHARED_FILES:
+      openSharedDocumentsWindow()
+      break;
+
     // Edit menu
     case MenuItemId.FIND_AND_REPLACE:
-      break;
-    case MenuItemId.FIND_NEXT:
-      break;
-    case MenuItemId.FIND_PREVIOUS:
-      break;
-    case MenuItemId.JUMP_TO_SELECTION:
+      openFindWindow();
       break;
     case MenuItemId.UNDO:
       selectedWebContentsViewSend('trigger-undo');
@@ -709,26 +1005,22 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend("paste");
       break;
     case MenuItemId.PASTE_STYLE:
-      selectedWebContentsViewSend("copy-style");
-      break;
-    case MenuItemId.PASTE_AND_MATCH_STYLE:
-      // NO IMPPLEMENTATION REQUIRED
+      selectedWebContentsViewSend("paste-style");
       break;
     case MenuItemId.PASTE_TEXT_WITHOUT_FORMATTING:
+      selectedWebContentsViewSend("paste-text-without-formatting");
       break;
-    case MenuItemId.DELETE:
-      break;
-    case MenuItemId.DUPLICATE_SELECTION:
+    case MenuItemId.DELETE_SELECTION:
+      selectedWebContentsViewSend("delete-selection");
       break;
     case MenuItemId.SELECT_ALL:
+      selectedWebContentsViewSend('select-all');
       break;
     case MenuItemId.DESELECT_ALL:
+      selectedWebContentsViewSend('deselect-all');
       break;
 
     // Insert menu
-    /* case MenuItemId.INSERT_SECTION:
-      selectedWebContentsViewSend("insert-section");
-      break */
     case MenuItemId.INSERT_COMMENT:
       selectedWebContentsViewSend('insert-comment');
       break
@@ -763,16 +1055,44 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend("insert-section-break");
       break
     case MenuItemId.INSERT_LINE_NUMBER_NONE:
-      selectedWebContentsViewSend("insert-line-number");
+      DocumentTabManager
+        .setCurrentTab()
+        .setLineNumberShowLines(0)
+        .setTouched()
+        .sendUpdate();
+      ApplicationMenu
+        .setLineNumberShowLines(0)
+        .build(onClickMenuItem);
       break
     case MenuItemId.INSERT_LINE_NUMBER_EACH_5_LINE:
-      selectedWebContentsViewSend("insert-line-number");
+      DocumentTabManager
+        .setCurrentTab()
+        .setLineNumberShowLines(5)
+        .setTouched()
+        .sendUpdate();
+      ApplicationMenu
+        .setLineNumberShowLines(5)
+        .build(onClickMenuItem);
       break
     case MenuItemId.INSERT_LINE_NUMBER_EACH_10_LINE:
-      selectedWebContentsViewSend("insert-line-number");
+      DocumentTabManager
+        .setCurrentTab()
+        .setLineNumberShowLines(10)
+        .setTouched()
+        .sendUpdate();
+      ApplicationMenu
+        .setLineNumberShowLines(10)
+        .build(onClickMenuItem);
       break
     case MenuItemId.INSERT_LINE_NUMBER_EACH_15_LINE:
-      selectedWebContentsViewSend("insert-line-number");
+      DocumentTabManager
+        .setCurrentTab()
+        .setLineNumberShowLines(15)
+        .setTouched()
+        .sendUpdate();
+      ApplicationMenu
+        .setLineNumberShowLines(15)
+        .build(onClickMenuItem);
       break
     case MenuItemId.INSERT_PAGE_NUMBER:
       selectedWebContentsViewSend("insert-page-number");
@@ -789,10 +1109,10 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.INSERT_TITLE:
       selectedWebContentsViewSend("insert-title");
       break
-
-    // References menu
     case MenuItemId.INSERT_NOTE:
-      selectedWebContentsViewSend("add-note");
+      break
+    case MenuItemId.INSERT_NOTE_TO_APPARATUS:
+      selectedWebContentsViewSend("insert-note-to-apparatus", data);
       break
     case MenuItemId.INSERT_NOTE_IN_INNER_MARGIN:
       selectedWebContentsViewSend("add-note-in-inner-margin");
@@ -802,6 +1122,21 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       break
     case MenuItemId.SWAP_MARGIN:
       selectedWebContentsViewSend("swap-margin");
+      break
+    case MenuItemId.ADD_READING_TYPE_ADD:
+      selectedWebContentsViewSend("add-reading-type-add");
+      break
+    case MenuItemId.ADD_READING_TYPE_OM:
+      selectedWebContentsViewSend("add-reading-type-om");
+      break
+    case MenuItemId.ADD_READING_TYPE_TR:
+      selectedWebContentsViewSend("add-reading-type-tr");
+      break
+    case MenuItemId.ADD_READING_TYPE_DEL:
+      selectedWebContentsViewSend("add-reading-type-del");
+      break
+    case MenuItemId.ADD_READING_TYPE_CUSTOM:
+      selectedWebContentsViewSend("add-reading-type-custom");
       break
     case MenuItemId.ADD_READING_SEPARATOR:
       selectedWebContentsViewSend("add-reading-separator");
@@ -821,40 +1156,73 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.REFERENCES_FORMAT:
       selectedWebContentsViewSend("references-format");
       break
-    case MenuItemId.ADD_APPARATUS_CRITICAL:
-      selectedWebContentsViewSend("add-apparatus", "CRITICAL");
+    case MenuItemId.ADD_APPARATUS_CRITICAL: {
+      const apparatus = DocumentTabManager
+        .setCurrentTab()
+        .addApparatusTypeAtIndex("CRITICAL", 0)
+        .updateLayout()
+        .sendUpdate()
+        .apparatusAtIndex(0)
+      selectedWebContentsViewSend("add-apparatus", apparatus);
       break
-    case MenuItemId.ADD_APPARATUS_PAGE_NOTES:
-      selectedWebContentsViewSend("add-apparatus", "PAGE_NOTES");
+    }
+    case MenuItemId.ADD_APPARATUS_PAGE_NOTES: {
+      const apparatus = DocumentTabManager
+        .setCurrentTab()
+        .addApparatusTypeAtIndex("PAGE_NOTES", 0)
+        .updateLayout()
+        .sendUpdate()
+        .apparatusAtIndex(0)
+      selectedWebContentsViewSend("add-apparatus", apparatus);
       break
-    case MenuItemId.ADD_APPARATUS_SECTION_NOTES:
-      selectedWebContentsViewSend("add-apparatus", "SECTION_NOTES");
+    }
+    case MenuItemId.ADD_APPARATUS_SECTION_NOTES: {
+      const apparatus = DocumentTabManager
+        .setCurrentTab()
+        .addApparatusTypeAtIndex("SECTION_NOTES", 0)
+        .updateLayout()
+        .sendUpdate()
+        .apparatusAtIndex(0)
+      selectedWebContentsViewSend("add-apparatus", apparatus);
       break
-    case MenuItemId.ADD_APPARATUS_INNER_MARGIN:
-      selectedWebContentsViewSend("add-apparatus", "INNER_MARGIN");
+    }
+    case MenuItemId.ADD_APPARATUS_INNER_MARGIN: {
+      const apparatus = DocumentTabManager
+        .setCurrentTab()
+        .addApparatusTypeAtIndex("INNER_MARGIN", 0)
+        .updateLayout()
+        .sendUpdate()
+        .apparatusAtIndex(0)
+      selectedWebContentsViewSend("add-apparatus", apparatus);
       break
-    case MenuItemId.ADD_APPARATUS_OUTER_MARGIN:
-      selectedWebContentsViewSend("add-apparatus", "OUTER_MARGIN");
+    }
+    case MenuItemId.ADD_APPARATUS_OUTER_MARGIN: {
+      const apparatus = DocumentTabManager
+        .setCurrentTab()
+        .addApparatusTypeAtIndex("OUTER_MARGIN", 0)
+        .updateLayout()
+        .sendUpdate()
+        .apparatusAtIndex(0)
+      selectedWebContentsViewSend("add-apparatus", apparatus);
       break
-
-    // Format menu
+    }
     case MenuItemId.FONT_BOLD:
-      selectedWebContentsViewSend("change-character-style", 'bold');
+      selectedWebContentsViewSend("toggle-bold");
       break
     case MenuItemId.FONT_ITALIC:
-      selectedWebContentsViewSend("change-character-style", 'italic');
+      selectedWebContentsViewSend("toggle-italic");
       break
     case MenuItemId.FONT_UNDERLINE:
-      selectedWebContentsViewSend("change-character-style", 'underline');
+      selectedWebContentsViewSend("toggle-underline");
       break
     case MenuItemId.FONT_STRIKETHROUGH:
-      selectedWebContentsViewSend("change-character-style", 'strikethrough');
+      selectedWebContentsViewSend("toggle-strikethrough");
       break
     case MenuItemId.FONT_SUPERSCRIPT:
-      selectedWebContentsViewSend("change-character-style", 'superscript');
+      selectedWebContentsViewSend("toggle-superscript");
       break
     case MenuItemId.FONT_SUBSCRIPT:
-      selectedWebContentsViewSend("change-character-style", 'subscript');
+      selectedWebContentsViewSend("toggle-subscript");
       break
     case MenuItemId.FONT_NPC:
       selectedWebContentsViewSend("toggle-npc", 'npc');
@@ -929,7 +1297,7 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend('show-page-setup');
       break
     case MenuItemId.CHANGE_TEMPLATE:
-      selectedWebContentsViewSend('receive-open-choose-layout-modal');
+      selectedWebContentsViewSend('show-change-template-modal');
       break
     case MenuItemId.PAGE_NUMBER:
       selectedWebContentsViewSend('page-number-settings');
@@ -937,7 +1305,7 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.OPEN_LINE_NUMBER_SETTINGS:
       selectedWebContentsViewSend('line-numbers-settings');
       break
-    case MenuItemId.OPEN_HEADER_SETTINGS:
+    case MenuItemId.OPEN_HEADER_FOOTER_SETTINGS:
       selectedWebContentsViewSend('header-settings');
       break
     case MenuItemId.OPEN_FOOTER_SETTINGS:
@@ -957,6 +1325,12 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       break;
     case MenuItemId.LOW_LETTER_BULLET:
       selectedWebContentsViewSend("low-letter-bullet");
+      break;
+    case MenuItemId.UPPER_ROMAN_BULLET:
+      selectedWebContentsViewSend("upper-roman-bullet");
+      break;
+    case MenuItemId.LOW_ROMAN_BULLET:
+      selectedWebContentsViewSend("low-roman-bullet");
       break;
     case MenuItemId.POINT_BULLET:
       selectedWebContentsViewSend("point-bullet");
@@ -1010,9 +1384,19 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.SHOW_MAP:
       selectedWebContentsViewSend("show-map");
       break
-    case MenuItemId.CUSTOMIZE_SHORTCUTS:
-      selectedWebContentsViewSend("customize-shortcuts");
-      break
+    case MenuItemId.CUSTOMIZE_SHORTCUTS: {
+      const url = getRootUrl() + "keyboard-shortcuts";
+      const existingWindow = getChildWindow();
+      if (existingWindow && !existingWindow.isDestroyed()) {
+        existingWindow.focus();
+      } else {
+        openChildWindow(url, {
+          title: i18next.t('menu.keyboard.customizeShortcuts'),
+          resizable: true,
+        });
+      }
+      break;
+    }
     case MenuItemId.NONE:
       selectedWebContentsViewSend("none");
       break
@@ -1030,18 +1414,21 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       break
 
     // View menu
-    case MenuItemId.VIEW_APPARATUS:
-      selectedWebContentsViewSend("view-apparatus", data);
+    case MenuItemId.TOGGLE_VIEW_APPARATUS: {
+      const apparatus = data as Apparatus;
+      DocumentTabManager
+        .setCurrentTab()
+        .toggleApparatusVisibility(apparatus)
+        .updateLayout()
+        .sendUpdate()
+      selectedWebContentsViewSend("toggle-view-apparatus", apparatus);
       break
-    case MenuItemId.HEADER_FOOTER:
-      selectedWebContentsViewSend("header-footer");
-      break
+    }
     case MenuItemId.TABLE_OF_CONTENTS:
       selectedWebContentsViewSend("toggle-toc-visibility");
       break
     case MenuItemId.TOOLBAR:
       storeToolbarIsVisible(!readToolbarIsVisible())
-      setToolbarVisible(readToolbarIsVisible());
       ApplicationMenu.build(onClickMenuItem)
       getWebContentsViews().forEach((webContentView) =>
         webContentView.webContents.send(
@@ -1054,8 +1441,15 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
       selectedWebContentsViewSend("customize-toolbar");
       break
     case MenuItemId.STATUS_BAR:
-      selectedWebContentsViewSend("status-bar");
-      break
+      toggleStatusbarVisibility();
+      ApplicationMenu.build(onClickMenuItem);
+      getWebContentsViews().forEach((webContentView) =>
+        webContentView.webContents.send(
+          "set-status-visibility",
+          readStatusbarVisibility()
+        )
+      );
+      break;
     case MenuItemId.CUSTOMIZE_STATUS_BAR:
       selectedWebContentsViewSend("customize-status-bar");
       break
@@ -1068,15 +1462,13 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.SHOW_TABS_ALIGNED_VERTICALLY:
       selectedWebContentsViewSend("show-tabs-aligned-vertically");
       break
-    case MenuItemId.ZOOM:
-      selectedWebContentsViewSend("zoom");
+    case MenuItemId.ZOOM: {
+      const webContentViews = getWebContentsViews();
+      webContentViews.forEach(webContentView => {
+        webContentView.webContents.send('zoom-change', readZoom());
+      });
       break
-    case MenuItemId.ENTER_FULL_SCREEN:
-      // getBaseWindow()?.maximize()
-      // getBaseWindow()?.show()
-      // getBaseWindow()?.setFullScreen(true)
-      // getBaseWindow()?.setFullScreen(true)
-      break
+    }
     case MenuItemId.GO_TO_NEXT_PAGE:
       selectedWebContentsViewSend("go-to-next-page");
       break
@@ -1095,17 +1487,11 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.SYNCHRONIZE_VIEWS:
       selectedWebContentsViewSend("synchronize-views");
       break
-    case MenuItemId.SYNCHRONIZE_DOCUMENTS:
-      selectedWebContentsViewSend("synchronize-documents");
-      break
     case MenuItemId.NON_PRINTING_CHARACTERS:
       selectedWebContentsViewSend("non-printing-characters");
       break
     case MenuItemId.EXPAND_COLLAPSE:
       selectedWebContentsViewSend("expand-collapse");
-      break
-    case MenuItemId.THESAURUS:
-      selectedWebContentsViewSend("thesaurus");
       break
 
     // Window menu
@@ -1159,6 +1545,11 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.HELP:
       selectedWebContentsViewSend("help");
       break
+    case MenuItemId.SUBMIT_TICKET:
+      shell.openExternal(LINK_TO_SUPPORT_PAGE).catch(err => {
+        mainLogger.error("Electron", "Error opening support page", err as Error);
+      });
+      break
     case MenuItemId.FAQS:
       selectedWebContentsViewSend("faqs");
       break
@@ -1171,82 +1562,22 @@ function onClickMenuItem(menuItem: MenuItem, data?: string): void {
     case MenuItemId.REPORT_AN_ISSUE:
       selectedWebContentsViewSend("report-an-issue");
       break
-    case MenuItemId.ABOUT:
-      {
-        const url = getRootUrl() + "about";
-        openChildWindow(url, { title: "About", width: 440, height: 272 });
-      }
-      break
-
-    // Developer menu
+    case MenuItemId.ABOUT: {
+      const url = getRootUrl() + "about";
+      openChildWindow(url, { title: "About", width: 440, height: 272 });
+      break;
+    }
     case MenuItemId.RELOAD:
       getSelectedWebContentsView()?.webContents.reload()
       break
     case MenuItemId.TOGGLE_DEV_TOOLS:
-      getSelectedWebContentsView()?.webContents.toggleDevTools()
+      devToolsToggleHandler(getSelectedWebContentsView())
       break
-
-    // Language menu
-    case MenuItemId.CHANGE_LANGUAGE_EN:
-      changeLanguageGlobal("en");
-      break;
-    case MenuItemId.CHANGE_LANGUAGE_IT:
-      changeLanguageGlobal("it");
-      break;
-    case MenuItemId.CHANGE_LANGUAGE_DE:
-      changeLanguageGlobal("de");
-      break;
-    case MenuItemId.CHANGE_LANGUAGE_FR:
-      changeLanguageGlobal("fr");
-      break;
-    case MenuItemId.CHANGE_LANGUAGE_ES:
-      changeLanguageGlobal("es");
-      break;
     default:
       break;
   }
 }
 
-const getAppLanguage = (): string => {
-  const configPath = path.join(
-    app.getPath("appData"),
-    "Criterion",
-    "config-store",
-    "app-settings.json"
-  );
-  try {
-    if (fsSync.existsSync(configPath)) {
-      const configData = JSON.parse(fsSync.readFileSync(configPath, "utf8"));
-      return configData.language || "en"; // Return language or default to 'en'
-    }
-  } catch (err) {
-    mainLogger.error("Electron", "Error reading app settings", err as Error);
-  }
-  return "en"; // Default language if file doesn't exist or has errors
-};
-
-const initializei18next = async (): Promise<void> => {
-  const langTaskId = mainLogger.startTask("Electron", "Starting i18next");
-  const appLanguage = getAppLanguage();
-
-  // Store in electron-store for the main process
-  storeAppLanguage(appLanguage);
-
-  mainLogger.info("Electron", "App language: " + appLanguage);
-  await i18next.use(Backend).init({
-    lng: appLanguage, // Use the language from settings
-    fallbackLng: "en",
-    backend: {
-      loadPath: path.join(getLocalesPath(), "{{lng}}/translations.json"),
-    },
-  });
-
-  mainLogger.endTask(langTaskId, "Electron", "i18next configured");
-};
-
-/**
- * Waits for the toolbar to be ready before proceeding
- */
 const waitForToolbarReady = async (): Promise<void> => {
   const toolbarWebContentsView = getToolbarWebContentsView();
   if (!toolbarWebContentsView) {
@@ -1273,122 +1604,6 @@ const waitForToolbarReady = async (): Promise<void> => {
   });
 };
 
-/**
- * Creates a restoration promise for a single document
- */
-const createDocumentRestorationPromise = (savedTab: SimplifiedTab): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
-    let isResolved = false;
-    let handleDocumentOpenedAtPath: ((event: Electron.IpcMainEvent, filepath: string, fileType: FileType) => Promise<void>) | null = null;
-
-    const cleanup = (): void => {
-      if (handleDocumentOpenedAtPath) {
-        ipcMain.removeListener("document-opened-at-path", handleDocumentOpenedAtPath);
-        handleDocumentOpenedAtPath = null;
-      }
-    };
-
-    const safeResolve = (): void => {
-      if (!isResolved) {
-        isResolved = true;
-        cleanup();
-        resolve();
-      }
-    };
-
-    const safeReject = (error: Error): void => {
-      if (!isResolved) {
-        isResolved = true;
-        cleanup();
-        reject(error);
-      }
-    };
-
-    const timeout = setTimeout(() => {
-      safeReject(new Error(`Timeout loading document: ${savedTab.filePath}`));
-    }, 10000);
-
-    let documentOpenCompleted = false;
-    let contentLoadCompleted = false;
-
-    const checkCompletion = (): void => {
-      if (documentOpenCompleted && contentLoadCompleted) {
-        clearTimeout(timeout);
-        safeResolve();
-      }
-    };
-
-    // Set up listener for content loading completion
-    handleDocumentOpenedAtPath = async (_: Electron.IpcMainEvent, filepath: string, fileType: FileType): Promise<void> => {
-      if (filepath === savedTab.filePath) {
-        try {
-          const currentWebContentsView = getSelectedWebContentsView();
-          const webContentsViewId = currentWebContentsView?.webContents.id;
-
-          const waitForContentLoad = (): void => {
-            if (fileType === 'critx') {
-              const stillCurrentTab = getSelectedWebContentsView()?.webContents.id === webContentsViewId;
-              if (getCurrentDocument() !== null && stillCurrentTab) {
-                contentLoadCompleted = true;
-                checkCompletion();
-              } else if (stillCurrentTab) {
-                setImmediate(waitForContentLoad);
-              } else {
-                contentLoadCompleted = true;
-                checkCompletion();
-              }
-            } else {
-              contentLoadCompleted = true;
-              checkCompletion();
-            }
-          };
-
-          setTimeout(waitForContentLoad, 100);
-        } catch (err) {
-          safeReject(err as Error);
-        }
-      }
-    };
-
-    ipcMain.on("document-opened-at-path", handleDocumentOpenedAtPath);
-
-    // Use the normal onDocumentOpened flow
-    const wrappedOnDocumentOpened = async (filePath: string): Promise<void> => {
-      if (filePath === savedTab.filePath) {
-        try {
-          await onDocumentOpened(filePath);
-          documentOpenCompleted = true;
-          checkCompletion();
-        } catch (err) {
-          safeReject(err as Error);
-        }
-      }
-    };
-
-    wrappedOnDocumentOpened(savedTab.filePath);
-  });
-};
-
-/**
- * Selects the previously selected tab after restoration
- */
-const selectPreviouslySelectedTab = (simplifiedTabs: SimplifiedTab[]): void => {
-  const selectedTabIndex = simplifiedTabs.findIndex(tab => tab.selected);
-  if (selectedTabIndex >= 0) {
-    const currentWebContentsViews = getWebContentsViews();
-    if (selectedTabIndex < currentWebContentsViews.length) {
-      const selectedContentView = currentWebContentsViews[selectedTabIndex];
-      setSelectedWebContentsViewWithId(selectedContentView.webContents.id);
-      showWebContentsView(selectedContentView);
-      selectedContentView.webContents.focus();
-      mainLogger.info("Layout", `Selected restored tab at index: ${selectedTabIndex}`);
-    }
-  }
-};
-
-/**
- * Restores tabs from saved layout data
- */
 const restoreTabsFromSavedLayout = async (simplifiedTabs: SimplifiedTab[]): Promise<void> => {
   const toolbarWebContentsView = getToolbarWebContentsView();
   if (!toolbarWebContentsView) {
@@ -1399,28 +1614,85 @@ const restoreTabsFromSavedLayout = async (simplifiedTabs: SimplifiedTab[]): Prom
   await waitForToolbarReady();
   mainLogger.info("Layout", "Toolbar is ready, starting tab restoration");
 
-  // Restore tabs sequentially using the normal document opening flow
+  // Open documents sequentially using the existing, proven flow
+  // Wait for each document to fully load before opening the next one
   for (let i = 0; i < simplifiedTabs.length; i++) {
     const savedTab = simplifiedTabs[i];
+
     try {
       mainLogger.info("Layout", `Restoring document ${i + 1}/${simplifiedTabs.length}: ${savedTab.filePath}`);
 
-      await createDocumentRestorationPromise(savedTab);
-      mainLogger.info("Layout", `Document ${i + 1} restoration completed: ${savedTab.filePath}`);
+      // Use the existing openDocument function with onDocumentOpened callback
+      // This is the same flow used when manually opening documents
+      await new Promise<void>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error(`Timeout restoring document: ${savedTab.filePath}`));
+        }, 10000); // 10 second timeout per document
+
+        // Create a one-time listener for this specific document load
+        const handleDocumentLoaded = (_event: Electron.IpcMainEvent, filepath: string): void => {
+          if (filepath === savedTab.filePath) {
+            clearTimeout(timeoutId);
+            ipcMain.removeListener("document-opened-at-path", handleDocumentLoaded);
+
+            // Wait a bit for DocumentTabManager to be fully initialized
+            setTimeout(() => {
+              mainLogger.info("Layout", `Document ${i + 1} fully loaded: ${savedTab.filePath}`);
+              resolve();
+            }, 200);
+          }
+        };
+
+        ipcMain.on("document-opened-at-path", handleDocumentLoaded);
+
+        // Use the existing openDocument function - this is the proven, working flow
+        // Skip duplicate check during restoration to avoid showing dialog
+        openDocumentAtPath(savedTab.filePath, (filePath) => onDocumentOpened(filePath, true));
+      });
 
     } catch (err) {
       mainLogger.error("Layout", `Failed to restore document: ${savedTab.filePath}`, err as Error);
     }
   }
 
-  // Select the previously selected tab after all tabs are restored
-  selectPreviouslySelectedTab(simplifiedTabs);
+  // All documents are now loaded, select the last opened tab (last in cycle)
+  const webContentViews = getWebContentsViews();
+  const lastTabIndex = webContentViews.length - 1;
 
-  mainLogger.info("Layout", `Event-driven tab restoration completed: ${simplifiedTabs.length} documents restored`);
+  if (lastTabIndex >= 0) {
+    const lastContentView = webContentViews[lastTabIndex];
+    const lastTabId = lastContentView.webContents.id;
+
+    // Set the last tab as selected
+    setSelectedWebContentsViewWithId(lastTabId);
+    showWebContentsView(lastContentView);
+    lastContentView.webContents.focus();
+
+    // Initialize DocumentTabManager for the last tab
+    DocumentTabManager.setCurrentTab();
+
+    // Notify all views about the selection
+    webContentViews.forEach(webContentView => {
+      webContentView.webContents.send('tab-selected', lastTabId);
+    });
+
+    mainLogger.info("Layout", `Selected last restored tab ${lastTabId} (index: ${lastTabIndex})`);
+  }
+
+  mainLogger.info("Layout", `Tab restoration completed: ${simplifiedTabs.length} documents restored`);
 };
 
 const onBaseWindowReady = async (baseWindow: BaseWindow): Promise<void> => {
-  mainLogger.info("Layout", `onBaseWindowReady called, rememberLayout: ${readRememberLayout()}`);
+  const pendingFile = getPendingFilePath();
+  mainLogger.info("Layout", `onBaseWindowReady called, rememberLayout: ${readRememberLayout()}, pendingFile: ${pendingFile}`);
+
+  // Store pending file to open (from double-click while app was closed)
+  const hasPendingFile = !!pendingFile;
+  const fileToOpen = pendingFile;
+  if (hasPendingFile) {
+    mainLogger.info("Layout", `Found pending file to open: ${fileToOpen}`);
+    clearPendingFilePath(); // Clear it
+  }
 
   // Check if rememberLayout is enabled and if there are saved tabs to restore
   let shouldRestoreTabs = false;
@@ -1428,7 +1700,6 @@ const onBaseWindowReady = async (baseWindow: BaseWindow): Promise<void> => {
 
   if (readRememberLayout()) {
     const savedTabs = getSimplifiedLayoutTabs();
-    console.log("savedTabs", savedTabs);
     mainLogger.info("Layout", `Found ${savedTabs?.length || 0} saved simplified tabs`);
 
     if (savedTabs && savedTabs.length > 0) {
@@ -1440,7 +1711,7 @@ const onBaseWindowReady = async (baseWindow: BaseWindow): Promise<void> => {
         }
 
         // Check if file still exists
-        if (!fsSync.existsSync(savedTab.filePath)) {
+        if (!existsSync(savedTab.filePath)) {
           mainLogger.info("Layout", `File not found: ${savedTab.filePath}, skipping restoration`);
           continue;
         }
@@ -1461,46 +1732,68 @@ const onBaseWindowReady = async (baseWindow: BaseWindow): Promise<void> => {
     }
   }
 
-  if (!shouldRestoreTabs) {
-    // Only create the default tab if we're not restoring tabs
-    const selectedContentView = await createWebContentsView(Route.root);
-    if (!selectedContentView)
-      return;
+  // Decision tree:
+  // 1. If we have saved tabs to restore: restore them
+  // 2. If we don't have saved tabs but have a pending file: open the pending file only
+  // 3. If we have neither: create a new empty document
 
-    const menuViewMode = routeToMenuMapping[Route.root];
-    ApplicationMenu
-      .setIsNewDocument(true)
-      .setMenuViewMode(menuViewMode)
-      .build(onClickMenuItem);
-
-    baseWindow.contentView.addChildView(selectedContentView);
-    showWebContentsView(selectedContentView);
-    selectedContentView.webContents.focus();
-
-    // Always show the template modal for new documents
-    selectedWebContentsViewSend("receive-open-choose-layout-modal");
-  } else {
-    // Restore tabs using event-driven approach
+  if (shouldRestoreTabs) {
+    // Restore saved layout
     await restoreTabsFromSavedLayout(simplifiedTabs);
+
+    // If there's also a pending file from double-click, open it too
+    if (hasPendingFile && fileToOpen) {
+      mainLogger.info("Layout", `Opening double-clicked file after layout restoration: ${fileToOpen}`);
+      await waitForToolbarReady();
+      await openDocumentAtPath(fileToOpen, onDocumentOpened);
+    }
+  } else if (hasPendingFile && fileToOpen) {
+    // No saved tabs, but we have a file from double-click - open it
+    mainLogger.info("Layout", `Opening double-clicked file without layout restoration: ${fileToOpen}`);
+    await waitForToolbarReady();
+    await openDocumentAtPath(fileToOpen, onDocumentOpened);
+  } else {
+    // No saved tabs and no pending file - show welcome view
+    mainLogger.info("Layout", `Showing welcome view (no saved tabs, no pending file)`);
+    await createWelcomeWebContentsView(baseWindow);
+    showWelcomeView(baseWindow);
   }
 };
+
+const openFindWindow = (): void => {
+  if (!getFindAndReplaceWindow()) {
+    const url = getRootUrl() + "find_and_replace";
+    openFindAndReplaceWindow(url, { title: "Find and Replace", height: 300, width: 640, minHeight: 256, minWidth: 640 });
+    getFindAndReplaceWindow()?.once('close', () => {
+      selectedWebContentsViewSend('document-reset-find');
+    });
+  }
+}
 
 const initializeApp = async (): Promise<void> => {
   const appTaskId = mainLogger.startTask("Electron", "Starting application");
 
   await initializei18next();
+
   initializeThemeManager();
 
   await app.whenReady();
 
-  function convertPath(originalPath): string {
-    const match = originalPath.match(/^\/([a-zA-Z])\/(.*)$/)
-    if (match) {
-      return `${match[1]}:/${match[2]}`
-    } else {
-      return originalPath
-    }
-  }
+  await cleanupOldTempDirectories();
+
+  DocumentTabManager.onUpdate((documentTab: DocumentTab, documentTabList: DocumentTab[]) => {
+
+    console.log('DocumentTabManager onUpdate', documentTabList)
+
+    toolbarWebContentsViewSend("document-tabs-changed", documentTabList.map(doc => ({
+      id: doc.id,
+      touched: doc.touched,
+    })));
+
+    ApplicationMenu
+      .setReferencesMenuApparatuses(documentTab.document?.apparatuses ?? [])
+      .build(onClickMenuItem)
+  })
 
   // PROTOCOL API (for local resources)
   protocol.handle('local-resource', async (request) => {
@@ -1513,67 +1806,297 @@ const initializeApp = async (): Promise<void> => {
 
   // TABS API
   ipcMain.handle('tabs:new', async (_, fileType: FileType) => {
+    const baseWindow = getBaseWindow();
+
+    // Hide welcome view when creating a new tab
+    if (baseWindow) {
+      hideWelcomeView(baseWindow);
+    }
+
     const route = fileTypeToRouteMapping[fileType]
     const menuViewMode = routeToMenuMapping[route]
     ApplicationMenu
       .setMenuViewMode(menuViewMode)
       .build(onClickMenuItem)
     const webContentsView = await createWebContentsView(route)
-    return webContentsView?.webContents.id
+    const tabId = webContentsView?.webContents.id
+
+    if (!tabId)
+      return null
+
+    DocumentTabManager
+      .create()
+      .setId(tabId)
+      .add()
+
+    return tabId
   })
-  ipcMain.handle('tabs:close', (_, id: number) => {
-    const taskId = mainLogger.startTask("Tabs", `Closing tab with ID: ${id}`);
-    try {
-      const tabs = closeWebContentsViewWithId(id)
-      const route = tabs.find((tab) => tab.selected)?.route
-      const menuViewMode = routeToMenuMapping[route]
+
+  ipcMain.handle('tabs:close', async (_, tabId: number) => {
+    mainLogger.info('tabs:close', `[tabs:close] Closing tab ${tabId}`);
+    const tabs = closeWebContentsViewWithId(tabId)
+    const route = tabs.find((tab) => tab.selected)?.route
+    const menuViewMode = routeToMenuMapping[route]
+    const baseWindow = getBaseWindow();
+
+    // Check if this was the last tab
+    const remainingViews = getWebContentsViews();
+    const isLastTab = remainingViews.length === 0;
+    mainLogger.info('tabs:close', `[tabs:close] Remaining views: ${remainingViews.length}, isLastTab: ${isLastTab}`)
+
+    if (process.platform === 'win32') {
+      // On Windows, add significant delay to allow complete resource cleanup for large documents
+      // Force garbage collection if available, then rebuild menu after substantial delay
+      if (global.gc) {
+        global.gc();
+      }
+      setTimeout(async (): Promise<void> => {
+        DocumentTabManager
+          .removeWithId(tabId)
+
+        ApplicationMenu
+          .setMenuViewMode(menuViewMode)
+          .build(onClickMenuItem)
+
+        // Show welcome view if no tabs remain
+        if (isLastTab && baseWindow) {
+          await createWelcomeWebContentsView(baseWindow);
+          showWelcomeView(baseWindow);
+        }
+      }, 200); // 200ms delay for Windows large document cleanup
+    } else {
+      DocumentTabManager
+        .removeWithId(tabId)
+
       ApplicationMenu
         .setMenuViewMode(menuViewMode)
         .build(onClickMenuItem)
 
-      mainLogger.endTask(taskId, "Tabs", "Tab closed successfully");
-    } catch (err) {
-      mainLogger.error("Tabs", "Error closing tab", err as Error);
+      // Show welcome view if no tabs remain
+      if (isLastTab && baseWindow) {
+        mainLogger.info('tabs:close', ` Showing welcome view (isLastTab: ${isLastTab}, baseWindow: ${!!baseWindow})`)
+        await createWelcomeWebContentsView(baseWindow);
+        showWelcomeView(baseWindow);
+      } else {
+        mainLogger.info('tabs:close', `[tabs:close] NOT showing welcome view (isLastTab: ${isLastTab}, baseWindow: ${!!baseWindow})`);
+      }
     }
   })
+
   ipcMain.handle('tabs:select', (_, id: number, tabType: TabType) => {
     setSelectedWebContentsViewWithId(id)
     const tabs = getTabs()
     const selectedTab = tabs.find((tab) => tab.selected)
-    const isNewDocument = !selectedTab || !selectedTab.filePath || selectedTab.filePath === null
+    const isNewDocument = !selectedTab?.filePath || selectedTab.filePath === null
     const route = typeTypeToRouteMapping[tabType]
     const menuViewMode = routeToMenuMapping[route]
+
     ApplicationMenu
       .setIsNewDocument(isNewDocument)
       .setMenuViewMode(menuViewMode)
       .build(onClickMenuItem)
+
+    DocumentTabManager
+      .setCurrentTab()
+
+    const webContentViews = getWebContentsViews();
+    //print-preview tabId handler
+    webContentViews.forEach(webContentView => {
+      webContentView.webContents.send('tab-selected', id);
+    });
   })
-  ipcMain.handle('tabs:reorder', (_, tabIds: number[]) => {
-    reorderTabs(tabIds)
-  })
+
+  ipcMain.handle('tabs:reorder', (_, tabIds: number[]) => reorderTabs(tabIds))
+
   ipcMain.handle('tabs:getAllContentViewsIds', () => getWebContentsViewsIds())
+
   ipcMain.handle('tabs:getSelectedTabId', () => getSelectedWebContentsViewId())
 
-  // MENU API
-  ipcMain.handle('menu:disableReferencesMenuItems', (_, data) => {
-    setDisabledReferencesMenuItemsIds(data)
-    ApplicationMenu.build(onClickMenuItem)
-  })
-  ipcMain.handle('menu:updateViewApparatusesMenuItems', (_, data) => {
-    setApparatusSubMenuObjectItems(data)
-    ApplicationMenu.build(onClickMenuItem)
-  })
-  ipcMain.handle('menu:setTocVisibility', (_, isVisible: boolean) => {
-    setTocVisible(isVisible);
-    ApplicationMenu.build(onClickMenuItem)
+  ipcMain.handle('tabs:getCurrenTab', (): DocumentTab => {
+    return DocumentTabManager.setCurrentTab().getCurrentTab()
   });
+
+  ipcMain.handle('tabs:getCurrenTabFileName', (): string | null => {
+    const tab = getSelectedTab()
+    if (!tab)
+      return null
+
+    const currentTab = DocumentTabManager.setCurrentTab().getCurrentTab()
+    const filepath = currentTab.path
+    if (!filepath)
+      return null
+    const filename = path.basename(filepath)
+    return filename;
+  });
+
+  ipcMain.handle('tabs:getCurrenTabFilePath', (): string | null => {
+    const tab = getSelectedTab()
+    if (!tab)
+      return null
+    const currentTab = DocumentTabManager.setCurrentTab().getCurrentTab()
+    return currentTab.path
+  });
+
+  ipcMain.handle('menu:disableReferencesMenuItems', (_, data: string[]) => {
+    if (JSON.stringify(ApplicationMenu.getDisabledReferencesMenuItemsIds()) === JSON.stringify(data)) return;
+    mainLogger.info("Disabled references menu items:", JSON.stringify(data));
+    ApplicationMenu
+      .setDisabledReferencesMenuItemsIds(data)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:updateViewApparatusesMenuItems', (_, data) => {
+    if (JSON.stringify(ApplicationMenu.getApparatusSubMenuObjectItems()) === JSON.stringify(data)) return;
+    mainLogger.info("Apparatuses menu items:", JSON.stringify(data));
+    ApplicationMenu
+      .setApparatusSubMenuObjectItems(data)
+      .build(onClickMenuItem)
+  })
+
+  ipcMain.handle('menu:setTocVisibility', (_, isVisible: boolean) => {
+    if (ApplicationMenu.getTocVisible() === isVisible) return;
+    mainLogger.info("Toc visibility:", JSON.stringify(isVisible));
+    ApplicationMenu
+      .setTocVisible(isVisible)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setLineNumberShowLines', (_event, value: number) => {
+    mainLogger.info("Line number show lines:", value.toString());
+    ApplicationMenu
+      .setLineNumberShowLines(value)
+      .build(onClickMenuItem);
+  });
+
+  ipcMain.handle('menu:setPrintPreviewVisibility', (_, isVisible: boolean) => {
+    if (ApplicationMenu.getPrintPreviewVisible() === isVisible) return;
+    mainLogger.info("Print preview visibility:", JSON.stringify(isVisible));
+    ApplicationMenu
+      .setPrintPreviewVisible(isVisible)
+      .build(onClickMenuItem)
+  });
+
   ipcMain.handle('menu:setTocMenuItemsEnabled', (_, isEnable: boolean) => {
-    setEnableTocSettingsMenu(isEnable);
-    setEnableTocVisibilityMenuItem(isEnable);
-    ApplicationMenu.build(onClickMenuItem)
+    if (ApplicationMenu.getEnableTocVisibilityMenuItem() === isEnable) return;
+    mainLogger.info("Toc menu items enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setEnableTocVisibilityMenuItem(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setTocSettingsEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getEnableTocSettingsMenu() === isEnable) return;
+    mainLogger.info("Toc settings enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setEnableTocSettingsMenu(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setMenuFeatureEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getInsertMenuEnabled() === isEnable &&
+      ApplicationMenu.getTextFormattingMenuEnabled() === isEnable) return;
+    mainLogger.info("Menu features enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setInsertMenuEnabled(isEnable)
+      .setTextFormattingMenuEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setAddCommentMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getAddCommentMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Add comment menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setAddCommentMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setAddBookmarkMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getAddBookmarkMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Add bookmark menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setAddBookmarkMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setLinkMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getLinkMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Link menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setLinkMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setCurrentSection', (_, section: string) => {
+    mainLogger.info("Current section:", section);
+    ApplicationMenu
+      .setCurrentSection(section)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setRemoveLinkMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getRemoveLinkMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Remove link menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setRemoveLinkMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setAddCitationMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getAddCitationMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Add citation menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setAddCitationMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setSymbolMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getSymbolMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Symbol menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setSymbolMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setAddNoteMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getAddNoteMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Add note menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setAddNoteMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setAddReadingsEnabled', (_, isEnable: boolean) => {
+    mainLogger.info("Add readings menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setAddReadingsEnabled(isEnable)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setReferencesMenuCurrentContext', (_, context: "maintext_editor" | "apparatus_editor") => {
+    mainLogger.info("References menu context:", JSON.stringify(context));
+    ApplicationMenu
+      .setReferencesMenuCurrentContext(context)
+      .build(onClickMenuItem)
+  });
+
+  ipcMain.handle('menu:setSiglumMenuItemEnabled', (_, isEnable: boolean) => {
+    if (ApplicationMenu.getSiglumMenuItemEnabled() === isEnable) return;
+    mainLogger.info("Siglum menu item enabled:", JSON.stringify(isEnable));
+    ApplicationMenu
+      .setSiglumMenuItemEnabled(isEnable)
+      .build(onClickMenuItem)
   });
 
   // SYSTEM API
+  ipcMain.handle('system:selectFolder', async (): Promise<string | null> => {
+    const { canceled, filePaths } = await openFolder();
+    return canceled ? null : filePaths[0]
+  })
+
+  ipcMain.handle('system:saveFile', async (_, filepath, content): Promise<void> => {
+    saveFile(filepath, content)
+  })
+
   ipcMain.handle('system:getUserInfo', () => os.userInfo())
 
   ipcMain.handle('system:getFonts', () => Object.values(getFonts()).map(f => f.name).sort((a, b) => a.localeCompare(b)));
@@ -1592,367 +2115,1248 @@ const initializeApp = async (): Promise<void> => {
       detail: message,
       buttons: buttons,
       type: (type as "warning" | "none" | "info" | "error" | "question") || "warning",
+      noLink: true,
     });
 
     return result;
   })
 
-  // APPLICATION API
-  ipcMain.handle('application:toolbarIsVisible', () => {
-    return readToolbarIsVisible();
+  ipcMain.handle('system:worker', async (_, payload: WorkerRequest) => {
+    const taskId = mainLogger.startTask("Worker", `Starting worker for search: ${JSON.stringify(payload)}`);
+    return new Promise((resolve, reject) => {
+      const workerPath = path.resolve(import.meta.dirname, "search-worker.js");
+      const worker = new Worker(workerPath);
+      worker.on('message', (msg: WorkerResponse) => {
+        mainLogger.endTask(taskId, "Worker", `Worker returned ${msg.matches.length} matches for search: ${payload}`);
+        resolve(msg.matches);
+        worker.terminate();
+      });
+      worker.on('error', (err) => {
+        mainLogger.error("Worker", "Worker error", err);
+        reject(err);
+        worker.terminate();
+      });
+      worker.postMessage(payload);
+    });
   })
 
-  ipcMain.handle('application:toolbarAdditionalItems', () => {
-    return readToolbarAdditionalItems();
+  ipcMain.handle('system:log', (_, entry: LogEntry) => {
+    mainLogger.persistLog(entry);
   })
+
+  ipcMain.handle('application:toolbarIsVisible', () => readToolbarIsVisible())
+
+  ipcMain.handle('application:getStatusBarVisibility', () => readStatusbarVisibility());
+
+  ipcMain.handle('application:readToolbarAdditionalItems', () => readToolbarAdditionalItems())
+
+  ipcMain.handle('application:readStatusBarConfig', () => {
+    return readStatusBarConfig();
+  })
+
+  ipcMain.handle('application:storeStatusBarConfig', (_, items) => {
+    storeStatusBarConfig(items);
+    const webContentViews = getWebContentsViews();
+    webContentViews.forEach(webContentView => webContentView.webContents.send('status-bar-config', readStatusBarConfig()));
+  })
+
+  ipcMain.handle('application:readZoom', () => readZoom());
+
+  ipcMain.handle('application:storeZoom', (_, zoom: string) => {
+    storeZoom(zoom);
+    // Convert percentage zoom to Electron zoom level (100% = 0, 200% = 1, 50% = -1, etc.)
+    const webContentViews = getWebContentsViews();
+    webContentViews.forEach(webContentView => {
+      webContentView.webContents.send('zoom-change', readZoom());
+    });
+  });
+
+  ipcMain.handle('application:updateToolbarAdditionalItems', (_, items) => {
+    storeToolbarAdditionalItems(items);
+    const webContentViews = getWebContentsViews();
+    webContentViews.forEach((webContentView) =>
+      webContentView.webContents.send(
+        "toolbar-additional-items",
+        readToolbarAdditionalItems()
+      )
+    );
+  });
 
   ipcMain.handle('application:closeChildWindow', () => {
     closeChildWindow();
   })
 
-  // DOCUMENT API
-  ipcMain.handle('document:openDocument', () => {
-    openDocument(null, onDocumentOpened);
+  // Keyboard shortcuts IPC handlers
+  ipcMain.handle('keyboard-shortcuts:getShortcuts', () => {
+    return keyboardShortcutsManager.getShortcutsForCurrentOS(platform.isMacOS);
+  });
+
+  ipcMain.handle('keyboard-shortcuts:setShortcut', (_, menuItemId: string, shortcut: string) => {
+    const result = keyboardShortcutsManager.setCustomShortcut(menuItemId, shortcut);
+    if (result.success) {
+      // Rebuild menu with updated shortcuts
+      updateMenuShortcuts();
+    }
+    return result;
+  });
+
+  ipcMain.handle('keyboard-shortcuts:removeShortcut', (_, menuItemId: string) => {
+    keyboardShortcutsManager.removeCustomShortcut(menuItemId);
+    // Rebuild menu with updated shortcuts
+    updateMenuShortcuts();
+  });
+
+  ipcMain.handle('keyboard-shortcuts:resetAll', () => {
+    keyboardShortcutsManager.resetAllShortcuts();
+    // Rebuild menu with updated shortcuts
+    updateMenuShortcuts();
+  });
+
+  ipcMain.handle('document:savePdf', async (_, includeSections: PrintSections) => {
+    // Get the current tab ID BEFORE generating the PDF to ensure we use the correct tab
+    const currentTabId = getSelectedWebContentsViewId();
+
+    // Set initial state: loading on the specific tab that requested the PDF
+    DocumentTabManager
+      .setId(currentTabId)
+      .setPrintPreview({
+        path: null,
+        isLoaded: false,
+        error: null
+      });
+
+    try {
+      const pdfPath = await savePdf(includeSections);
+
+      // Update state: success on the specific tab
+      DocumentTabManager
+        .setId(currentTabId)
+        .setPrintPreview({
+          path: pdfPath,
+          isLoaded: true,
+          error: null
+        });
+
+      // Notify all renderer views that PDF is ready, including the tab ID
+      const webContentViews = getWebContentsViews();
+      webContentViews.forEach(webContentView => {
+        webContentView.webContents.send('pdf-generated', pdfPath, currentTabId);
+      });
+      return pdfPath;
+    } catch (error) {
+      // Update state: error on the specific tab
+      const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto durante la generazione del PDF';
+      DocumentTabManager
+        .setId(currentTabId)
+        .setPrintPreview({
+          path: null,
+          isLoaded: true,
+          error: errorMessage
+        });
+
+      // Notify all renderer views about the error
+      const webContentViews = getWebContentsViews();
+      webContentViews.forEach(webContentView => {
+        webContentView.webContents.send('pdf-generation-error', errorMessage, currentTabId);
+      });
+      throw error;
+    }
   })
+
+  ipcMain.handle('document:downloadDocument', (_, filename: string, document: DocumentData): Promise<boolean> => {
+    return downloadDocument(filename, document)
+  })
+
+  ipcMain.handle('document:uploadDocument', async (_, documentId: string): Promise<Result<UploadDocumentSuccess, UploadDocumentError>> => {
+    try {
+      const documentTab = DocumentTabManager
+        .setDocumentId(documentId)
+        .getCurrentTab()
+
+      const documentRecord = await loadDocumentFromPath(documentTab.path)
+      if (!documentRecord)
+        throw new Error("No document record loaded")
+
+      const document = await createDocument(documentRecord)
+      return uploadDocument(documentTab.path, document.id)
+    } catch {
+      const filepath = await openDocumentDialog()
+      if (!filepath)
+        throw new Error("No file path found")
+
+      const documentRecord = await loadDocumentFromPath(filepath)
+      if (!documentRecord)
+        throw new Error("No document record loaded")
+
+      const document = await createDocument(documentRecord)
+      return uploadDocument(filepath, document.id)
+    }
+  })
+
+  ipcMain.handle('document:getDocument', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getDocument();
+  })
+
+  ipcMain.handle('document:openDocument', () => {
+    openDocument(onDocumentOpened);
+  })
+
+  ipcMain.handle('document:openDocumentAtPath', (_, filePath: string) => {
+    openDocumentAtPath(filePath, onDocumentOpened);
+  })
+
   ipcMain.handle('document:saveDocument', async () => {
     return await saveDocument(onDocumentSaved);
   })
+
   ipcMain.handle('document:getMainText', async () => {
-    const document = getCurrentDocument();
-    const mainText = document?.mainText as object;
-    return mainText;
+    return DocumentTabManager
+      .setCurrentTab()
+      .getMainText()
   })
-  ipcMain.handle('document:getTemplates', async () => {
-    const templatesFolderPath = getTemplatesPath();
-    const templatesFilenames = fsSync.readdirSync(templatesFolderPath);
-    const templates = templatesFilenames
-      .filter((filename) => filename.endsWith(".tml"))
-      .map(async (filename) => {
-        const filePath = path.join(templatesFolderPath, filename);
-        const content = await fs.readFile(filePath, "utf8");
-        return { filename, content };
+
+  ipcMain.handle('document:getAnnotations', async () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getAnnotations()
+  })
+
+  ipcMain.handle('document:setComments', (_, comments: AppComment[] | null) => {
+    if (!comments)
+      return;
+
+
+    DocumentTabManager
+      .setCurrentTab()
+      .setComments(comments)
+      .setTouched()
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:setCommentCategories', (_, commentCategories: CommentCategory[] | null) => {
+    if (!commentCategories)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setCommentCategories(commentCategories)
+      .setTouched()
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:setBookmarks', (_, bookmarks: Bookmark[] | null) => {
+    if (!bookmarks)
+      return;
+
+    DocumentTabManager
+      .setCurrentTab()
+      .setBookmarks(bookmarks)
+      .setTouched()
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:setBookmarkCategories', (_, bookmarkCategories: BookmarkCategory[] | null) => {
+    if (!bookmarkCategories)
+      return;
+
+    DocumentTabManager
+      .setCurrentTab()
+      .setBookmarkCategories(bookmarkCategories)
+      .setTouched()
+      .setBookmarkCategories(bookmarkCategories)
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:getTemplate', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getTemplate()
+  })
+
+  ipcMain.handle('document:getPrintPreview', async () => {
+    return DocumentTabManager.getPrintPreview() || { path: null, isLoaded: false, error: null };
+  })
+
+  ipcMain.handle('document:getFileAsDataUrl', async (_, filePath: string) => {
+    const taskId = mainLogger.startTask("Document", `Converting file to data URL: ${filePath}`);
+    mainLogger.info("Document", `getFileAsDataUrl called for: ${filePath}`);
+
+    try {
+      mainLogger.info("Document", "Checking if file exists");
+      if (!existsSync(filePath)) {
+        mainLogger.error("Document", `File not found: ${filePath}`);
+        throw new Error(`File not found: ${filePath}`);
+      }
+      mainLogger.info("Document", "File exists, proceeding with read");
+
+      const fileExtension = path.extname(filePath).toLowerCase();
+      mainLogger.info("Document", `File extension: ${fileExtension}`);
+
+      // Per i PDF, leggi il file e restituisci l'ArrayBuffer
+      if (fileExtension === '.pdf') {
+        mainLogger.info("Document", "PDF file detected, reading file as ArrayBuffer");
+
+        // Check file size before reading
+        const stats = statSync(filePath);
+        const fileSizeInMB = stats.size / (1024 * 1024);
+        mainLogger.info("Document", `PDF file size: ${fileSizeInMB.toFixed(2)} MB`);
+
+        if (fileSizeInMB > 500) {
+          const errorMsg = `PDF file too large (${fileSizeInMB.toFixed(2)} MB). Maximum allowed size is 500 MB.`;
+          mainLogger.error("Document", errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        mainLogger.info("Document", "Reading PDF file as ArrayBuffer");
+
+        // Add timeout for large PDF files to prevent hanging
+        const readPromise = promises.readFile(filePath);
+        const timeoutPromise = new Promise((_, reject) => {
+          const timeoutMs = fileSizeInMB > 50 ? 60000 : 30000; // 60s for files > 50MB, 30s for others
+          setTimeout(() => reject(new Error(`PDF read timeout after ${timeoutMs / 1000} seconds`)), timeoutMs);
+        });
+
+        const fileBuffer = await Promise.race([readPromise, timeoutPromise]) as Buffer;
+        mainLogger.info("Document", `PDF file read completed, buffer size: ${fileBuffer.length} bytes`);
+
+        // Convert PDF to data URL for iframe compatibility
+        const base64Data = fileBuffer.toString('base64');
+        const dataUrl = `data:application/pdf;base64,${base64Data}`;
+
+        mainLogger.info("Document", `PDF converted to data URL, length: ${dataUrl.length} characters`);
+        mainLogger.endTask(taskId, "Document", `PDF data URL returned: ${filePath}`);
+        return dataUrl;
+      }
+
+      // Check file size before reading (solo per immagini)
+      const stats = statSync(filePath);
+      const fileSizeInMB = stats.size / (1024 * 1024);
+      mainLogger.info("Document", `File size: ${fileSizeInMB.toFixed(2)} MB`);
+
+      if (fileSizeInMB > 100) {
+        mainLogger.info("Document", `File is very large (${fileSizeInMB.toFixed(2)} MB), this may take a while`);
+      }
+
+      // Limit file size to prevent memory issues
+      if (fileSizeInMB > 500) {
+        const errorMsg = `File too large (${fileSizeInMB.toFixed(2)} MB). Maximum allowed size is 500 MB.`;
+        mainLogger.error("Document", errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      mainLogger.info("Document", "Starting file read operation");
+
+      // Add timeout for large files to prevent hanging
+      const readPromise = promises.readFile(filePath);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('File read timeout after 30 seconds')), 30000);
       });
 
-    return Promise.all(templates);
+      const fileBuffer = await Promise.race([readPromise, timeoutPromise]) as Buffer;
+      mainLogger.info("Document", `File read completed, buffer size: ${fileBuffer.length} bytes`);
+
+      let mimeType: string;
+      switch (fileExtension) {
+        case '.png':
+          mimeType = 'image/png';
+          break;
+        case '.jpg':
+        case '.jpeg':
+          mimeType = 'image/jpeg';
+          break;
+        case '.gif':
+          mimeType = 'image/gif';
+          break;
+        case '.bmp':
+          mimeType = 'image/bmp';
+          break;
+        case '.tiff':
+        case '.tif':
+          mimeType = 'image/tiff';
+          break;
+        default:
+          mimeType = 'application/octet-stream';
+      }
+      mainLogger.info("Document", `MIME type determined: ${mimeType}`);
+
+      mainLogger.info("Document", "Starting base64 conversion");
+
+      // Add timeout for base64 conversion to prevent hanging
+      const base64Promise = new Promise<string>((resolve) => {
+        const base64Data = fileBuffer.toString('base64');
+        resolve(base64Data);
+      });
+      const base64TimeoutPromise = new Promise<string>((_, reject) => {
+        setTimeout(() => reject(new Error('Base64 conversion timeout after 30 seconds')), 30000);
+      });
+
+      const base64Data = await Promise.race([base64Promise, base64TimeoutPromise]) as string;
+      mainLogger.info("Document", `Base64 conversion completed, length: ${base64Data.length} characters`);
+
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      mainLogger.info("Document", `Data URL created, total length: ${dataUrl.length} characters`);
+
+      mainLogger.endTask(taskId, "Document", `File converted to data URL successfully`);
+      return dataUrl;
+    } catch (err) {
+      mainLogger.error("Document", `Error converting file to data URL: ${filePath}`, err as Error);
+      mainLogger.endTask(taskId, "Document", `Error converting file to data URL: ${filePath}`);
+      throw err;
+    }
+  })
+
+  ipcMain.handle('document:getTemplates', () => {
+    const folderPath = templatesFolderPath();
+    if (!folderPath)
+      return;
+
+    const templatesFilenames = readdirSync(folderPath);
+    const templates = templatesFilenames
+      .filter((filename) => filename.endsWith(".tml"))
+      .map((filename) => {
+        const filePath = path.join(folderPath, filename);
+
+        const [fileString, errorFile] = readFile(filePath);
+        if (errorFile)
+          return null
+
+        const [object, errorObject] = readObject(fileString);
+        if (errorObject)
+          return null
+
+        const signature = checkSignature(object)
+        if (signature !== 'VALID')
+          return null
+
+        const version = checkVersion(object, MIN_TEMPLATE_VERSION_SUPPORTED)
+        if (version !== 'SUPPORTED')
+          return null;
+
+        const template = object as Template
+
+        return { filename, template }
+      })
+      .filter((data) => data !== null)
+
+    return templates;
   });
+
   ipcMain.handle('document:importTemplate', async () => {
-    const baseWindow = getBaseWindow();
-    if (!baseWindow) return;
+    const window = getBaseWindow();
+    if (!window)
+      return;
 
-    const result = await dialog.showOpenDialog({
-      properties: ["openFile"],
-      defaultPath: path.join(app.getPath("downloads")),
-      filters: [{ name: "Template", extensions: ["tml"] },],
-    });
+    const folderPath = templatesFolderPath();
+    if (!folderPath)
+      return;
 
-    if (result.canceled || result.filePaths.length === 0) return;
+    const result = await openImportTemplateDialog(window, downloadsDirectoryPath);
 
-    // Selected template file path
-    const selectedFilePath = result.filePaths[0];
-    const fileNameParsed = path.parse(selectedFilePath);
+    if (result.canceled)
+      return;
+
+    const filePath = result.filePaths[0];
+
+    // Read the file content
+    const [fileString, readFileError] = readFile(filePath);
+    if (readFileError) {
+      await invalidContentMessageBox(window);
+      return;
+    }
+
+    // Parse the JSON
+    const [object, readObjectError] = readObject(fileString);
+    if (readObjectError) {
+      await invalidJSONMessageBox(window);
+      return;
+    }
+
+    // Check the signature
+    const signature = checkSignature(object)
+    switch (signature) {
+      case "MISSING":
+        await misssingSignatureMessageBox(window, filePath)
+        return;
+      case "INVALID":
+        await corruptedFileMessageBox(window, filePath)
+        return;
+    }
+
+    // Check version compatibility
+    const version = checkVersion(object, MIN_TEMPLATE_VERSION_SUPPORTED)
+    switch (version) {
+      case "MISSING":
+        await misssingVersionMessageBox(window, filePath)
+        return;
+      case "UNSUPPORTED":
+        await unsupportedVersionMessageBox(window)
+        return;
+    }
+
+    const fileNameParsed = path.parse(filePath);
     const fileName = fileNameParsed.name;
     const fileNameWithExt = fileNameParsed.base;
 
-    // Templates folder path
-    const templatesFolderPath = getTemplatesPath();
-    const templatesFilenames = fsSync.readdirSync(templatesFolderPath);
+    const templatesFilenames = readdirSync(folderPath);
     const matchFilenames = templatesFilenames.filter((filename) => filename.includes(fileName));
     const matchFilename = matchFilenames.length > 0
 
     if (matchFilename) {
-      const confirmation = await dialog.showMessageBox(baseWindow, {
-        type: "warning",
-        buttons: ["Replace", "Cancel"],
-        defaultId: 1,
-        noLink: true,
-        title: "Confirm Replacement",
-        message: `A template named "${fileName}" already exists. Do you want to overwrite it?`,
-      });
-
-      if (confirmation.response === 1) return
+      const confirmation = await showSaveTemplateMessageBoxWarning(window, fileNameWithExt);
+      if (confirmation.response === 1)
+        return
     }
 
-    // Copy the new file to the templates folder
-    const destinationPath = path.join(templatesFolderPath, fileNameWithExt);
-    await fs.copyFile(selectedFilePath, destinationPath);
+    const targetFilePath = path.join(folderPath, fileNameWithExt)
+    copyFileSync(filePath, targetFilePath);
   })
-  ipcMain.handle('document:createTemplate', async (_, template: unknown, name: string) => {
-    const baseWindow = getBaseWindow();
-    if (!baseWindow) return
 
-    const templatesFolderPath = getTemplatesPath();
+  ipcMain.handle('document:createTemplate', async (_, name: string) => {
+    const window = getBaseWindow();
+    if (!window)
+      return;
+
     const fileNameWithExt = name + ".tml";
+    const folderPath = templatesFolderPath()
+    if (!folderPath)
+      return
 
-    // Templates folder path
-    const templatesFilenames = fsSync.readdirSync(templatesFolderPath);
+    const templatesFilenames = readdirSync(folderPath);
     const matchFilenames = templatesFilenames.filter((filename) => filename.includes(name));
     const matchFilename = matchFilenames.length > 0
 
     if (matchFilename) {
-      const confirmation = await dialog.showMessageBox({
-        type: "warning",
-        buttons: [
-          "Replace", // to be translated
-          "Cancel", // to be translated
-        ],
-        defaultId: 1,
-        noLink: true,
-        title: "Confirm Replacement", // to be translated
-        message: `A template named "${fileNameWithExt}" already exists. Do you want to overwrite it?`, // to be translated
-      });
-
-      if (confirmation.response === 1) return;
+      const confirmation = await showSaveTemplateMessageBoxWarning(window, fileNameWithExt);
+      if (confirmation.response === 1)
+        return;
     }
 
-    const newTemplate = {
-      name: name,
-      type: "PROPRIETARY",
-      createdDate: new Date(),
-      updatedDate: new Date(),
-      ...(template as object),
-    }
+    const template = DocumentTabManager
+      .setCurrentTab()
+      .getTemplate()
 
-    const stringifiedTemplate = JSON.stringify(newTemplate, null, 2);
-
-    const destinationPath = path.join(templatesFolderPath, fileNameWithExt);
-    await fs.writeFile(destinationPath, stringifiedTemplate);
+    const data = buildExportableTemplateObject(name, template)
+    await saveTemplate(data, fileNameWithExt);
   })
+
+  ipcMain.handle('document:setTemplate', (_, template: Template) => {
+    if (!template)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setTemplate(template)
+      .setTouched()
+      .updateMetadata()
+      .updateApparatusesFromLayout()
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:setMainText', (_, mainText: JSONContent | null, shouldMarkAsTouched: boolean = true) => {
+    if (!mainText)
+      return;
+
+    DocumentTabManager
+      .setCurrentTab()
+      .setMainText(mainText)
+
+    if (shouldMarkAsTouched) {
+      DocumentTabManager
+        .setCurrentTab()
+        .setTouched()
+    }
+
+    DocumentTabManager
+      .setCurrentTab()
+      .sendUpdate()
+  });
+
   ipcMain.handle('document:getApparatuses', () => {
-    const document = getCurrentDocument();
-    const apparatuses = document?.apparatuses as DocumentApparatus[];
-    if (!apparatuses) return [];
-    return apparatuses;
+    return DocumentTabManager
+      .setCurrentTab()
+      .getApparatuses()
   });
+
+  ipcMain.handle('document:getApparatusWithId', (_, apparatusId) => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getApparatusWithId(apparatusId)
+  });
+
   ipcMain.handle('document:setApparatuses', (_, apparatuses) => {
-    setCurrentApparatuses(apparatuses)
+    DocumentTabManager
+      .setCurrentTab()
+      .setApparatuses(apparatuses)
+      .setTouched()
+      .updateLayout()
+      .sendUpdate()
   });
-  ipcMain.handle('document:setLayoutTemplate', (_, layoutTemplate) => {
-    setCurrentLayoutTemplate(layoutTemplate)
+
+  ipcMain.handle('document:removeApparatusWithId', (_, apparatusId: string) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .removeApparatusWithId(apparatusId)
+      .setTouched()
+      .updateLayout()
+      .sendUpdate()
   });
-  ipcMain.handle('document:setPageSetup', (_, pageSetup) => {
-    setCurrentPageSetup(pageSetup)
+
+  ipcMain.handle('document:hideApparatus', (_, apparatusId: string) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .hideApparatus(apparatusId)
+      .setTouched()
+      .updateLayout()
+      .sendUpdate()
   });
-  ipcMain.handle('document:setSort', (_, sort) => {
-    setCurrentSort(sort)
+
+  ipcMain.handle('document:updateApparatusType', (_, apparatusId: string, type: ApparatusType) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .updateApparatusType(apparatusId, type)
+      .setTouched()
+      .updateLayout()
+      .sendUpdate()
   });
-  ipcMain.handle('document:setStyles', (_, style) => {
-    setCurrentStyles(style)
+
+  ipcMain.handle('document:updateApparatusTitle', (_, apparatusId: string, title: string) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .updateApparatusTitle(apparatusId, title)
+      .setTouched()
+      .updateLayout()
+      .sendUpdate()
   });
-  ipcMain.handle('document:setParatextual', (_, paratextual) => {
-    setCurrentParatextual(paratextual)
+
+  ipcMain.handle('document:updateApparatusExpanded', (_, apparatusId: string, expanded: boolean) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .updateApparatusExpanded(apparatusId, expanded)
+      .setTouched()
+      .sendUpdate()
   });
-  ipcMain.handle('document:getStylesNames', () => {
-    const stylesFolderPath = getStylesPath();
-    const stylesFolderContent = fsSync.readdirSync(stylesFolderPath);
+
+  ipcMain.handle('document:addApparatusTypeAtIndex', (_, type: ApparatusType, index: number) => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .addApparatusTypeAtIndex(type, index)
+      .setTouched()
+      .updateLayout()
+      .sendUpdate()
+      .apparatusAtIndex(index)
+  });
+
+  ipcMain.handle('document:reorderApparatusesByIds', (_, apparatusesIds: string[]) => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .reorderApparatusesByIds(apparatusesIds)
+      .setTouched()
+      .updateLayout()
+      .sendUpdate()
+      .getApparatuses()
+  });
+
+  ipcMain.handle('document:updateApparatusIdWithContent', (_, id: string, content: JSONContent, shouldMarkAsTouched: boolean = true) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .updateApparatusIdWithContent(id, content)
+      .setTouched(shouldMarkAsTouched)
+      .sendUpdate()
+  });
+
+  ipcMain.handle('document:toggleApparatusNoteVisibility', (_, id: string) => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .toggleApparatusNoteVisibility(id)
+      .setTouched()
+      .getApparatusWithId(id)
+  });
+
+  ipcMain.handle('document:toggleApparatusCommentVisibility', (_, id: string) => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .toggleApparatusCommentVisibility(id)
+      .setTouched()
+      .getApparatusWithId(id)
+  });
+
+  ipcMain.handle('document:getPageNumberSettings', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getPageNumberSettings()
+  });
+
+  ipcMain.handle('document:setPageNumberSettings', (_, pageNumberSettings: PageNumberSettings | null) => {
+    if (!pageNumberSettings)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setPageNumberSettings(pageNumberSettings)
+      .setTouched()
+      .sendUpdate()
+  });
+
+  ipcMain.handle('document:getLineNumberSettings', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getLineNumberSettings()
+  });
+
+  ipcMain.handle('document:setLineNumberSettings', (_, lineNumberSettings: LineNumberSettings | null) => {
+    if (!lineNumberSettings)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setLineNumberSettings(lineNumberSettings)
+      .setTouched()
+      .sendUpdate()
+  });
+
+  ipcMain.handle('document:getTocSettings', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getTocSettings()
+  });
+
+  ipcMain.handle('document:setTocSettings', (_, tocSettings: TocSettings | null) => {
+    if (!tocSettings)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setTocSettings(tocSettings)
+      .setTouched()
+      .sendUpdate()
+  });
+
+  ipcMain.handle('document:getPageSetup', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getPageSetup()
+  });
+
+  ipcMain.handle('document:setPageSetup', (_, pageSetup: SetupOptionType | null) => {
+    if (!pageSetup)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setPageSetup(pageSetup)
+      .setTouched()
+      .sendUpdate()
+  });
+
+  ipcMain.handle('document:getHeaderSettings', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getHeaderSettings()
+  })
+
+  ipcMain.handle('document:setHeaderSettings', (_, headerSettings: HeaderSettings | null) => {
+    if (!headerSettings)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setHeaderSettings(headerSettings)
+      .setTouched()
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:getFooterSettings', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getFooterSettings()
+  })
+
+  ipcMain.handle('document:setFooterSettings', (_, footerSettings: FooterSettings | null) => {
+    if (!footerSettings)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setFooterSettings(footerSettings)
+      .setTouched()
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:setLayout', (_, layout: Layout) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .setLayout(layout)
+      .setTouched()
+      .updateApparatusesFromLayout()
+      .sendUpdate()
+  })
+
+  ipcMain.handle('document:getLayout', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getLayout()
+  })
+
+  ipcMain.handle('document:getSort', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getSort()
+  })
+
+  ipcMain.handle('document:setSort', (_, sort: SetupDialogStateKeys[]) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .setSort(sort)
+      .setTouched()
+  })
+
+  ipcMain.handle('document:setStyles', (_, styles: Style[]) => {
+    DocumentTabManager
+      .setCurrentTab()
+      .setStyles(styles)
+      .setTouched()
+  })
+
+  ipcMain.handle('document:getStyles', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getStyles()
+  })
+
+  ipcMain.handle('document:getStylesFileNames', () => {
+    const folderPath = stylesFolderPath()
+    if (!folderPath)
+      return
+
+    const stylesFolderContent = readdirSync(folderPath);
     const filenames = stylesFolderContent.filter((filename) => filename.endsWith(".stl"));
     return filenames;
   })
-  ipcMain.handle('document:getStyle', async (_, filename) => {
-    const stylesFolderPath = getStylesPath();
-    const stylesFolderContent = fsSync.readdirSync(stylesFolderPath);
+
+  ipcMain.handle('document:getStylesFromFile', async (_, filename) => {
+    const window = getBaseWindow();
+    if (!window)
+      return;
+
+    const folderPath = stylesFolderPath()
+    if (!folderPath)
+      return null
+
+    const stylesFolderContent = readdirSync(folderPath);
     const found = stylesFolderContent.find(style => style === filename)
-    if (found) {
-      const filePath = path.join(stylesFolderPath, filename);
-      const content = await fs.readFile(filePath, "utf8");
-      return content;
+    if (!found)
+      return null
+
+    const filePath = path.join(folderPath, filename);
+
+    // Read the file content
+    const [fileString, readFileError] = readFile(filePath);
+    if (readFileError) {
+      await invalidContentMessageBox(window);
+      return null;
     }
-    return null
+
+    // Parse the JSON
+    const [object, readObjectError] = readObject(fileString);
+    if (readObjectError) {
+      await invalidJSONMessageBox(window);
+      return null;
+    }
+
+    // Check the signature
+    const signature = checkSignature(object)
+    switch (signature) {
+      case "MISSING":
+        await misssingSignatureMessageBox(window, filePath)
+        return null;
+      case "INVALID":
+        await corruptedFileMessageBox(window, filePath)
+        return null;
+    }
+
+    // Check version compatibility
+    const version = checkVersion(object, MIN_STYLE_VERSION_SUPPORTED)
+    switch (version) {
+      case "MISSING":
+        await misssingVersionMessageBox(window, filePath)
+        return null;
+      case "UNSUPPORTED":
+        await unsupportedVersionMessageBox(window)
+        return null;
+    }
+
+    return object.styles as Style[];
   })
-  ipcMain.handle("document:createStyle", async (_, style: unknown) => {
-    const baseWindow = getBaseWindow();
-    if (!baseWindow) return;
 
-    const stylesFolderPath = getStylesPath();
+  ipcMain.handle("document:exportStyles", async (_, styles: Style[]) => {
+    const window = getBaseWindow();
+    if (!window)
+      return;
 
-    const result = await dialog.showSaveDialog(baseWindow, {
-      title: 'Export Style',
-      defaultPath: path.join(stylesFolderPath, 'untitled.stl'),
-      filters: [{ name: "Style", extensions: ["stl"] }]
-    });
+    const folderPath = stylesFolderPath()
+    if (!folderPath)
+      return
 
-    if (!result.canceled && result.filePath) {
-      const filePath = result.filePath;
+    const filepath = path.join(folderPath, 'untitled.stl')
+    const result = await saveStylesDialog(window, filepath);
+    const data = buildExportableStylesObject(styles);
 
-      await fs.writeFile(filePath, JSON.stringify(style, null, 2));
-      await dialog.showMessageBox(baseWindow, { message: 'Style saved successfully!' });
+    if (result.canceled)
+      return
+
+    const filePath = result.filePath;
+    await promises.writeFile(filePath, JSON.stringify(data, null, 2));
+    await stylesExportSuccessMessageBox(window)
+  });
+
+  ipcMain.handle('document:importStyles', async (): Promise<string | null> => {
+    const window = getBaseWindow();
+    if (!window)
+      return null;
+
+    const folderPath = stylesFolderPath();
+    if (!folderPath)
+      return null;
+
+    const result = await openStylesDialog(window, folderPath);
+
+    if (result.canceled)
+      return null;
+
+    const filePath = result.filePaths[0];
+
+    // Read the file content
+    const [fileString, readFileError] = readFile(filePath);
+    if (readFileError) {
+      await invalidContentMessageBox(window);
+      return null;
     }
 
-    mainLogger.endTask(taskId, "Electron", "New style saved");
-  });
-  ipcMain.handle('document:importStyle', async () => {
-    const baseWindow = getBaseWindow();
-    if (!baseWindow) return;
+    // Parse the JSON
+    const [object, readObjectError] = readObject(fileString);
+    if (readObjectError) {
+      await invalidJSONMessageBox(window);
+      return null;
+    }
 
-    const result = await dialog.showOpenDialog({
-      properties: ["openFile"],
-      defaultPath: path.join(app.getPath("downloads")),
-      filters: [{ name: "Style", extensions: ["stl"] },],
-    });
+    // Check the signature
+    const signature = checkSignature(object)
+    switch (signature) {
+      case "MISSING":
+        await misssingSignatureMessageBox(window, filePath)
+        return null;
+      case "INVALID":
+        await corruptedFileMessageBox(window, filePath)
+        return null;
+    }
 
-    if (result.canceled || result.filePaths.length === 0) return;
+    // Check version compatibility
+    const version = checkVersion(object, MIN_STYLE_VERSION_SUPPORTED)
+    switch (version) {
+      case "MISSING":
+        await misssingVersionMessageBox(window, filePath)
+        return null;
+      case "UNSUPPORTED":
+        await unsupportedVersionMessageBox(window)
+        return null;
+    }
 
-    // Selected template file path
-    const selectedFilePath = result.filePaths[0];
-    const fileNameParsed = path.parse(selectedFilePath);
+    const fileNameParsed = path.parse(filePath);
     const fileName = fileNameParsed.name;
     const fileNameWithExt = fileNameParsed.base;
 
-    // Templates folder path
-    const stylesFolderPath = getStylesPath();
-    const stylesFilenames = fsSync.readdirSync(stylesFolderPath);
+    const stylesFilenames = readdirSync(folderPath);
     const matchFilenames = stylesFilenames.filter((filename) => filename.includes(fileName));
     const matchFilename = matchFilenames.length > 0
 
     if (matchFilename) {
-      const confirmation = await dialog.showMessageBox(baseWindow, {
-        type: "warning",
-        buttons: ["Replace", "Cancel"],
-        defaultId: 1,
-        noLink: true,
-        title: "Confirm Replacement",
-        message: `A style named "${fileName}" already exists. Do you want to overwrite it?`,
-      });
-
-      if (confirmation.response === 1) return
+      const confirmation = await confirmReplacmentStylesMessageBox(window, fileName);
+      if (confirmation.response === 1)
+        return null;
     }
 
-    // Copy the new file to the templates folder
-    const destinationPath = path.join(stylesFolderPath, fileNameWithExt);
-    await fs.copyFile(selectedFilePath, destinationPath);
+    const destinationPath = path.join(folderPath, fileNameWithExt);
+    writeFileSync(destinationPath, JSON.stringify(object, null, 2));
     return fileNameWithExt;
   })
-  ipcMain.handle('document:exportSiglumList', async (_event, siglumList: Siglum[]) => {
-    const baseWindow = getBaseWindow();
-    if (!baseWindow) return;
 
-    const result = await dialog.showSaveDialog(baseWindow, {
-      title: 'Export Siglum',
-      defaultPath: path.join(app.getPath("downloads"), `Untitled.siglum`),
-      filters: [{ name: "Siglum", extensions: ["siglum"] }]
-    });
+  ipcMain.handle('document:exportSigla', async (_event, sigla: DocumentSiglum[]) => {
+    const window = getBaseWindow();
+    if (!window)
+      return;
 
-    const userInfo = os.userInfo()
-    const metadata = {
-      author: userInfo.username,
-      exportDate: new Date().toISOString(),
-    } satisfies SiglumMetadata
+    const filepath = path.join(downloadsDirectoryPath, `Untitled.siglum`);
+    const result = await saveSiglaDialog(window, filepath);
+    const data = await buildExportableSiglaObject(sigla);
 
-    const scMetadata = await _.mapKeys(metadata, (__, key) => _.snakeCase(key))
-
-    const siglumListData = siglumList.map((item) => ({
-      siglum: item.siglum,
-      manuscripts: item.manuscripts,
-      description: item.description,
-    })) satisfies DocumentSiglum[]
-
-    const data = {
-      metadata: scMetadata,
-      entries: siglumListData,
-    }
-
-    if (result.canceled || result.filePath === undefined) return;
+    if (result.canceled)
+      return;
 
     const filePath = result.filePath;
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-    await dialog.showMessageBox(baseWindow, { message: 'Siglum saved successfully!' });
+    await promises.writeFile(filePath, JSON.stringify(data, null, 2));
+    await siglumExportSuccessMessageBox(window)
+  });
+
+  ipcMain.handle('document:importSigla', async (): Promise<DocumentSiglum[]> => {
+    const window = getBaseWindow();
+    if (!window)
+      return [];
+
+    const folder = path.join(downloadsDirectoryPath);
+    const result = await openSiglaDialog(window, folder);
+
+    if (result.canceled)
+      return [];
+
+    const filePath = result.filePaths[0];
+
+    // Read the file content
+    let fileString: string;
+    try {
+      fileString = await promises.readFile(filePath, "utf8");
+    } catch (error) {
+      mainLogger.error("Sigla", "The content of the file is invalid!", error as Error);
+      await invalidSiglumContentMessageBox(window);
+      return [];
+    }
+
+    // Parse the JSON
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let object: Record<string, any>;
+    try {
+      object = JSON.parse(fileString);
+    } catch (error) {
+      mainLogger.error("Sigla", "The json of the file is invalid!", error as Error);
+      await invalidSiglumJSONMessageBox(window);
+      return [];
+    }
+
+    // Check the signature
+    if (object.signature) {
+      mainLogger.info("Sigla", `Checking file signature...`);
+
+      const currentSignature = object.signature
+      const tmpObject = { ...object }
+      delete tmpObject.signature
+
+      const expectedSignature = createSignature(tmpObject)
+      const signaturesAreValid = equalSignature(currentSignature, expectedSignature)
+      if (!signaturesAreValid) {
+        mainLogger.error("Sigla", `Corrupted file: ${filePath} signature`);
+        await corruptedFileMessageBox(window, filePath)
+        return []
+      }
+
+      mainLogger.info("Sigla", `Signature is valid`);
+    } else {
+      mainLogger.error("Sigla", `Missing signature in file: ${filePath}`);
+      await misssingSignatureMessageBox(window, filePath)
+      return [];
+    }
+
+    // Check version compatibility
+    if (object.version) {
+      const compare = object.version.localeCompare(MIN_SIGLUM_VERSION_SUPPORTED, undefined, { numeric: true })
+      if (compare === -1) {
+        mainLogger.error("Sigla", `Unsupported document version in file: ${filePath}`);
+        await unsupportedVersionMessageBox(window)
+        return [];
+      }
+
+      mainLogger.info("Sigla", `Version is valid`);
+    } else {
+      mainLogger.error("Sigla", `Missing version in file: ${filePath}`);
+      await misssingVersionMessageBox(window, filePath)
+      return [];
+    }
+
+    const entries = object.entries.map((entry) => ({
+      value: entry.value,
+      manuscripts: entry.manuscripts,
+      description: entry.description,
+    })) as DocumentSiglum[]
+
+    return entries;
+  });
+
+  ipcMain.handle('document:setSiglumList', (_, siglumList: DocumentSiglum[] | null) => {
+    if (!siglumList)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setSigla(siglumList)
+      .setTouched()
+      .sendUpdate()
   })
-  ipcMain.handle('document:importSiglumList', async () => {
+
+  ipcMain.handle('document:getSiglumList', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getSigla()
+  })
+
+  ipcMain.handle('document:exportExcel', async (_, data: ArrayBuffer, fileName: string): Promise<void> => {
+    const taskId = mainLogger.startTask("Export Excel", "Exporting Excel");
     const baseWindow = getBaseWindow();
     if (!baseWindow) return;
 
+    try {
+      const { filePath, canceled } = await dialog.showSaveDialog(baseWindow, {
+        title: "Save File",
+        defaultPath: fileName,
+        filters: [{ name: "Excel Files", extensions: ["xlsx"] }]
+      });
+
+      if (canceled || !filePath) {
+        return;
+      }
+
+      // Convert ArrayBuffer → Buffer (Node.js)
+      const buffer = Buffer.from(data);
+
+      writeFileSync(filePath, buffer);
+
+      await dialog.showMessageBox(baseWindow, { message: "File saved successfully!" });
+
+      mainLogger.endTask(taskId, "Export Excel", "File saved successfully!");
+      return;
+    } catch (error) {
+      const errorMessage = "The file loaded has errors. Please correct the data and reload the file";
+      await dialog.showMessageBox(baseWindow, { message: errorMessage, type: 'error' });
+      mainLogger.error("Export Excel", errorMessage, error as Error);
+      return;
+    }
+  });
+
+  ipcMain.handle('document:print', async (_, includeContent: PrintIncludeContents, printOptions: PrintOptions): Promise<void> => {
+    let savePdfPath: string = '';
+    if (printOptions.export) {
+      savePdfPath = await getExportPath([{ name: 'PDF', extensions: ['pdf'] }]);
+      if (!savePdfPath)
+        return;
+    }
+    const tempPdfPath = await generatePDF(includeContent);
+
+    if (printOptions.export) {
+      await saveFileAtPath(tempPdfPath, savePdfPath);
+    } else {
+      // Use native print preview on macOS, Windows, and Linux
+      const baseWindow = getBaseWindow();
+      if (!baseWindow) {
+        mainLogger.error('Print', 'Base window not found');
+        return;
+      }
+      // Open the PDF in the native system viewer using shell
+      await shell.openPath(tempPdfPath);
+
+      mainLogger.info('Print', `Opened PDF in native viewer: ${tempPdfPath}`);
+    }
+  });
+
+  ipcMain.handle('document:exportToTei', async (): Promise<void> => {
+    const saveFile = await getExportPath([{ name: 'XML/TEI', extensions: ['xml'] }], 'tei.export.saveTo', 'xml');
+    if (!saveFile)
+      return;
+
+    const tocHeaderTitle = DocumentTabManager
+      .setCurrentTab()
+      .getTocSettings()
+      .title;
+
+    const tempTEIPath = await generateTEI(tocHeaderTitle);
+
+    await saveFileAtPath(tempTEIPath, saveFile, 'tei');
+  });
+
+  ipcMain.handle('document:importBibliography', async (): Promise<Bibliography | undefined> => {
+    const baseWindow = getBaseWindow();
+    if (!baseWindow)
+      return;
+
     const result = await dialog.showOpenDialog(baseWindow, {
-      title: 'Import Siglum', // @MISSING: to be translated
+      title: 'Import Bibliographys', // @MISSING: to be translated
       defaultPath: path.join(app.getPath("downloads")),
-      filters: [{ name: "Siglum", extensions: ["siglum"] }]
+      filters: [{ name: "Bibliography", extensions: ["bib"] }]
     });
 
-    if (!result.canceled && result.filePaths.length === 0) return;
+    if (result.canceled || (!result.canceled && result.filePaths.length === 0))
+      return;
 
     const selectedFilePath = result.filePaths[0];
-    const siglumData = await fs.readFile(selectedFilePath, "utf8");
+    const bibData = await promises.readFile(selectedFilePath, "utf8");
 
     try {
-      const siglumDataParsed = JSON.parse(siglumData)
-      const entries = siglumDataParsed.entries.map((entry: DocumentSiglum) => ({
-        id: uuidv4(),
-        siglum: entry.siglum,
-        manuscripts: entry.manuscripts,
-        description: entry.description,
-      })) satisfies Siglum[]
+      const selectedFileName = path.parse(selectedFilePath).name;
+      const references = await parseBibtexFile(bibData);
 
-      return entries;
+      const newBibliography: Bibliography = {
+        name: selectedFileName.trim(),
+        citationStyle: "chicago-17-author-date",
+        references
+      }
+
+      return newBibliography
     } catch (error) {
-      await dialog.showMessageBox(baseWindow, { message: "Error parsing siglum data", type: 'error' });
-      mainLogger.error("Electron", "Error parsing siglum data", error as Error);
-      return null;
+      const errorMessage = "The file loaded has errors. Please correct the data and reload the file";
+      await dialog.showMessageBox(baseWindow, { message: errorMessage, type: 'error' });
+      mainLogger.error("Import Bibliography", errorMessage, error as Error);
+      return;
     }
   })
-  ipcMain.handle('document:setReferencesFormat', (_, referencesFormat: ReferencesFormat) => {
-    setCurrentReferencesFormat(referencesFormat)
+
+  ipcMain.handle('document:setBibliographies', (_, bibliographyList: Bibliography[] | null) => {
+    if (!bibliographyList)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setBibliographies(bibliographyList)
+      .setTouched()
+      .sendUpdate()
   })
+
+  ipcMain.handle('document:getBibliographies', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getBibliographies()
+  })
+
+  ipcMain.handle('document:setReferencesFormat', (_, referencesFormat: ReferencesFormat | null) => {
+    if (!referencesFormat)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setReferencesFormat(referencesFormat)
+      .setTouched()
+      .sendUpdate()
+  })
+
   ipcMain.handle('document:getReferencesFormat', () => {
-    return getCurrentReferencesFormat()
+    return DocumentTabManager
+      .setCurrentTab()
+      .getReferencesFormat()
   })
 
   ipcMain.handle('preferences:get', () => {
     const taskId = mainLogger.startTask("Preferences", "Loading preferences");
-    try {
-      const preferences = {
-        fileNameDisplay: readFileNameDisplay(),
-        rememberLayout: readRememberLayout(),
-        recentFilesCount: readRecentFilesCount(),
-        theme: readTheme(),
-        commentPreviewLimit: readCommentPreviewLimit(),
-        bookmarkPreviewLimit: readBookmarkPreviewLimit(),
-        fileSavingDirectory: readFileSavingDirectory(),
-        defaultDirectory: readDefaultDirectory(),
-        automaticFileSave: readAutomaticFileSave(),
-        versioningDirectory: readVersioningDirectory(),
-        customVersioningDirectory: readCustomVersioningDirectory(),
-        criterionLanguage: readCriterionLanguage(),
-        criterionRegion: readCriterionRegion(),
-        dateTimeFormat: readDateTimeFormat(), // Keep for backwards compatibility
-        dateFormat: readDateFormat(),
-        timeFormat: readTimeFormat(),
-        historyActionsCount: readHistoryActionsCount(),
-      };
-
-      mainLogger.endTask(taskId, "Preferences", "Preferences loaded successfully");
-      return preferences;
-    } catch (err) {
-      mainLogger.error("Preferences", "Error loading preferences", err as Error);
-      return {
-        fileNameDisplay: 'full' as const,
-        rememberLayout: true,
-        recentFilesCount: 10,
-        theme: 'system',
-        commentPreviewLimit: '20',
-        bookmarkPreviewLimit: '20',
-        fileSavingDirectory: 'last',
-        defaultDirectory: '~/Username/Documents/',
-        automaticFileSave: 'never',
-        versioningDirectory: 'default',
-        customVersioningDirectory: '~/Username/Documents/',
-        criterionLanguage: 'en',
-        criterionRegion: 'IT',
-        dateTimeFormat: 'DD/MM/YYYY HH:MM:SS', // Keep for backwards compatibility
-        dateFormat: 'DD/MM/YYYY',
-        timeFormat: 'HH:MM',
-        historyActionsCount: '10'
-      };
-    }
+    const preferences = {
+      fileNameDisplay: readFileNameDisplay(),
+      pdfQuality: readPdfQuality(),
+      rememberLayout: readRememberLayout(),
+      recentFilesCount: readRecentFilesCount(),
+      theme: readTheme(),
+      commentPreviewLimit: readCommentPreviewLimit(),
+      bookmarkPreviewLimit: readBookmarkPreviewLimit(),
+      fileSavingDirectory: readFileSavingDirectory(),
+      defaultDirectory: readDefaultDirectory(),
+      automaticFileSave: readAutomaticFileSave(),
+      versioningDirectory: readVersioningDirectory(),
+      customVersioningDirectory: readCustomVersioningDirectory(),
+      criterionLanguage: readCriterionLanguage(),
+      criterionRegion: readCriterionRegion(),
+      dateFormat: readDateFormat(),
+      historyActionsCount: readHistoryActionsCount(),
+    };
+    mainLogger.endTask(taskId, "Preferences", "Preferences loaded successfully");
+    return preferences;
   })
-
-  ipcMain.handle('document:getMetadata', () => {
-    return getCurrentMetadata();
-  });
-
-  ipcMain.handle('document:setMetadata', (_, metadata: DocumentMetadata[]) => {
-    setCurrentMetadata(metadata);
-  });
 
   ipcMain.handle('preferences:save', async (_, preferences: Preferences) => {
     const taskId = mainLogger.startTask("Preferences", "Saving preferences");
+    const webContentsViews = getWebContentsViews();
     try {
       // Save the file name display preference
       if (preferences.fileNameDisplay) {
@@ -1963,13 +3367,15 @@ const initializeApp = async (): Promise<void> => {
       if (preferences.rememberLayout !== undefined) {
         storeRememberLayout(preferences.rememberLayout);
       }
+      if (preferences.pdfQuality) {
+        storePdfQuality(preferences.pdfQuality);
+      }
       if (preferences.recentFilesCount) {
         storeRecentFilesCount(preferences.recentFilesCount);
       }
       if (preferences.theme) {
         storeTheme(preferences.theme);
         // Apply theme immediately when saved
-        const webContentsViews = getWebContentsViews();
         webContentsViews.forEach(webContentsView => {
           webContentsView.webContents.send('theme-changed', preferences.theme);
         });
@@ -1989,7 +3395,9 @@ const initializeApp = async (): Promise<void> => {
       }
       if (preferences.automaticFileSave) {
         storeAutomaticFileSave(preferences.automaticFileSave);
-        updateAutoSave(); // Update auto save intervals when preference changes
+        updateAutoSave(() => {
+          saveDocument(onDocumentSaved);
+        }); // Update auto save intervals when preference changes
       }
       if (preferences.versioningDirectory) {
         storeVersioningDirectory(preferences.versioningDirectory);
@@ -2000,6 +3408,7 @@ const initializeApp = async (): Promise<void> => {
       if (preferences.criterionLanguage) {
         try {
           storeCriterionLanguage(preferences.criterionLanguage);
+          updateAppSettingsLanguage(preferences.criterionLanguage);
           await changeLanguageComprehensive(preferences.criterionLanguage);
         } catch (err) {
           mainLogger.error("Preferences", `Failed to change language to ${preferences.criterionLanguage}`, err as Error);
@@ -2008,22 +3417,15 @@ const initializeApp = async (): Promise<void> => {
       if (preferences.criterionRegion) {
         storeCriterionRegion(preferences.criterionRegion);
       }
-      if (preferences.dateTimeFormat) {
-        storeDateTimeFormat(preferences.dateTimeFormat);
-      }
       if (preferences.dateFormat) {
         storeDateFormat(preferences.dateFormat);
       }
-      if (preferences.timeFormat) {
-        storeTimeFormat(preferences.timeFormat);
-      }
+
       if (preferences.historyActionsCount) {
         storeHistoryActionsCount(preferences.historyActionsCount);
       }
-      console.log("preferences", preferences)
 
-      const webContentsViews = getSelectedWebContentsView()
-      webContentsViews?.webContents.send('preferences-changed')
+      webContentsViews.forEach(webContentView => webContentView.webContents.send('preferences-changed'));
 
       mainLogger.endTask(taskId, "Preferences", "Preferences saved successfully");
     } catch (err) {
@@ -2031,9 +3433,87 @@ const initializeApp = async (): Promise<void> => {
     }
   })
 
-  ipcMain.handle('pageSetup:get', () => {
-    return readLastPageSetup();
+  ipcMain.handle('document:getMetadata', () => {
+    return DocumentTabManager
+      .setCurrentTab()
+      .getMetadata()
+  });
+
+  ipcMain.handle('document:setMetadata', (_, metadata: Metadata | null) => {
+    if (!metadata)
+      return;
+    DocumentTabManager
+      .setCurrentTab()
+      .setMetadata(metadata)
+      .setTouched()
+      .sendUpdate()
+  });
+
+  ipcMain.handle('document:openFind', () => {
+    openFindWindow();
   })
+
+  ipcMain.handle('document:findNext', () => {
+    selectedWebContentsViewSend('document-find-next')
+  })
+
+  ipcMain.handle('document:findPrevious', () => {
+    selectedWebContentsViewSend('document-find-previous')
+  })
+
+  ipcMain.handle('document:setSearchCriteria', (_, data: SearchCriteria) => {
+    selectedWebContentsViewSend('document-set-find', data)
+  })
+
+  ipcMain.handle('document:setDisableReplaceAction', (_, isDisable: boolean) => {
+    if (getFindAndReplaceWindow()) {
+      getFindAndReplaceWindow()?.webContents.send('set-disable-replace-action', isDisable);
+    }
+  })
+
+  ipcMain.handle('document:resetSearchCriteria', () => {
+    selectedWebContentsViewSend('document-reset-find');
+  })
+
+  ipcMain.handle('document:replace', (_, replacement: string) => {
+    selectedWebContentsViewSend('document-replace', replacement);
+  })
+
+  ipcMain.handle('document:replaceAll', (_, replacement: string) => {
+    selectedWebContentsViewSend('document-replace-all', replacement);
+  })
+
+  ipcMain.handle('document:sendCurrentSearchIndex', (_, index: number) => {
+    if (getFindAndReplaceWindow()) {
+      getFindAndReplaceWindow()?.webContents.send('current-search-index', index);
+    }
+  });
+
+  ipcMain.handle('document:sendTotalSearchResults', (_, total: number) => {
+    if (getFindAndReplaceWindow()) {
+      getFindAndReplaceWindow()?.webContents.send('total-search-results', total);
+    }
+  });
+
+  ipcMain.handle('document:sendSearchHistory', (_, history: string[]) => {
+    if (getFindAndReplaceWindow()) {
+      getFindAndReplaceWindow()?.webContents.send('search-history', history);
+    }
+  })
+
+  ipcMain.handle('document:sendReplaceHistory', (_, history: string[]) => {
+    if (getFindAndReplaceWindow()) {
+      getFindAndReplaceWindow()?.webContents.send('replace-history', history);
+    }
+  })
+
+  ipcMain.handle('document:setReplaceInProgress', (_, isInProgress: boolean) => {
+    if (getFindAndReplaceWindow()) {
+      getFindAndReplaceWindow()?.webContents.send('replace-in-progress', isInProgress);
+    }
+  })
+
+  ipcMain.handle('pageSetup:get', () => readLastPageSetup())
 
   ipcMain.handle('pageSetup:save', (_, pageSetup: PageSetup) => {
     const taskId = mainLogger.startTask("PageSetup", "Saving page setup");
@@ -2045,13 +3525,17 @@ const initializeApp = async (): Promise<void> => {
     }
   })
 
-  const taskId = mainLogger.startTask("Electron", "Initializing main window");
-  initializeMainWindow(onBaseWindowReady);
-  mainLogger.endTask(taskId, "Electron", "Main window created");
+  handleUserIpc(ipcMain, () => {
+    ApplicationMenu.build(onClickMenuItem)
+  })
+  handleInviteIpc(ipcMain)
+  handleDocumentIpc(ipcMain)
+  handleNotificationIpc(ipcMain)
+  registerChatHandlers(ipcMain)
 
-  const fontTaskId = mainLogger.startTask("Font", "Initializing fonts");
+  initializeMainWindow(onBaseWindowReady);
+
   initializeFonts();
-  mainLogger.endTask(fontTaskId, 'Font', 'Font list initialized');
 
   const baseWindow = getBaseWindow();
 
@@ -2060,20 +3544,24 @@ const initializeApp = async (): Promise<void> => {
     return closeApplication();
   }));
 
-  // Initialize language using our comprehensive function for consistency
-  // This ensures proper setup of language across all UI components
   const language = readAppLanguage();
   await changeLanguageComprehensive(language);
 
   registerIpcListeners();
 
-  // Initialize auto save functionality
-  initializeAutoSave();
+  // Set up the menu click handler for shortcuts
+  // Shortcuts work through menu accelerators and only activate when the app is focused
+  console.log('🔧 Setting up keyboard shortcuts system');
+  setOnClickMenuItemFn(onClickMenuItem);
+  console.log('✅ Keyboard shortcuts system initialized - using menu accelerators');
+
+  initializeAutoSave(() => {
+    saveDocument(onDocumentSaved);
+  });
 
   mainLogger.endTask(appTaskId, "Electron", "Application started");
 };
 
-// Application start
 initializeApp().catch((err) => {
   mainLogger.error("Electron", "Fatal error during startup", err as Error);
 });

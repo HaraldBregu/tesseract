@@ -1,8 +1,12 @@
-import { forwardRef } from "react";
-import { SelectContent, SelectItem, SelectSeparator, SelectTrigger } from "../ui/select";
+import { forwardRef, memo } from "react";
+import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "../ui/select";
 import { cn } from "@/lib/utils";
 
-const AppSelectTrigger = forwardRef<
+export const AppSelectValue = memo(SelectValue);
+
+export const AppSelect = memo(Select);
+
+const AppSelectTrigger = memo(forwardRef<
     HTMLButtonElement,
     React.ComponentPropsWithoutRef<typeof SelectTrigger>
 >(({ className, ...props }, ref) => {
@@ -11,8 +15,8 @@ const AppSelectTrigger = forwardRef<
             ref={ref}
             className={
                 cn("min-w-[91px] pl-[4px] pr-[2px] hover:bg-primary hover:text-white active:bg-primary ",
-                    "active:text-white focus-visible:bg-primary focus-visible:text-white py-0",
-                    " h-auto border-none shadow-none focus:ring-0 focus:ring-offset-0",
+                    "active:text-white focus-visible:bg-primary focus-visible:text-white",
+                    "h-auto shadow-none focus:ring-0 focus:ring-offset-0",
                     className
                 )}
             onClick={(e) => {
@@ -22,10 +26,10 @@ const AppSelectTrigger = forwardRef<
             {...props}
         />
     )
-})
+}));
 AppSelectTrigger.displayName = SelectTrigger.displayName;
 
-const AppSelectContent = forwardRef<
+const AppSelectContent = memo(forwardRef<
     HTMLDivElement,
     React.ComponentPropsWithoutRef<typeof SelectContent>
 >(({ className, ...props }, ref) => {
@@ -36,10 +40,10 @@ const AppSelectContent = forwardRef<
             {...props}
         />
     )
-})
+}));
 AppSelectContent.displayName = SelectContent.displayName;
 
-const AppSelectItem = forwardRef<
+const AppSelectItem = memo(forwardRef<
     HTMLDivElement,
     React.ComponentPropsWithoutRef<typeof SelectItem>
 >(({ className, ...props }, ref) => {
@@ -52,10 +56,10 @@ const AppSelectItem = forwardRef<
             {...props}
         />
     )
-})
+}));
 AppSelectItem.displayName = SelectItem.displayName;
 
-const AppSelectSeparator = forwardRef<
+const AppSelectSeparator = memo(forwardRef<
     HTMLDivElement,
     React.ComponentPropsWithoutRef<typeof SelectSeparator>
 >(({ className, ...props }, ref) => {
@@ -66,7 +70,7 @@ const AppSelectSeparator = forwardRef<
             {...props}
         />
     )
-})
+}));
 AppSelectSeparator.displayName = SelectSeparator.displayName;
 
 export {

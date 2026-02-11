@@ -30,7 +30,7 @@ const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
-const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const SIDEBAR_KEYBOARD_SHORTCUT = "" // it was "b"
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -658,9 +658,11 @@ const SidebarMenuSkeleton = React.forwardRef<
     showIcon?: boolean
   }
 >(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90%.
+  // Random width between 50 to 90% (using crypto for SonarQube compliance).
   const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
+    const array = new Uint8Array(1)
+    crypto.getRandomValues(array)
+    return `${(array[0] % 41) + 50}%`
   }, [])
 
   return (

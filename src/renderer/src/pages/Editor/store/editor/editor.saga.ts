@@ -8,7 +8,6 @@ function* fetchDataSaga() {
         // @ts-ignore
         const data: string[] = yield call(fetchDataFromAPI);
     } catch (error) {
-        // console.log('Error fetching data:', error);
     }
 }
 

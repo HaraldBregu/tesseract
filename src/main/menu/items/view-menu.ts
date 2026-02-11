@@ -1,47 +1,112 @@
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import i18next from "i18next";
-import { MenuItemId } from "../../shared/types";
+import { MenuItemId } from "../../types";
 import { getMenuViewMode } from "../../shared/constants";
+import { readStatusbarVisibility, readToolbarIsVisible, readZoom, storeZoom } from "../../store";
+import { getKeyboardShortcut } from '../../shared/keyboard-shortcuts-utils';
 
-let apparatusSubMenuObjectItems: { id: string, title: string, visible: boolean }[] = []
-let toolbarVisible = true;
-let tocVisible = true;
-let enableTocVisibilityMenuItem = true;
+let apparatusSubMenuObjectItems: Apparatus[] = []
+let tocVisible = false;
+let enableTocVisibilityMenuItem = false;
+let printPreviewVisible = false;
 
 export function setEnableTocVisibilityMenuItem(enable: boolean): void {
     enableTocVisibilityMenuItem = enable
 }
 
-export function setApparatusSubMenuObjectItems(items: { id: string, title: string, visible: boolean }[]): void {
+export function getEnableTocVisibilityMenuItem(): boolean {
+    return enableTocVisibilityMenuItem
+}
+
+export function setApparatusSubMenuObjectItems(items: Apparatus[]): void {
     apparatusSubMenuObjectItems = items
 }
 
-export function setToolbarVisible(visible: boolean): void {
-    toolbarVisible = visible
+export function getApparatusSubMenuObjectItems(): Apparatus[] {
+    return apparatusSubMenuObjectItems;
 }
 
 export function setTocVisible(visible: boolean): void {
     tocVisible = visible
 }
 
+export function getTocVisible(): boolean {
+    return tocVisible;
+}
+
+export function setPrintPreviewVisible(visible: boolean): void {
+    printPreviewVisible = visible
+}
+
+export function getPrintPreviewVisible(): boolean {
+    return printPreviewVisible;
+}
+
+const generateZoomValues = (): number[] => {
+    // 20%, 30%, 40%, 50%
+    const firstSeries = Array.from({ length: 4 }, (_, i) => i * 10 + 20);
+
+    // 100%, 150%, 200%, 250%, 300%, 350%, 400%, 450%, 500%
+    const secondSeries = Array.from({ length: ((600 - 100) / 50) + 1 }, (_, i) => 100 + i * 50)
+        .filter(val => val > 0 && val <= 500);
+
+    return [...firstSeries, ...secondSeries];
+};
+
+
 export function buildViewMenu(onClick: (menuItem: MenuItem, data?: unknown) => void): MenuItemConstructorOptions {
 
     const viewMode = getMenuViewMode()
+    const currentZoom = parseInt(readZoom());
 
     const menu: MenuItemConstructorOptions = {}
     menu.label = i18next.t("menu.view.label")
 
     const apparatusSubMenuItems: MenuItemConstructorOptions[] = []
+    let zoomSubMenuItems: MenuItemConstructorOptions[] = [];
 
     apparatusSubMenuObjectItems.forEach((item) => {
         apparatusSubMenuItems.push({
-            id: MenuItemId.VIEW_APPARATUS,
-            label: item.title,
+            id: MenuItemId.TOGGLE_VIEW_APPARATUS,
+            label: `${item.title} (${item.type})`,
             type: item.visible ? 'checkbox' : 'normal',
             checked: item.visible,
-            click: (menuItem: MenuItem): void => onClick(menuItem, item),
+            enabled: true,
+            click: (menuItem: MenuItem): void => onClick(menuItem, item)
         })
+
+        // if (apparatusSubMenuObjectItems.filter(({ visible }) => visible).length === 1 && item.visible) {
+        //     apparatusSubMenuItems.push({
+        //         id: MenuItemId.TOGGLE_VIEW_APPARATUS,
+        //         label: `${item.title} (${item.type})`,
+        //         type: item.visible ? 'checkbox' : 'normal',
+        //         checked: item.visible,
+        //         enabled: false,
+        //         click: (menuItem: MenuItem): void => onClick(menuItem, item)
+        //     })
+        // } else {
+        //     apparatusSubMenuItems.push({
+        //         id: MenuItemId.TOGGLE_VIEW_APPARATUS,
+        //         label: `${item.title} (${item.type})`,
+        //         type: item.visible ? 'checkbox' : 'normal',
+        //         checked: item.visible,
+        //         enabled: true,
+        //         click: (menuItem: MenuItem): void => onClick(menuItem, item)
+        //     })
+        // }
     })
+
+    const zoomValues = generateZoomValues();
+    zoomSubMenuItems = zoomValues.map(value => ({
+        id: MenuItemId.ZOOM,
+        label: `${value}%`,
+        type: 'radio' as const,
+        checked: value === currentZoom,
+        click: (menuItem: MenuItem): void => {
+            storeZoom(value.toString());
+            onClick(menuItem, value.toString())
+        }
+    }));
 
     const subMenuItems: MenuItemConstructorOptions[] = [
         {
@@ -50,18 +115,11 @@ export function buildViewMenu(onClick: (menuItem: MenuItem, data?: unknown) => v
             submenu: apparatusSubMenuItems
         },
         {
-            id: MenuItemId.HEADER_FOOTER,
-            label: i18next.t("menu.view.headerFooter"),
-            type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
-        },
-        {
             id: MenuItemId.TABLE_OF_CONTENTS,
             label: i18next.t("menu.view.tableOfContents"),
             type: 'checkbox',
             checked: tocVisible,
-            accelerator: "CmdOrCtrl+Alt+T",
+            accelerator: getKeyboardShortcut(MenuItemId.TABLE_OF_CONTENTS),
             click: (menuItem: MenuItem): void => onClick(menuItem),
             enabled: viewMode === 'critix_editor' && enableTocVisibilityMenuItem,
         },
@@ -69,8 +127,8 @@ export function buildViewMenu(onClick: (menuItem: MenuItem, data?: unknown) => v
             id: MenuItemId.TOOLBAR,
             label: i18next.t("menu.view.toolbar"),
             type: 'checkbox',
-            checked: toolbarVisible,
-            accelerator: "CmdOrCtrl+Alt+R",
+            checked: readToolbarIsVisible(),
+            accelerator: getKeyboardShortcut(MenuItemId.TOOLBAR),
             click: (menuItem: MenuItem): void => onClick(menuItem),
             enabled: viewMode === 'critix_editor',
         },
@@ -78,13 +136,16 @@ export function buildViewMenu(onClick: (menuItem: MenuItem, data?: unknown) => v
             id: MenuItemId.CUSTOMIZE_TOOLBAR,
             label: i18next.t("menu.view.customizeToolbar"),
             type: 'normal',
+            accelerator: getKeyboardShortcut(MenuItemId.CUSTOMIZE_TOOLBAR),
             click: (menuItem: MenuItem): void => onClick(menuItem),
             enabled: viewMode === 'critix_editor',
         },
         {
             id: MenuItemId.STATUS_BAR,
             label: i18next.t("menu.view.statusBar"),
-            type: 'normal',
+            type: 'checkbox',
+            checked: readStatusbarVisibility(),
+            accelerator: getKeyboardShortcut(MenuItemId.STATUS_BAR),
             click: (menuItem: MenuItem): void => onClick(menuItem),
             enabled: viewMode === 'critix_editor',
         },
@@ -92,109 +153,29 @@ export function buildViewMenu(onClick: (menuItem: MenuItem, data?: unknown) => v
             id: MenuItemId.CUSTOMIZE_STATUS_BAR,
             label: i18next.t("menu.view.customizeStatusBar"),
             type: 'normal',
+            accelerator: getKeyboardShortcut(MenuItemId.CUSTOMIZE_STATUS_BAR),
             click: (menuItem: MenuItem): void => onClick(menuItem),
             enabled: viewMode === 'critix_editor',
         },
         {
             id: MenuItemId.PRINT_PREVIEW,
             label: i18next.t("menu.view.printPreview"),
-            type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
-        },
-        {
-            id: MenuItemId.SHOW_TABS_ALIGNED_HORIZONTALLY,
-            label: i18next.t("menu.view.showTabsAlignedHorizontally"),
-            type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
-        },
-        {
-            id: MenuItemId.SHOW_TABS_ALIGNED_VERTICALLY,
-            label: i18next.t("menu.view.showTabsAlignedVertically"),
-            type: 'normal',
+            type: 'checkbox',
+            checked: printPreviewVisible,
+            accelerator: getKeyboardShortcut(MenuItemId.PRINT_PREVIEW),
             click: (menuItem: MenuItem): void => onClick(menuItem),
             enabled: viewMode === 'critix_editor',
         },
         {
             id: MenuItemId.ZOOM,
             label: i18next.t("menu.view.zoom"),
-            accelerator: "CmdOrCtrl++",
-            type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
-        },
-        {
-            id: MenuItemId.ENTER_FULL_SCREEN,
-            label: i18next.t("menu.view.enterFullScreen"),
-            accelerator: "Fn+F11",
-            type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
-        },
-        {
-            label: i18next.t("menu.view.goTo.label"),
-            enabled: viewMode === 'critix_editor',
-            submenu: [
-                {
-                    id: MenuItemId.GO_TO_NEXT_PAGE,
-                    label: i18next.t("menu.view.goTo.nextPage"),
-                    type: 'normal',
-                    click: (menuItem: MenuItem): void => onClick(menuItem),
-                },
-                {
-                    id: MenuItemId.GO_TO_PREVIOUS_PAGE,
-                    label: i18next.t("menu.view.goTo.previousPage"),
-                    type: 'normal',
-                    click: (menuItem: MenuItem): void => onClick(menuItem),
-                },
-                {
-                    id: MenuItemId.GO_TO_FIRST_PAGE,
-                    label: i18next.t("menu.view.goTo.firstPage"),
-                    type: 'normal',
-                    click: (menuItem: MenuItem): void => onClick(menuItem),
-                },
-                {
-                    id: MenuItemId.GO_TO_LAST_PAGE,
-                    label: i18next.t("menu.view.goTo.lastPage"),
-                    type: 'normal',
-                    click: (menuItem: MenuItem): void => onClick(menuItem),
-                },
-                {
-                    id: MenuItemId.GO_TO_PAGE,
-                    label: i18next.t("menu.view.goTo.page"),
-                    type: 'normal',
-                    click: (menuItem: MenuItem): void => onClick(menuItem),
-                },
-            ],
-        },
-        {
-            id: MenuItemId.SYNCHRONIZE_VIEWS,
-            label: i18next.t("menu.view.synchronizeViews"),
-            accelerator: "CmdOrCtrl+E",
-            type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
-        },
-        {
-            id: MenuItemId.SYNCHRONIZE_DOCUMENTS,
-            label: i18next.t("menu.view.synchronizeDocuments"),
-            accelerator: "CmdOrCtrl+Shift+Q",
-            type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
+            submenu: zoomSubMenuItems,
         },
         {
             id: MenuItemId.EXPAND_COLLAPSE,
             label: i18next.t("menu.view.expandCollapse"),
             type: 'normal',
-            click: (menuItem: MenuItem): void => onClick(menuItem),
-            enabled: viewMode === 'critix_editor',
-        },
-        {
-            id: MenuItemId.THESAURUS,
-            label: i18next.t("menu.view.thesaurus"),
-            type: 'normal',
+            accelerator: getKeyboardShortcut(MenuItemId.EXPAND_COLLAPSE),
             click: (menuItem: MenuItem): void => onClick(menuItem),
             enabled: viewMode === 'critix_editor',
         },

@@ -2,13 +2,12 @@ import { CheckIcon } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { Label } from "./ui/label";
 import Typography from "./Typography";
-import { StandardPageDimensionsState } from "@/pages/editor/store/layout/layout.state";
 
 interface IPageOrientation {
     label: string
     selectedOrientation: string
     setSelectedOrientation: Dispatch<SetStateAction<"horizontal" | "vertical">>
-    standardPageDimensions: StandardPageDimensionsState[]
+    standardPageDimensions: StandardPageDimension[]
     paperSizeData: string
     paperSizeDataCustom: {
         name: string;

@@ -1,6 +1,21 @@
 {
   "welcome": "Bienvenue sur Criterion!",
+  "welcomeView": {
+    "subtitle": "Créez et éditez des éditions critiques de textes",
+    "newDocument": "Nouveau Document",
+    "openDocument": "Ouvrir un Document",
+    "recentFiles": "Fichiers Récents"
+  },
   "selectLanguage": "Sélectionnez votre langue préférée:",
+  "fileViewer": {
+    "unsupportedFile": {
+      "title": "Impossible de télécharger le fichier",
+      "message": "Le fichier sélectionné n'est pas pris en charge ou n'est pas valide.",
+      "fileType": "Type de fichier: {{type}}",
+      "supportedFormats": "Formats pris en charge: .critx, .pdf, .png, .jpg, .jpeg",
+      "tryAgain": "Réessayer"
+    }
+  },
   "editor": {
     "sectionTypes": {
       "body": "Corps",
@@ -31,6 +46,28 @@
         "label": "Révision",
         "info": "Suggérer des modifications"
       }
+    }
+  },
+  "document": {
+    "unsupportedVersion": {
+      "title": "Version de document non prise en charge",
+      "message": "Le fichier critix que vous essayez d'ouvrir n'est pas pris en charge par cette version de Criterion."
+    },
+    "alreadyOpen": {
+      "title": "Document déjà ouvert",
+      "message": "Le document que vous essayez d'ouvrir est déjà ouvert dans un autre onglet."
+    }
+  },
+  "template": {
+    "unsupportedVersion": {
+      "title": "Version de mod le non prise en charge",
+      "message": "Le fichier de mod le que vous essayez d'importer n'est pas pris en charge par cette version de Criterion."
+    }
+  },
+  "styles": {
+    "unsupportedVersion": {
+      "title": "Version de style non prise en charge",
+      "message": "Le fichier de style que vous essayez d'importer n'est pas pris en charge par cette version de Criterion."
     }
   },
   "toolbar": {
@@ -68,7 +105,7 @@
     "note": "Note",
     "siglum": "Sigle",
     "citation": "Citation",
-    "readingSeperator": "Séparateur de lecture",
+    "readingSeparator": "Séparateur de lecture",
     "readingType": "Type de lecture",
     "comment": "Commentaire",
     "bookmark": "Signet",
@@ -78,10 +115,13 @@
     "spacing": "Espacement",
     "list": "Liste",
     "search": "Rechercher",
+    "notifications": "Notifications",
     "printPreview": "Aperçu avant impression",
     "listNumber": "Liste numérotée",
     "listUppercase": "Liste de lettres majuscules",
     "listLowercase": "Liste de lettres minuscules",
+    "listUpperRoman": "Chiffres romains majuscules",
+    "listLowerRoman": "Chiffres romains minuscules",
     "listBullet": "Liste à puces",
     "listBulletEmpty": "Liste à puces vides",
     "listBulletSquare": "Liste à puces carrées",
@@ -92,6 +132,55 @@
     "editLink": "Modifier le lien",
     "removeLink": "Supprimer le lien"
   },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Consultez vos notifications et mises à jour récentes.",
+    "empty": "Aucune notification pour le moment.",
+    "emptyTitle": "Aucune notification trouvée",
+    "emptyDescription": "Essayez d'ajuster vos filtres",
+    "searchPlaceholder": "Rechercher par nom...",
+    "markAllAsRead": "Tout marquer comme lu",
+    "clearFilters": "Effacer les filtres",
+    "resultsCount": "{{count}} résultats",
+    "resultsCount_one": "{{count}} résultat",
+    "filters": {
+      "allActions": "Toutes les actions",
+      "sendInvitation": "Envoyer une invitation",
+      "resendInvitation": "Renvoyer une invitation",
+      "revokeAccess": "Révoquer l'accès",
+      "shareNewVersion": "Partager une nouvelle version",
+      "deleteDocument": "Supprimer le document",
+      "acceptInvitation": "Accepter l'invitation",
+      "declineInvitation": "Refuser l'invitation",
+      "download": "Télécharger",
+      "downloadNewVersion": "Télécharger la nouvelle version",
+      "invitationExpired": "Invitation expirée",
+      "passwordChanged": "Mot de passe modifié",
+      "allTime": "Tout le temps",
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "last7Days": "7 derniers jours",
+      "last30Days": "30 derniers jours"
+    },
+    "roles": {
+      "collaborator": "Collaborateur",
+      "owner": "Propriétaire",
+      "viewer": "Visualisateur"
+    },
+    "types": {
+      "send_invitation": "Partagé avec vous",
+      "resend_invitation": "Partagé avec vous",
+      "revoke_access": "Votre accès a été révoqué",
+      "share_new_version": "Nouvelle version du document partagée avec vous",
+      "delete_document": "Document supprimé",
+      "accept_invitation": "Collaboration acceptée",
+      "decline_invitation": "Invitation refusée",
+      "download": "Téléchargé",
+      "download_new_version": "Nouvelle version téléchargée",
+      "invitation_expired": "Invitation expirée",
+      "password_changed": "Votre mot de passe a été modifié"
+    }
+  },
   "dividerSections": {
     "toc": "Table des matières",
     "introduction": "Introduction",
@@ -99,25 +188,37 @@
     "bibliography": "Bibliographie",
     "appendix": "Annexe"
   },
-  "linkPlaceholder": "Lien vers une URL externe par ex. https://exemple.com ou http://exemple.com",
+  "linkPlaceholder": "Insérez le lien de la page web ici",
+  "customizeStatusBar": {
+    "title": "Personnaliser la barre d'état",
+    "show": "Afficher",
+    "pageNumber": "Numéro de page",
+    "totalWords": "Nombre total de mots",
+    "totalCharacters": "Nombre total de caractères",
+    "lastEditDate": "Date de la dernière modification",
+    "words": "Mots",
+    "characters": "Caractères",
+    "author": "Auteur",
+    "zoom": "Zoom"
+  },
   "menu": {
     "file": {
       "label": "Fichier",
-      "new": "Nouveau",
-      "open": "Ouvrir",
+      "new": "Nouveau...",
+      "open": "Ouvrir...",
       "openRecent": "Ouvrir récent",
       "noRecentDocuments": "Aucun document récent",
       "import": "Importer",
       "close": "Fermer",
-      "save": "Enregistrer",
-      "saveAs": "Enregistrer sous",
+      "save": "Enregistrer...",
+      "saveAs": "Enregistrer sous...",
       "duplicate": "Dupliquer",
-      "rename": "Renommer",
-      "moveTo": "Déplacer vers",
+      "rename": "Renommer...",
+      "moveTo": "Déplacer vers...",
       "revertTo": {
         "label": "Revenir à",
         "lastSaved": "Dernière sauvegarde",
-        "browse": "Parcourir les versions"
+        "browse": "Parcourir les versions..."
       },
       "shareForReview": "Partager pour révision...",
       "lock": "Verrouiller...",
@@ -127,22 +228,41 @@
         "pdf": "PDF",
         "odt": "ODT",
         "xml": "XML/TEI",
-        "exportTemplate": "Exporter le modèle"
+        "exportTemplate": "Exporter le modèle",
+        "pdfDescription": "Exporter le document au format PDF pour le partager ou l'imprimer.",
+        "xmlDescription": "Exporter le document au format XML/TEI pour un usage universitaire ou archivistique."
       },
       "language&Region": "Langue et région...",
       "saveAsTemplate": "Enregistrer comme modèle...",
       "metadata": "Métadonnées...",
       "pageSetup": "Mise en page...",
-      "print": "Imprimer..."
+      "print": "Imprimer...",
+      "newDescription": "Créer un nouveau document à partir de zéro ou d'un modèle.",
+      "openDescription": "Ouvrir un document existant depuis votre appareil.",
+      "openRecentDescription": "Rouvrir rapidement les documents sur lesquels vous avez récemment travaillé.",
+      "closeDescription": "Fermer le document en cours sans quitter l'application.",
+      "saveDescription": "Enregistrer les modifications du document actuel en conservant son nom et son emplacement.",
+      "saveAsDescription": "Enregistrer le document avec un nouveau nom ou dans un autre emplacement.",
+      "renameDescription": "Changer le nom du document actuel.",
+      "moveToDescription": "Déplacer le document vers un autre dossier ou emplacement de stockage.",
+      "saveAsTemplateDescription": "Enregistrer le document actuel comme modèle réutilisable pour de futurs projets.",
+      "metadataDescription": "Afficher ou modifier les métadonnées du document (titre, auteur, mots-clés, etc.).",
+      "pageSetupDescription": "Ajuster le format de page, les marges, l'orientation et d'autres paramètres de mise en page.",
+      "printDescription": "Envoyer le document à l'impression avec aperçu et options d'impression.",
+      "signin": "Se connecter",
+      "signout": "Se déconnecter",
+      "shareForCollaborator": "Invite collaborateur",
+      "sharedFiles": "Fichiers partagés..."
     },
     "edit": {
       "label": "Édition",
       "find": {
         "label": "Rechercher",
         "findAndReplace": "Rechercher et remplacer",
-        "findNext": "Rechercher suivant",
-        "findPrevious": "Rechercher précédent",
-        "jumpToSelection": "Aller à la sélection"
+        "findNext": "Rechercher suivant...",
+        "findPrevious": "Rechercher précédent...",
+        "jumpToSelection": "Aller à la sélection",
+        "description": "Rechercher un texte spécifique et, si nécessaire, le remplacer par un autre."
       },
       "undo": "Annuler",
       "redo": "Rétablir",
@@ -156,7 +276,18 @@
       "delete": "Supprimer",
       "duplicateSelection": "Dupliquer la sélection",
       "selectAll": "Tout sélectionner",
-      "deSelectAll": "Tout désélectionner"
+      "deSelectAll": "Tout désélectionner",
+      "undoDescription": "Annuler votre dernière action.",
+      "redoDescription": "Rétablir une action qui a été annulée.",
+      "cutDescription": "Supprimer le contenu sélectionné et le copier dans le presse-papiers.",
+      "copyDescription": "Copier le contenu sélectionné dans le presse-papiers.",
+      "copyStyleDescription": "Copier la mise en forme du texte sélectionné pour la réutiliser.",
+      "pasteDescription": "Insérer le contenu du presse-papiers à la position actuelle du curseur.",
+      "pasteStyleDescription": "Appliquer au texte sélectionné la mise en forme copiée précédemment.",
+      "pasteTextWithoutFormattingDescription": "Coller le texte du presse-papiers sans mise en forme, en supprimant tout style d'origine.",
+      "deleteDescription": "Supprimer définitivement le contenu sélectionné.",
+      "selectAllDescription": "Sélectionner tout le contenu du document ou du champ actif.",
+      "deSelectAllDescription": "Effacer toute sélection active."
     },
     "undo": "Annuler",
     "redo": "Rétablir",
@@ -164,8 +295,9 @@
     "copy": "Copier",
     "paste": "Coller",
     "selectAll": "Tout sélectionner",
-    "view": "Affichage",
     "settings": "Paramètres",
+    "preferences": "Préférences",
+    "preferencesWindowTitle": "Préférences Criterion",
     "reload": "Recharger",
     "toggleDevTools": "Ouvrir les outils de développement",
     "language": {
@@ -194,14 +326,24 @@
         "label": "Numéro de ligne",
         "none": "Aucun",
         "each5Line": "Toutes les 5 lignes",
+        "eachLine": "Chaque ligne",
         "every10Lines": "Toutes les 10 lignes",
-        "every15Lines": "Toutes les 15 lignes"
+        "every15Lines": "Toutes les 15 lignes",
+        "noneDescription": "Masquer la numérotation des lignes dans le document.",
+        "each5LineDescription": "Afficher la numérotation toutes les 5 lignes (par ex. : 5, 10, 15…).",
+        "every10LinesDescription": "Afficher la numérotation toutes les 10 lignes (par ex. : 10, 20, 30…).",
+        "every15LinesDescription": "Afficher la numérotation toutes les 15 lignes (par ex. : 15, 30, 45…)."
       },
       "pageNumber": "Numéro de page",
       "date": "Date",
       "dateAndTime": "Date et heure",
       "author": "Auteur",
-      "title": "Titre"
+      "title": "Titre",
+      "commentDescription": "Ajouter une note éditoriale ou explicative au texte sélectionné.",
+      "bookmarkDescription": "Insérer un repère nommé pour retrouver rapidement cet emplacement.",
+      "linkDescription": "Ajouter un hyperlien vers une page web, une section du document ou une ressource externe.",
+      "symbolDescription": "Insérer un caractère spécial ou un symbole indisponible au clavier.",
+      "pageBreakDescription": "Forcer le texte à commencer sur une nouvelle page à la position du curseur."
     },
     "references": {
       "label": "Références",
@@ -210,6 +352,13 @@
       "addNoteInOuterMargin": "Ajouter une note dans la marge extérieure",
       "swapMargin": "Échanger les marges",
       "addReadingSeparator": "Ajouter un séparateur",
+      "addReadingType": "Ajouter un type de lecture",
+      "addReading": "Ajouter un type de lecture",
+      "addReadingTypeAdd": "Ajouter un type de lecture (add.)",
+      "addReadingTypeOm": "Ajouter un type de lecture (om.)",
+      "addReadingTypeTr": "Ajouter un type de lecture (tr.)",
+      "addReadingTypeDel": "Ajouter un type de lecture (del.)",
+      "addReadingTypeCustom": "Type de lecture personnalisé",
       "addSiglum": "Ajouter un sigle",
       "siglaSetup": "Configurer les sigles...",
       "addCitation": "Ajouter une citation",
@@ -222,7 +371,16 @@
         "sectionNotes": "Notes de section",
         "innerMargin": "Marge intérieure",
         "outerMargin": "Marge extérieure"
-      }
+      },
+      "addNoteDescription": "Insérer une note d'appareil (critique, de section, de page, marge intérieure ou extérieure) à l'aide de la couche sélectionnée.",
+      "swapMarginDescription": "Déplacer la note actuelle vers le marge opposée (par ex. de gauche à droite ou inversement).",
+      "addReadingTypeDescription": "Associer à une lecture une classification éditoriale spécifique (ajout, omission, correction, etc.).",
+      "addReadingSeparatorDescription": "Insérer un séparateur visuel ou logique entre les variantes de lecture dans une note d'appareil.",
+      "addSiglumDescription": "Insérer une sigle de manuscrit ou de source dans la note actuelle.",
+      "siglaSetupDescription": "Définir, modifier ou gérer la liste des sigles (identifiants de sources) utilisés dans votre projet.",
+      "addCitationDescription": "Insérer une référence à une entrée bibliographique dans le texte ou les notes.",
+      "bibliographyDescription": "Afficher, modifier ou gérer les entrées bibliographiques du document.",
+      "referencesFormatDescription": "Choisir ou personnaliser le séparateur de lectures, les séparateurs de types de lecture, les couleurs guides et l'apparence des notes de page ou de section."
     },
     "format": {
       "label": "Format",
@@ -239,22 +397,40 @@
           "label": "Espacement des caractères",
           "normal": "Normal",
           "tighten": "Resserrer",
-          "loosen": "Élargir"
+          "loosen": "Élargir",
+          "normalDescription": "Utiliser l'espacement des lettres par défaut.",
+          "tightenDescription": "Réduire l'espace entre les caractères.",
+          "loosenDescription": "Augmenter l'espace entre les caractères."
         },
         "ligature": {
           "label": "Ligature",
           "default": "Par défaut",
           "none": "Aucune",
-          "all": "Toutes"
+          "all": "Toutes",
+          "defaultDescription": "Appliquer les ligatures typographiques standard selon la police.",
+          "noneDescription": "Désactiver toutes les ligatures.",
+          "allDescription": "Activer toutes les ligatures disponibles dans la police."
         },
-        "captalization": {
+        "capitalization": {
           "label": "Casse",
           "none": "Aucune",
           "allCaps": "TOUT EN MAJUSCULES",
           "smallCaps": "Petites majuscules",
           "titleCase": "Majuscules Aux Mots",
-          "startCase": "Première lettre en majuscule"
-        }
+          "startCase": "Première lettre en majuscule",
+          "noneDescription": "Conserver la casse d'origine sans modification automatique.",
+          "allCapsDescription": "Afficher le texte sélectionné en lettres majuscules.",
+          "smallCapsDescription": "Afficher des majuscules à la hauteur des petites capitales.",
+          "titleCaseDescription": "Mettre en majuscule la première lettre de chaque mot important.",
+          "startCaseDescription": "Mettre en majuscule uniquement la première lettre du premier mot."
+        },
+        "boldDescription": "Mettre le texte sélectionné en gras.",
+        "italicDescription": "Mettre le texte sélectionné en italique.",
+        "underlineDescription": "Souligner le texte sélectionné.",
+        "strikethroughDescription": "Barrer le texte sélectionné pour indiquer une suppression ou une révision.",
+        "superscriptDescription": "Élever et réduire le texte sélectionné (par ex. pour des notes de bas de page ou des exposants).",
+        "subscriptDescription": "Abaisser et réduire le texte sélectionné (par ex. pour des formules chimiques).",
+        "npcDescription": "Afficher ou masquer les caractères invisibles tels que les espaces, tabulations et marques de paragraphe."
       },
       "text": {
         "label": "Texte",
@@ -269,21 +445,45 @@
           "single": "Simple",
           "1_15": "1,15",
           "oneAndHalf": "1,5",
-          "double": "Double"
-        }
+          "double": "Double",
+          "singleDescription": "Définir un interligne d'une hauteur de ligne.",
+          "1_15Description": "Appliquer un interligne légèrement plus grand que le simple.",
+          "oneAndHalfDescription": "Définir un interligne d'une ligne et demie.",
+          "doubleDescription": "Définir un interligne de deux lignes.",
+          "custom": "Espacement personnalisé",
+          "customDescription": "Définir un interligne ou un espacement entre paragraphes personnalisé."
+        },
+        "alignLeftDescription": "Aligner le texte sur la marge gauche.",
+        "alignCenterDescription": "Centrer le texte entre les marges.",
+        "alignRightDescription": "Aligner le texte sur la marge droite.",
+        "justifyDescription": "Aligner le texte sur les marges gauche et droite.",
+        "increaseIndentDescription": "Éloigner le paragraphe sélectionné de la marge gauche.",
+        "decreaseIndentDescription": "Rapprocher le paragraphe sélectionné de la marge gauche."
       },
       "list": {
         "number": "1",
         "maxLetter": "A",
         "lowerLetter": "a",
+        "maxRoman": "I",
+        "lowerRoman": "i",
         "point": "●",
         "emptyPoint": "○",
         "square": "■",
         "label": "Liste",
         "bullet": "Liste à puces",
         "numbering": "Numérotation",
-        "resumeNumbering": "Reprendre la numérotation",
-        "continuePreviousNumbering": "Continuer la numérotation précédente"
+        "resumeNumbering": "Reprendre la numérotation...",
+        "continuePreviousNumbering": "Continuer la numérotation précédente",
+        "numberDescription": "Appliquer un format de liste numérotée utilisant des chiffres.",
+        "maxLetterDescription": "Appliquer un format de liste numérotée utilisant des lettres majuscules.",
+        "lowerLetterDescription": "Appliquer un format de liste numérotée utilisant des lettres minuscules.",
+        "maxRomanDescription": "Appliquer un format de liste numérotée utilisant des chiffres romains en majuscules.",
+        "lowerRomanDescription": "Appliquer un format de liste numérotée utilisant des chiffres romains en minuscules.",
+        "pointDescription": "Appliquer un format de liste à puces pleines.",
+        "emptyPointDescription": "Appliquer un format de liste à puces creuses.",
+        "squareDescription": "Appliquer un format de liste à puces carrées.",
+        "resumeNumberingDescription": "Poursuivre la numérotation à partir d'une liste précédente avec le numéro approprié.",
+        "continuePreviousNumberingDescription": "Relier automatiquement et poursuivre la numérotation de la liste la plus récente."
       },
       "sectionsStyle": "Style des sections...",
       "table": "Tableau",
@@ -313,36 +513,136 @@
               }
             }
           }
-        }
+        },
+        "description": "Ajuster les paramètres généraux de mise en page du document (colonnes, espacement, sauts de section, etc.)."
       },
       "toc": {
-        "label": "Table des matières..."
+        "label": "Table des matières...",
+        "description": "Modifier le contenu et la mise en forme de la table des matières."
       },
       "lineNumber": {
-        "label": "Numérotation des lignes..."
+        "label": "Numérotation des lignes...",
+        "description": "Configurer ou insérer des numéros de ligne dans le document."
       },
-      "header": {
-        "label": "En-tête..."
-      },
-      "footer": {
-        "label": "Pied de page..."
+      "headerFooter": {
+        "header": "En-tête...",
+        "footer": "Pied de page...",
+        "label": "En-tête && Pied de page...",
+        "headerDescription": "Modifier le contenu et la mise en forme de l'en-tête de page.",
+        "footerDescription": "Modifier le contenu et la mise en forme du pied de page.",
+        "description": "Modifier le contenu et la mise en forme de l'en-tête et du pied de page."
       },
       "pageNumber": {
-        "label": "Numéro de page..."
-      }
+        "label": "Numéro de page...",
+        "description": "Insérer des numéros de page dans les en-têtes ou pieds de page."
+      },
+      "sectionsStyleDescription": "Appliquer ou gérer des styles de mise en forme pour les sections du document (titres, couches d'appareil, etc.).",
+      "removeLinkDescription": "Supprimer l'hyperlien du texte sélectionné.",
+      "changeTemplateDescription": "Appliquer un autre modèle de document en mettant à jour les styles et la mise en page."
     },
-    "headerFooter": "Header && Footer",
+    "tools": {
+      "label": "Outils",
+      "macros": {
+        "label": "Macros",
+        "record": "Enregistrer une macro"
+      },
+      "documentStatistics": "Statistiques du document",
+      "hyphenation": "Césure",
+      "compareDocuments": "Comparer des documents",
+      "review": "Révision",
+      "acceptAllChanges": "Accepter toutes les modifications",
+      "rejectAllChanges": "Rejeter toutes les modifications",
+      "addOns": "Modules complémentaires",
+      "customizeShortcuts": "Personnaliser les raccourcis clavier"
+    },
+    "keyboard": {
+      "label": "Clavier",
+      "showMap": "Afficher la carte",
+      "customizeShortcuts": "Personnaliser les raccourcis",
+      "none": "Aucun",
+      "arabic": "Arabe",
+      "armenian": "Arménien",
+      "cyrillic": "Cyrillique",
+      "latin": "Latin",
+      "customizeShortcutsDescription": "Personnaliser les raccourcis clavier selon vos préférences."
+    },
+    "view": {
+      "label": "Affichage",
+      "apparatus": {
+        "label": "Appareil",
+        "apparatus1": "Appareil 1 (Critique)",
+        "apparatus2": "Appareil 2 (Notes de page)",
+        "apparatus3": "Appareil 3 (Note de section)",
+        "apparatus4": "Appareil 4 (Marge intérieure)",
+        "pippo": "Pippo (Critique)"
+      },
+      "headerFooter": "En-tête et pied de page",
+      "tableOfContents": "Table des matières",
+      "toolbar": "Barre d’outils",
+      "customizeToolbar": "Personnaliser la barre d’outils...",
+      "statusBar": "Barre d’état",
+      "customizeStatusBar": "Personnaliser la barre d’état...",
+      "printPreview": "Aperçu avant impression",
+      "showTabsAlignedHorizontally": "Afficher tous les onglets alignés horizontalement",
+      "showTabsAlignedVertically": "Afficher tous les onglets alignés verticalement",
+      "zoom": "Zoom",
+      "enterFullScreen": "Plein écran",
+      "goTo": {
+        "label": "Aller à",
+        "nextPage": "Page suivante",
+        "previousPage": "Page précédente",
+        "firstPage": "Première page",
+        "lastPage": "Dernière page",
+        "page": "Page..."
+      },
+      "synchronizeViews": "Synchroniser les vues",
+      "synchronizeDocuments": "Synchroniser les documents",
+      "expandCollapse": "Développer et Réduire",
+      "thesaurus": "Thésaurus",
+      "tableOfContentsDescription": "Afficher ou masquer la table des matières interactive du document.",
+      "toolbarDescription": "Afficher ou masquer la barre d'outils principale avec ses raccourcis de mise en forme et d'édition.",
+      "customizeToolbarDescription": "Ajouter, retirer ou réorganiser des boutons dans la barre d'outils pour l'adapter à votre flux de travail.",
+      "statusBarDescription": "Afficher ou masquer la barre d'état en bas de la fenêtre (informations de page, nombre de mots, etc.).",
+      "customizeStatusBarDescription": "Choisir quelles informations (nombre total de mots, de caractères, auteur, etc.) apparaissent dans la barre d'état.",
+      "printPreviewDescription": "Voir l'apparence du document avant impression, avant de l'envoyer à l'imprimante.",
+      "zoomDescription": "Ajuster la taille d'affichage du document (zoom avant/arrière ou ajuster à l'écran).",
+      "expandCollapseDescription": "Basculer entre la vue développée (tout afficher) et la vue réduite (masquer des sections ou notes pour se concentrer)."
+    },
+    "window": {
+      "label": "Fenêtre",
+      "minimise": "Réduire",
+      "zoom": "Zoom",
+      "zoomAll": "Tout zoomer",
+      "fill": "Remplir",
+      "centre": "Centrer",
+      "moveResize": "Déplacer & Redimensionner",
+      "fullScreenTile": "Mosaïque plein écran",
+      "removeWindowFromSet": "Retirer la fenêtre du groupe",
+      "moveTo": "Déplacer vers DELL U2599",
+      "bringAllToFront": "Tout ramener au premier plan",
+      "showPreviousTab": "Afficher l’onglet précédent",
+      "showNextTab": "Afficher l’onglet suivant",
+      "moveTabToNewWindow": "Déplacer l’onglet vers une nouvelle fenêtre",
+      "mergeAllWindows": "Fusionner toutes les fenêtres",
+      "untitled": "Sans titre"
+    },
+    "headerFooter": "En-tête & Pied de page",
     "help": {
+      "search": "Recherche []",
       "label": "Aide",
       "criterionHelp": "Aide de Criterion",
       "faqs": "FAQs",
       "forum": "Forum",
       "whatsNewInCriterion": "Nouveautés dans Criterion",
       "reportAnIssue": "Signaler un problème",
+      "submitTicket": "Soumettre un ticket",
       "criterionFeedback": "Fournir des commentaires sur Criterion",
       "checkUpdates": "Rechercher les mises à jour...",
-      "about": "À propos de Criterion"
-    }
+      "about": "À propos de Criterion",
+      "criterionHelpDescription": "Ouvrir le guide intégré pour trouver des réponses, tutoriels ou explications de fonctionnalités.",
+      "aboutDescription": "Afficher les informations de version, les détails de licence et les crédits de l'application Criterion."
+    },
+    "preferencesDescription": "Personnalisez le comportement de Criterion : ajustez les options d’édition, d’affichage, d’enregistrement et d’interface pour les adapter à votre flux de travail."
   },
   "about": {
     "label": "À propos",
@@ -351,6 +651,7 @@
   },
   "buttons": {
     "cancel": "Annuler",
+    "resetAll": "Rétablir par Défaut",
     "ok": "Ok",
     "confirm": "Confirmer",
     "save": "Enregistrer",
@@ -359,9 +660,184 @@
     "cut": "Couper",
     "copy": "Copier",
     "paste": "Coller",
-    "insert": "Insert",
+    "insert": "Insérer",
     "acknowledgements": "Remerciements",
-    "licenseAgreement": "Accord de licence"
+    "licenseAgreement": "Accord de licence",
+    "duplicate": "Dupliquer",
+    "delete": "Supprimer",
+    "yes": "Oui",
+    "no": "Non",
+    "close": "Fermer",
+    "print": "Imprimer",
+    "saveAndApply": "Enregistrer et appliquer à tout le document",
+    "export": "Exporter",
+    "remove": "Retirer"
+  },
+  "bibliography": {
+    "title": "Bibliographies",
+    "create": "Ajouter",
+    "import": "Importer",
+    "name": "Nom",
+    "citation": "Style de citation",
+    "help": "Aide",
+    "empty": {
+      "title": "Créez d'abord une bibliographie avant d'ajouter des citations"
+    },
+    "error": {
+      "title": "La bibliographie existe déjà",
+      "maxLength": "Le nom de la bibliographie ne peut pas dépasser 50 caractères"
+    },
+    "delete": "Vous êtes sur le point de supprimer la bibliographie.  Etes-vous sûr de vouloir continuer?",
+    "references": {
+      "title": "Références",
+      "addButton": "Ajouter une référence",
+      "create": "Nouvelle référence bibliographique",
+      "edit": "Modifier la référence",
+      "use": "Utiliser",
+      "search": "Rechercher",
+      "sources": {
+        "book": "Livre",
+        "book_section": "Section de livre",
+        "journal": "Périodique / Article"
+      },
+      "delete": "Vous êtes sur le point de supprimer la référence bibliographique.  Etes-vous sûr de vouloir continuer?",
+      "fields": {
+        "sourceType": "Type de source",
+        "title": "Titre",
+        "editor": "Editeur",
+        "author": "Auteur",
+        "bookTitle": "Titre du livre",
+        "series": "Série",
+        "seriesNumber": "Numéro de série",
+        "volume": "Volume",
+        "numberOfVolumes": "Nombre de volumes",
+        "issue": "Numéro de la revue",
+        "doi": "DOI",
+        "place": "Lieu",
+        "publisher": "Editeur",
+        "date": "Date",
+        "pages": "Pages",
+        "shortTitle": "Titre court",
+        "url": "URL",
+        "accessed": "Date d'accès"
+      },
+      "placeholders": {
+        "title": "Saisir le titre...",
+        "editor": "Saisir l'éditeur...",
+        "author": "Saisir le nom de l'auteur, appuyez sur Entrée...",
+        "bookTitle": "Saisir le titre du livre...",
+        "series": "Saisir la série...",
+        "seriesNumber": "Saisir le numéro de série...",
+        "volume": "Saisir le volume...",
+        "numberOfVolumes": "Saisir le nombre de volumes...",
+        "issue": "Saisir le numéro...",
+        "doi": "ex. 10.1000/xyz123",
+        "place": "Saisir le lieu...",
+        "publisher": "Saisir l'éditeur...",
+        "date": "ex. 2024-01-15",
+        "pages": "ex. 123-145",
+        "shortTitle": "Saisir le titre court...",
+        "url": "https://...",
+        "accessed": "ex. 2024-01-15"
+      },
+      "validations": {
+        "title": {
+          "required": "Le titre est obligatoire.",
+          "pattern": "Le titre doit contenir du texte correct."
+        },
+        "editor": {
+          "required": "L'editeur est obligatoire.",
+          "pattern": "L'editeur doit contenir du texte correct."
+        },
+        "author": {
+          "required": "L'auteur est obligatoire.",
+          "pattern": "Les noms des auteurs doivent être séparés par des virgules."
+        },
+        "bookTitle": {
+          "required": "Le titre du livre est obligatoire.",
+          "pattern": "Le titre du livre doit contenir du texte correct."
+        },
+        "series": {
+          "required": "La série est obligatoire.",
+          "pattern": "La série doit contenir du texte correct."
+        },
+        "seriesNumber": {
+          "required": "Le numéro de série est obligatoire.",
+          "pattern": "Le numéro de série doit contenir du texte correct."
+        },
+        "volume": {
+          "required": "Le volume est obligatoire.",
+          "pattern": "Le volume doit contenir du texte correct."
+        },
+        "numberOfVolumes": {
+          "required": "Le nombre de volumes est obligatoire.",
+          "pattern": "Le nombre de volumes doit contenir du texte correct."
+        },
+        "issue": {
+          "required": "Le numéro de la revue est obligatoire.",
+          "pattern": "Le numéro de la revue doit contenir du texte correct."
+        },
+        "doi": {
+          "required": "Le DOI est obligatoire.",
+          "pattern": "Le DOI doit contenir un format de DOI valide."
+        },
+        "place": {
+          "required": "Le lieu est obligatoire.",
+          "pattern": "Le lieu doit contenir du texte correct."
+        },
+        "publisher": {
+          "required": "L'editeur est obligatoire.",
+          "pattern": "L'editeur doit contenir du texte correct."
+        },
+        "date": {
+          "required": "La date est obligatoire.",
+          "pattern": "La date doit être au format YYYY-MM-DD ou MM-DD-YYYY ou DD-MM-YYYY ou MM/DD/YYYY ou DD/MM/YYYY ou YYYY/MM/DD."
+        },
+        "pages": {
+          "required": "Les pages sont obligatoires.",
+          "pattern": "Les pages doivent contenir une plage ou une liste de pages comme '123-125,128'."
+        },
+        "shortTitle": {
+          "required": "Le titre court est obligatoire.",
+          "pattern": "Le titre court doit contenir du texte correct."
+        },
+        "url": {
+          "required": "L'URL est obligatoire.",
+          "pattern": "L'URL doit commencer par http:// ou https://."
+        },
+        "accessed": {
+          "required": "La date d'accès est obligatoire.",
+          "pattern": "La date doit être au format YYYY-MM-DD ou MM-DD-YYYY ou DD-MM-YYYY ou MM/DD/YYYY ou DD/MM/YYYY ou YYYY/MM/DD."
+        }
+      }
+    },
+    "importDialog": {
+      "title": "La bibliographie existe déjà. La remplacer ?"
+    }
+  },
+  "citations": {
+    "styleOptions": {
+      "chicago17AuthDate": {
+        "title": "Chicago",
+        "description": "17e ed., auteur-date"
+      },
+      "chicago17NoteBib": {
+        "title": "Chicago",
+        "description": "17e ed., note-bibliographie"
+      }
+    },
+    "insertDialog": {
+      "title": "Insérer une citation"
+    }
+  },
+  "printSetup": {
+    "includePrint": "Inclure dans l'impression",
+    "includeExport": "Inclure dans l'exportation",
+    "include": "Inclure",
+    "toc": "Table des matières",
+    "introduction": "Introduction",
+    "critical": "Critique",
+    "bibliography": "Bibliographie"
   },
   "symbols": {
     "label": "Symbols",
@@ -374,6 +850,10 @@
   },
   "referencesFormat": {
     "title": "Format des références",
+    "warningBadge": {
+      "title": "Attention :",
+      "message": "Les fonctions 'Enregistrer' et 'Enregistrer et appliquer à tout le document' ont le même effet ici : toutes deux appliquent les paramètres à l'ensemble du document."
+    },
     "tabs": {
       "separators": "Séparateurs",
       "readingTypes": "Types de lecture",
@@ -396,6 +876,8 @@
     "bold": "Gras",
     "italic": "Italique",
     "underline": "Souligné",
+    "customize": "Personnaliser",
+    "numberFormat": "Format de nombre",
     "separator": {
       "none": "Aucun",
       "bracket": "Crochet ( ] )",
@@ -412,12 +894,12 @@
       "highlights": "Surlignages"
     },
     "highlight": {
-      "none": "aucun",
-      "pink": "rose",
-      "yellow": "jaune",
-      "blue": "bleu",
-      "gray": "gris",
-      "mint": "menthe"
+      "none": "Aucun",
+      "pink": "Rose",
+      "yellow": "Jaune",
+      "blue": "Bleu",
+      "gray": "Gris",
+      "mint": "Menthe"
     },
     "pageNotes": "Notes de page",
     "sectionNotes": "Notes de section",
@@ -428,11 +910,12 @@
       "section": "Recommence à chaque section :"
     },
     "sectionLevel": {
-      "1": "Niveau 1",
-      "2": "Niveau 2",
-      "3": "Niveau 3",
-      "4": "Niveau 4",
-      "5": "Niveau 5"
+      "1": "Titre",
+      "2": "En-tête 1",
+      "3": "En-tête 2",
+      "4": "En-tête 3",
+      "5": "En-tête 4",
+      "6": "En-tête 5"
     }
   },
   "customSpacing": {
@@ -442,8 +925,22 @@
     "afterParagraphSpacing": "Après le paragraphe"
   },
   "resumeNumbering": {
-    "label": "Start from",
-    "title": "Reprendre la numérotation"
+    "label": "Commencer à partir de",
+    "title": "Reprendre la numérotation",
+    "listTypeInfo": "Type de liste",
+    "preview": "Aperçu",
+    "valid": "Format valide",
+    "error": {
+      "invalid": "Format invalide",
+      "tooLarge": "Valeur trop grande (max 9999)"
+    },
+    "listType": {
+      "decimal": "chiffres (1, 2, 3...)",
+      "lowerAlpha": "lettres minuscules (a, b, c...)",
+      "upperAlpha": "lettres majuscules (A, B, C...)",
+      "lowerRoman": "chiffres romains minuscules (i, ii, iii...)",
+      "upperRoman": "chiffres romains majuscules (I, II, III...)"
+    }
   },
   "pageNumber": {
     "label": "Numéro de page",
@@ -522,7 +1019,7 @@
     "numeration": "Numérotation des lignes",
     "show": {
       "label": "Afficher",
-      "description": "Les numéros de ligne sont affichés uniquement dans le texte critique.",
+      "description": "Les numéros de ligne s’affichent à côté du texte inséré dans l’Introduction, le Texte critique et la Bibliographie.",
       "none": "Aucune",
       "everyFive": "Toutes les 5 lignes",
       "everyTen": "Toutes les 10 lignes",
@@ -545,21 +1042,148 @@
     "author": "Auteur",
     "copyrightHolder": "Titulaire des droits d'auteur",
     "keywords": "Mots-clés",
+    "keywordsPlaceholder": "Écrivez le mot-clé et appuyez sur Entrée...",
     "status": "Statut",
     "template": "Modèle",
-    "language": "Langue"
+    "language": "Langue",
+    "version": "Version",
+    "persistentIdentifier": {
+      "label": "Identifiant persistant",
+      "description": "Un DOI, PID ou autre identifiant permanent permettant d’identifier un document de manière unique"
+    },
+    "manager": {
+      "label": "Responsable",
+      "description": "Le nom du responsable ou superviseur en charge de la création ou du projet du document."
+    },
+    "company": {
+      "label": "Entreprise",
+      "description": "Le nom de l’organisation ou de l’entreprise associée au document."
+    },
+    "publisher": {
+      "label": "Éditeur",
+      "description": "Le nom de l’organisation ou de l’entreprise publiant la version « finale » du document."
+    },
+    "licenseInformation": {
+      "label": "Informations sur la licence",
+      "description": "Le contenu ou URL du document décrivant les informations sur la licence."
+    },
+    "category": {
+      "label": "Catégorie",
+      "description": "Une classification ou type de document, tel que « Rapport », « Proposition » ou « Recherche ». "
+    },
+    "comments": {
+      "label": "Commentaires",
+      "description": "Notes ou remarques générales sur le document, souvent utilisées pour un contexte supplémentaire."
+    },
+    "lastAuthor": {
+      "label": "Dernier auteur",
+      "description": "Le nom de la dernière personne ayant enregistré ou modifié le document."
+    },
+    "revisionNumber": {
+      "label": "Numéro de révision",
+      "description": "Indique le nombre de fois que le document a été enregistré."
+    },
+    "totalEditingTime": {
+      "label": "Temps total de modification",
+      "description": "Le temps cumulatif passé à modifier le document."
+    },
+    "lastPrintedDate": {
+      "label": "Date de dernière impression",
+      "description": "Date et heure de la dernière impression du document."
+    },
+    "contentStatus": {
+      "label": "État du contenu",
+      "description": "Décrit l’état actuel ou l’utilisation du document, souvent à des fins de workflow."
+    },
+    "contentType": {
+      "label": "Type de contenu",
+      "description": "Descripteur technique pour le format du document, ex. « application/vnd.openxmlformats‑officedocument.wordprocessingml.document »"
+    },
+    "wordCount": {
+      "label": "Nombre de mots",
+      "description": "Le nombre total de mots dans le document."
+    },
+    "characterCountWithSpaces": {
+      "label": "Nombre de caractères (avec espaces)",
+      "description": "Le nombre total de caractères, y compris les espaces."
+    },
+    "characterCountNoSpaces": {
+      "label": "Nombre de caractères (sans espaces)",
+      "description": "Le nombre total de caractères, en excluant les espaces."
+    },
+    "lineCount": {
+      "label": "Nombre de lignes",
+      "description": "Le nombre total de lignes dans le document."
+    },
+    "paragraphCount": {
+      "label": "Nombre de paragraphes",
+      "description": "Le nombre total de paragraphi nel documento."
+    },
+    "pageCount": {
+      "label": "Nombre de pages",
+      "description": "Le nombre total di pagine nel documento."
+    },
+    "customName": {
+      "label": "Nom personnalisé",
+      "description": "Nom défini par l’utilisateur pour la propriété personnalisée, ex. « Nom du projet » ou « Date limite »"
+    },
+    "valueType": {
+      "label": "Type de valeur",
+      "description": "Type de valeur associé à la propriété personnalisée (Texte, Date, Nombre ou Oui/Non)"
+    },
+    "value": {
+      "label": "Valeur",
+      "description": "Information ou donnée spécifique liée à la propriété personnalisée, saisie par l’utilisateur."
+    },
+    "buttons": {
+      "addMetadata": "Ajouter des métadonnées",
+      "optionalMetadata": "Choisir parmi les métadonnées optionnelles de Criterion",
+      "customMetadata": "Créer des métadonnées personnalisées",
+      "edit": "Modifier"
+    },
+    "detailName": "Nom",
+    "valueCustom": "Valeur",
+    "itemText": "Texte",
+    "itemNumber": "Nombre",
+    "itemDate": "Date",
+    "itemList": "Liste",
+    "placeholderText": "Ex. valeur textuelle",
+    "placeholderNumber": "Ex. 123",
+    "placeholderDate": "Ex. 2023-10-01",
+    "exampleList": "Ex. rouge, jaune, bleu",
+    "newMetadata": "Nouveau Metadata",
+    "placeholderCustom": "Entrez des valeurs, séparées par des virgules...",
+    "statusList": {
+      "draft": "Brouillon",
+      "inReview": "En révision",
+      "final": "Final"
+    }
+  },
+  "findAndReplace": {
+    "title": "Rechercher et remplacer",
+    "noResults": "Aucun résultat trouvé",
+    "find": "Rechercher",
+    "maxChars": "Maximum {{max}} caractères autorisés",
+    "replace": "Remplacer",
+    "replaceAll": "Remplacer tout",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "caseSensitive": "Respecter la casse",
+    "wholeWords": "Mots entiers uniquement",
+    "searchCriteria": "Critères de recherche"
   },
   "pageSetup": {
     "title": "Choisir la mise en page",
-     "confirmationModal": {
-      "title": "Voulez-vous vraiment supprimer \"{{apparatus}}\" définitivement?",
-      "description": "Tout le contenu de \"{{apparatus}}\" sera supprimé partout."
+    "confirmationModal": {
+      "title": "Êtes-vous sûr de vouloir supprimer définitivement \"{{apparatus}}\" ?",
+      "description": "Toutes les notes pour \"{{apparatus}}\" avec tous les commentaires liés au texte seront définitivement supprimées et il ne sera pas possible d'annuler cette action."
     },
     "component": {
       "configurationSubtitle": "Paramètres du document",
       "sectionInclude": "Inclure",
       "selectCustom": "Personnalisé",
       "add": "Ajouter un appareil critique",
+      "columns": "Colonnes",
       "section": {
         "toc": "Table des matières",
         "intro": "Introduction",
@@ -587,7 +1211,9 @@
       "header": "En-tête",
       "footer": "Pied de page",
       "innerMarginNote": "Notes de marge intérieure",
-      "outerMarginNote": "Notes de marge extérieure"
+      "outerMarginNote": "Notes de marge extérieure",
+      "documentMargin": "Marge du document",
+      "marginNote": "Notes de marge"
     },
     "position": {
       "left": "Gauche",
@@ -598,7 +1224,67 @@
     "selectPage": "Sélectionner la page",
     "buttons": {
       "cancel": "Retour",
-      "save": "Enregistrer"
+      "save": "Enregistrer",
+      "delete": "Supprimer"
+    }
+  },
+  "delete_apparatus_dialog": {
+    "title": "Supprimer l'appareil critique",
+    "description": "Vous êtes sur le point de supprimer définitivement toutes les notes d'appareil existantes et tous les commentaires associés au texte. Êtes-vous sûr de vouloir continuer ? Il ne sera pas possible d'annuler cette action !",
+    "buttons": {
+      "cancel": "Retour",
+      "delete": "Supprimer"
+    }
+  },
+  "delete_apparatus_entry_dialog": {
+    "title": "Supprimer la note d'appareil",
+    "description": "Vous êtes sur le point de supprimer définitivement la note d'appareil et tous les commentaires associés au texte. Êtes-vous sûr de vouloir continuer ? Il ne sera pas possible d'annuler cette action !",
+    "buttons": {
+      "cancel": "Retour",
+      "delete": "Supprimer"
+    }
+  },
+  "apparatuses": {
+    "options": {
+      "changeType": "Changer le type",
+      "rename": "Renommer",
+      "hide": "Masquer",
+      "delete": "Supprimer",
+      "showNoteHighlights": "Afficher les notes en surbrillance",
+      "showCommentHighlights": "Afficher les commentaires en surbrillance",
+      "showInPrint": "Afficher en impression"
+    }
+  },
+  "siglum": {
+    "title": "Sigles",
+    "save": "Enregistrer",
+    "create": "Créer",
+    "cancel": "Annuler",
+    "import": "Importer",
+    "export": "Exporter",
+    "manuscripts": "Manuscrit(s)*",
+    "description": "Description",
+    "empty": {
+      "title": "Créez d'abord des sigles avant d'ajouter des notes"
+    },
+    "errors": {
+      "siglumExists": "Sigle existant"
+    },
+    "messages": {
+      "charactersRemaining": "Caractères restants"
+    },
+    "importDialog": {
+      "title": "Il y a {{count}} sigles qui sont déjà présents dans le document. Voulez-vous les remplacer ?",
+      "replace": "Remplacer",
+      "cancel": "Annuler",
+      "keepBoth": "Conserver les deux",
+      "versionNotSupported": "Le fichier de sigles que vous essayez d'importer n'est pas compatible avec cette version de Criterion."
+    },
+    "insertDialog": {
+      "title": "Ajouter des sigles",
+      "cancel": "Annuler",
+      "insert": "Insérer",
+      "filterPlaceholder": "Filtrer les sigles..."
     }
   },
   "tableOfContents": {
@@ -622,12 +1308,18 @@
       "level6Format": "Format niveau 6"
     },
     "sections": {
-      "introduction": "Introduction",
       "criticalText": {
         "start": "Début du texte critique",
         "end": "Fin du texte critique"
       },
-      "bibliography": "Bibliographie"
+      "introduction": {
+        "start": "Début de l'introduction",
+        "end": "Fin de l'introduction"
+      },
+      "bibliography": {
+        "start": "Début de la bibliographie",
+        "end": "Fin de la bibliographie"
+      }
     },
     "navigation": {
       "placeholder": "Table des matières"
@@ -637,7 +1329,26 @@
     "title": "Signets",
     "edit": "Modifier",
     "delete": "Supprimer",
-    "move": "Déplacer"
+    "move": "Déplacer",
+    "uncategorised": "Non catégorisé",
+    "category": {
+      "uncategorized": "Non catégorisé",
+      "title": "Sélectionner une Catégorie",
+      "filterPlaceholder": "Filtrer les catégories...",
+      "cancel": "Annuler",
+      "select": "Sélectionner"
+    },
+    "search_placeholder": "Rechercher des signets...",
+    "no_results_found": "Aucun signet trouvé",
+    "edit_mode": {
+      "title_placeholder": "Titre",
+      "title_error_message_min_length": "Le titre doit avoir au moins {{length}} caractères.",
+      "title_error_message_max_length": "Le titre doit avoir moins de {{length}} caractères.",
+      "description_placeholder": "Ajouter une description...",
+      "description_error_message": "La description doit avoir moins de {{length}} caractères.",
+      "category_title_error_message_min_length": "Le nom de la catégorie doit avoir au moins {{length}} caractères.",
+      "category_title_error_message_max_length": "Le nom de la catégorie doit avoir moins de {{length}} caractères."
+    }
   },
   "delete_bookmark_dialog": {
     "title": "Si vous continuez, vous supprimerez le signet",
@@ -649,6 +1360,7 @@
     }
   },
   "delete_bookmark_category_dialog": {
+    "nav_title": "Supprimer la catégorie de signets",
     "title": "Si vous continuez, vous supprimerez tous les signets dans la catégorie",
     "description": "Voulez-vous continuer? Si oui, cliquez sur le bouton \"Supprimer\", sinon cliquez sur \"Annuler\"; alternativement déplacez tous les signets vers une autre catégorie créée avec le bouton \"Déplacer\"",
     "buttons": {
@@ -677,7 +1389,26 @@
     "title": "Commentaires",
     "edit": "Modifier",
     "delete": "Supprimer",
-    "move": "Déplacer"
+    "move": "Déplacer",
+    "uncategorised": "Non catégorisé",
+    "category": {
+      "uncategorized": "Non catégorisé",
+      "title": "Sélectionner une Catégorie",
+      "filterPlaceholder": "Filtrer les catégories...",
+      "cancel": "Annuler",
+      "select": "Sélectionner"
+    },
+    "search_placeholder": "Rechercher des commentaires...",
+    "no_results_found": "Aucun commentaire trouvé",
+    "edit_mode": {
+      "title_placeholder": "Titre",
+      "description_placeholder": "Ajouter une description...",
+      "description_error_message": "La description doit avoir moins de {{length}} caractères.",
+      "category_title_error_message_min_length": "Le nom de la catégorie doit avoir au moins {{length}} caractères.",
+      "category_title_error_message_max_length": "Le nom de la catégorie doit avoir moins de {{length}} caractères.",
+      "title_error_message_min_length": "Le titre doit avoir au moins {{length}} caractères.",
+      "title_error_message_max_length": "Le titre doit avoir moins de {{length}} caractères."
+    }
   },
   "delete_comment_dialog": {
     "title": "Si vous continuez, vous supprimerez le commentaire",
@@ -689,6 +1420,7 @@
     }
   },
   "delete_comment_category_dialog": {
+    "nav_title": "Supprimer la catégorie de commentaires",
     "title": "Si vous continuez, vous supprimerez tous les commentaires dans la catégorie",
     "description": "Voulez-vous continuer? Si oui, cliquez sur le bouton \"Supprimer\", sinon cliquez sur \"Annuler\"; alternativement déplacez tous les signets vers une autre catégorie créée avec le bouton \"Déplacer\"",
     "buttons": {
@@ -795,6 +1527,12 @@
         "rememberLastLayout": "Se souvenir de la dernière mise en page visuelle",
         "rememberLastLayoutDescription": "Sauvegarde et restaure la dernière mise en page visuelle de la session d'édition."
       },
+      "pdfQuality": {
+        "title": "Qualité PDF",
+        "low": "Bas",
+        "medium": "Moyen",
+        "high": "Haut"
+      },
       "recentFiles": {
         "title": "Fichiers récents à ouvrir",
         "description": "Afficher le nombre maximum de fichiers récemment ouverts à afficher."
@@ -869,8 +1607,556 @@
     "buttons": {
       "cancel": "Annuler",
       "resetToDefault": "Rétablir par Défaut",
-      "ok": "OK"
+      "ok": "Ok"
     },
-    "comingSoon": "Paramètres de compte bientôt disponibles..."
+    "account": {
+      "title": "Accès Criterion",
+      "subtitle": "Consulter et gérer vos informations personnelles",
+      "settings": "Paramètres du compte",
+      "notSignedIn": "Non connecté",
+      "signInPrompt": "Connectez-vous pour accéder à vos documents et synchroniser vos paramètres",
+      "noInstitution": "Aucune institution",
+      "editProfile": "Modifier le Profil",
+      "email": "E-mail",
+      "emailCannotBeChanged": "L'e-mail ne peut pas être modifié",
+      "name": "Prénom",
+      "namePlaceholder": "Jean",
+      "surname": "Nom",
+      "surnamePlaceholder": "Dupont",
+      "institution": "Institution/Université",
+      "institutionPlaceholder": "Université d'Exemple",
+      "keywords": "Mots-clés (max 8)",
+      "keywordsPlaceholder": "Ajouter un mot-clé...",
+      "keywordsHint": "Aucun mot-clé ajouté",
+      "changePassword": "Changer le Mot de Passe",
+      "saveProfile": "Enregistrer",
+      "saving": "Enregistrement...",
+      "saveSuccess": "Profil mis à jour avec succès",
+      "saveError": "Impossible de mettre à jour le profil",
+      "passwordResetSent": "E-mail de réinitialisation du mot de passe envoyé",
+      "passwordResetError": "Impossible d'envoyer l'e-mail de réinitialisation",
+      "notLoggedIn": "Non connecté",
+      "loginPrompt": "Veuillez vous connecter pour consulter et gérer votre compte",
+      "close": "Fermer",
+      "deleteAccount": "Supprimer le compte",
+      "deleteAccountDialog": {
+        "title": "Supprimer le Compte",
+        "description": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+        "warning": "Toutes vos données, documents et informations personnelles seront définitivement supprimés. Vous serez déconnecté immédiatement.",
+        "confirm": "Supprimer le Compte",
+        "cancel": "Annuler"
+      },
+      "deleteSuccess": "Compte supprimé avec succès",
+      "deleteError": "Impossible de supprimer le compte",
+      "changePasswordDialog": {
+        "currentPassword": "Mot de passe actuel",
+        "currentPasswordPlaceholder": "Entrez le mot de passe actuel",
+        "newPassword": "Nouveau mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "submit": "Changer le mot de passe",
+        "submitting": "Modification en cours...",
+        "success": "Mot de passe changé avec succès",
+        "successDescription": "Votre mot de passe a été mis à jour",
+        "logoutNotice": "Vous serez déconnecté et redirigé vers l'écran de connexion",
+        "error": "Impossible de changer le mot de passe",
+        "errorUnauthorized": "Connexion impossible. Vérifiez vos identifiants et réessayez.",
+        "errorUserNotFound": "Utilisateur non trouvé",
+        "errorMaxRequests": "Trop de demandes. Veuillez réessayer plus tard",
+        "errorInvalidInput": "Données d'entrée non valides",
+        "errorUnknown": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard"
+      }
+    },
+    "comingSoon": "Paramètres de compte bientôt disponibles...",
+    "save": {
+      "success": "Préférences enregistrées avec succès",
+      "error": "Impossible d'enregistrer les préférences"
+    }
+  },
+  "reading_type": {
+    "title": "Sélectionner le Type de Lecture",
+    "cancel": "Annuler",
+    "select": "Sélectionner"
+  },
+  "reading_type_custom": {
+    "title": "Type de Lecture Personnalisé",
+    "cancel": "Annuler",
+    "insert": "Insérer"
+  },
+  "dialog": {
+    "close": "Fermer"
+  },
+  "criterion": {
+    "label": "Criterion",
+    "checkForUpdates": "Vérifier les mises à jour",
+    "provideFeedback": "Donner un avis sur Criterion",
+    "hideOthers": "Masquer les autres",
+    "hide": "Masquer Criterion",
+    "showAll": "Afficher tout",
+    "quit": "Quitter Criterion"
+  },
+  "confirmChangeTemplateModal": {
+    "title": "Changement de Modèle",
+    "description": {
+      "warning": "Attention : Le nouveau modèle supprimera les appareils suivants :",
+      "irreversible": "Si le document n’a pas été enregistré, ce contenu sera définitivement perdu. Nous vous recommandons d’enregistrer le document avant de continuer.",
+      "continue": "Souhaitez-vous continuer malgré tout ?"
+    },
+    "apparatusType": {
+      "critical": "Critique",
+      "pageNotes": "Notes de Page",
+      "sectionNotes": "Notes de Section",
+      "innerMargin": "Marge Intérieure",
+      "outerMargin": "Marge Extérieure"
+    },
+    "buttons": {
+      "cancel": "Annuler",
+      "confirm": "Continuer"
+    }
+  },
+  "textMenu": {
+    "insertBibliography": "Insérer une bibliographie",
+    "updateTableOfContents": "Mettre à jour la table des matières",
+    "import": "Importer",
+    "paste": "Coller",
+    "pasteWithNotes": "Coller avec notes",
+    "showNoteHighlights": "Afficher les notes en surbrillance",
+    "showCommentHighlights": "Afficher les commentaires en surbrillance",
+    "showBookmarksHighlights": "Afficher les signets en surbrillance"
+  },
+  "export": {
+    "apparatusType": "Type d'Appareil",
+    "apparatusTitle": "Titre de l'Appareil",
+    "lemma": "Lemme",
+    "apparatusEntry": "Entrée d'Appareil",
+    "reading": "Lecture %d%"
+  },
+  "apparatusesMenu": {
+    "changeType": "Changer le type",
+    "rename": "Renommer",
+    "hide": "Masquer",
+    "delete": "Supprimer",
+    "export": "Exporter",
+    "swapMargin": "Échanger les marges",
+    "showNoteHighlights": "Afficher les notes en surbrillance",
+    "showCommentHighlights": "Afficher les commentaires en surbrillance",
+    "showInPrint": "Afficher en impression"
+  },
+  "pdf": {
+    "generating": "Génération PDF en cours...",
+    "error": "Erreur lors de la génération du PDF",
+    "noPdfToDisplay": "Aucun PDF à afficher",
+    "loading": "Chargement PDF...",
+    "unknownError": "Erreur inconnue lors de la génération du PDF",
+    "regenerationError": "Erreur lors de la régénération du PDF",
+    "compilationFailed": "PDF non généré : la compilation LaTeX a échoué",
+    "regenerate": "Régénérer le PDF",
+    "preview": {
+      "notAvailable": "Attention ! L'aperçu avant impression du document actuel n'est pas disponible. Veuillez régénérer l'aperçu avant impression.",
+      "failedToLoad": "Échec du chargement de l'aperçu PDF",
+      "invalidDataFormat": "Format de données PDF non valide pour l'aperçu avant impression"
+    },
+    "viewer": {
+      "fileNotFound": "Fichier PDF introuvable ou plus disponible",
+      "failedToLoad": "Échec du chargement du fichier PDF",
+      "invalidDataFormat": "Format de fichier PDF non valide"
+    },
+    "export": {
+      "saveTo": "Enregistrer le PDF dans...",
+      "title": "Génération du PDF en cours...",
+      "detail": "L'opération se poursuivra en arrière-plan et peut prendre plusieurs secondes. Un message sera affiché lorsque le PDF sera généré.",
+      "successTitle": "PDF généré avec succès!",
+      "successDetail": "Le fichier a été enregistré",
+      "errorTitle": "Erreur lors de la génération du PDF",
+      "errorDetail": "Une erreur s'est produite : {{errorMessage}}"
+    }
+  },
+  "keyboardShortcuts": {
+    "title": "Personnaliser les Raccourcis Clavier",
+    "categories": "Catégories:",
+    "commands": "Commandes:",
+    "keyboardShortcut": "Raccourci Clavier",
+    "defaultShortcut": "Raccourci clavier par défaut",
+    "missingShortcut": "Aucun raccourci clavier assigné",
+    "newShortcut": "Nouveau Raccourci Clavier",
+    "placeholder": "Cliquez ici et appuyez sur un raccourci pour en créer un nouveau",
+    "pressKeys": "Appuyez sur les touches...",
+    "helpTextMac": "Appuyez sur une combinaison de touches (ex. Cmd+Shift+Z). Vous ne pouvez pas utiliser uniquement des modificateurs.",
+    "helpTextWinLinux": "Appuyez sur une combinaison de touches (ex. Ctrl+Shift+Z). Vous ne pouvez pas utiliser uniquement des modificateurs.",
+    "conflictMessage": "Ce raccourci est déjà assigné à \"{{conflict}}\". Veuillez choisir un raccourci différent ou le supprimer d'abord de la commande en conflit.",
+    "reservedShortcut": "Ce raccourci est réservé par le système et ne peut pas être attribué. Veuillez choisir un raccourci différent.",
+    "assign": "Assigner",
+    "description": "Description",
+    "selectCommand": "Sélectionnez une commande pour personnaliser son raccourci",
+    "resetConfirmation": "Êtes-vous sûr de vouloir réinitialiser tous les raccourcis aux valeurs par défaut ? Cette action ne peut pas être annulée.",
+    "successMessage": "Raccourci assigné avec succès !",
+    "errorMessage": "Échec de l'assignation du raccourci. Veuillez réessayer.",
+    "errorUnknown": "Une erreur inattendue s'est produite. Veuillez réessayer ou contacter le support si le problème persiste.",
+    "reservedDevTools": "Ce raccourci est réservé par les outils de développement et ne peut pas être attribué.",
+    "reservedOS": "Ce raccourci est réservé par le système d'exploitation et ne peut pas être attribué.",
+    "reservedMacOption": "Sur macOS, Option+lettre/chiffre produit des caractères spéciaux et ne peut pas être utilisé comme raccourci. Utilisez Cmd+Option+Touche à la place.",
+    "validation": {
+      "needsModifier": "Les lettres et chiffres nécessitent au moins un modificateur ({{modifier}} ou Alt).",
+      "needsModifierExample": "Exemple: {{modifier}}+{{key}} ou Alt+{{key}}",
+      "shiftOnlyNotAllowed": "Shift seul n'est pas suffisant pour les lettres/chiffres. Ajoutez {{modifier}} ou Alt.",
+      "shiftOnlyExample": "Exemple: {{modifier}}+Shift+{{key}}",
+      "modifiersOnly": "Vous n'avez appuyé que sur des modificateurs. Ajoutez une touche (lettre, chiffre, touche F ou touche spéciale).",
+      "modifiersOnlyExample": "Exemple: {{modifiers}}+S ou {{modifiers}}+F1",
+      "functionKeyValid": "La touche de fonction {{key}} est valide ! Vous pouvez aussi ajouter des modificateurs.",
+      "functionKeyExample": "Exemple: {{key}} ou {{modifier}}+{{key}}",
+      "validShortcut": "Raccourci valide ! Cliquez sur 'Assigner' pour l'enregistrer.",
+      "validShortcutFormat": "Format: {{shortcut}}",
+      "tooManyModifiers": "Maximum 3 modificateurs autorisés ({{modifier}}+Alt+Shift).",
+      "escapeNotAllowed": "La touche Échap ne peut pas être utilisée comme raccourci.",
+      "tabNotRecommended": "La touche Tab n'est pas recommandée car elle peut interférer avec la navigation.",
+      "macOptionConflict": "Sur macOS, Option+lettre/chiffre produit des caractères spéciaux (comme å, ∑, ™) et ne peut pas être utilisé comme raccourci.",
+      "macOptionConflictExample": "Utilisez Cmd+Option+{{key}} au lieu de Option+{{key}} seul."
+    },
+    "subcategories": {
+      "Export To": "Exporter vers",
+      "Add Reading Type": "Ajouter Type de Lecture",
+      "Font": "Police",
+      "Text": "Texte",
+      "List": "Liste"
+    }
+  },
+  "tei": {
+    "export": {
+      "title": "Exportation XML/TEI en cours...",
+      "detail": "L'opération se poursuivra en arrière-plan et peut prendre plusieurs secondes. Un message s'affichera lorsque le fichier XML/TEI sera généré.",
+      "successTitle": "Fichier XML/TEI généré avec succès !",
+      "successDetail": "Le fichier a été enregistré",
+      "errorTitle": "Erreur lors de la génération XML/TEI",
+      "errorDetail": "Une erreur s'est produite : {{errorMessage}}",
+      "unknownError": "Erreur inconnue lors de la génération XML/TEI"
+    },
+    "dialog": {
+      "title": "Exporter le document au format XML/TEI",
+      "description": "Le document sera exporté au format XML/TEI. Cliquez sur 'Exporter' pour continuer."
+    }
+  },
+  "main_editor": {
+    "bubble_menu": {
+      "bold": "Gras",
+      "italic": "Italique",
+      "underline": "Souligné",
+      "note": "Note",
+      "comment": "Commentaire",
+      "bookmark": "Signet",
+      "link": "Lien"
+    },
+    "apparatus_option": {
+      "title": "Liste des appareils",
+      "items": "éléments",
+      "escape_to_close": "ESC pour fermer"
+    },
+    "comment_category": {
+      "title": "Catégories de commentaires",
+      "items": "éléments",
+      "escape_to_close": "ESC pour fermer"
+    },
+    "bookmark_category": {
+      "title": "Catégories de signets",
+      "items": "éléments",
+      "escape_to_close": "ESC pour fermer"
+    },
+    "context_menu": {
+      "formatting": {
+        "bold": "Gras",
+        "italic": "Italique",
+        "underline": "Souligné"
+      },
+      "alignment": {
+        "left": "Aligner à gauche",
+        "center": "Centrer",
+        "right": "Aligner à droite",
+        "justify": "Justifier"
+      },
+      "actions": {
+        "siglum": "Sigle",
+        "citation": "Citation",
+        "note": "Note",
+        "comment": "Commentaire",
+        "save": {
+          "success": "Paramètres enregistrés",
+          "error": "Impossible d'enregistrer les paramètres"
+        },
+        "bookmark": "Signet",
+        "link": "Lien",
+        "cut": "Couper",
+        "copy": "Copier",
+        "paste": "Coller"
+      }
+    }
+  },
+  "apparatus_editor": {
+    "bubble_menu": {
+      "bold": "Gras",
+      "italic": "Italique",
+      "underline": "Souligné",
+      "comment": "Commentaire",
+      "link": "Lien"
+    },
+    "comment_category": {
+      "title": "Catégories de commentaires",
+      "items": "éléments",
+      "escape_to_close": "ESC pour fermer"
+    },
+    "context_menu": {
+      "formatting": {
+        "bold": "Gras",
+        "italic": "Italique",
+        "underline": "Souligné"
+      },
+      "actions": {
+        "siglum": "Sigle",
+        "citation": "Citation",
+        "reading_type": "Type de lecture",
+        "reading_separator": "Séparateur de lecture",
+        "comment": "Commentaire",
+        "link": "Lien",
+        "cut": "Couper",
+        "copy": "Copier",
+        "paste": "Coller"
+      }
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Connectez-vous à votre compte",
+      "subtitle": "Entrez vos identifiants pour accéder à votre tableau de bord",
+      "email": "Adresse email",
+      "emailPlaceholder": "nom@exemple.com",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Mot de passe oublié ?",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours...",
+      "loginSuccess": "Connexion réussie",
+      "loginSuccessDescription": "Bon retour ! Vous êtes connecté avec succès.",
+      "loginError": "Échec de la connexion",
+      "loginErrorDescription": "Email ou mot de passe invalide. Veuillez réessayer.",
+      "orContinueWith": "Ou continuer avec",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "signUp": "S'inscrire",
+      "errorToastTitle": "Login failed",
+      "errorToastCredentialsDescription": "Invalid email or password. Please try again.",
+      "errorToastInputDataDescription": "Input data are not valid.",
+      "errorToastUserNotFoundDescription": "User not found.",
+      "errorToastUnknownDescription": "An unexpected error occurred.",
+      "errorToastServiceDescription": "Exception in the service call."
+    },
+    "signUp": {
+      "title": "Créer un compte",
+      "subtitle": "Entrez vos informations pour commencer",
+      "name": "Prénom",
+      "namePlaceholder": "Jean",
+      "surname": "Nom",
+      "surnamePlaceholder": "Dupont",
+      "email": "Email",
+      "emailPlaceholder": "nom@email.fr",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "••••••••••••••",
+      "confirmPassword": "Confirmer le mot de passe",
+      "confirmPasswordPlaceholder": "••••••••••••••",
+      "institution": "Institution/Université",
+      "institutionPlaceholder": "Université de Exemple",
+      "keywords": "Mots-clés (max 8)",
+      "keywordsPlaceholder": "Tapez et appuyez sur Entrée",
+      "keywordsCount": "{{count}}/8 mots-clés",
+      "addKeyword": "Ajouter",
+      "acceptTerms": "J'accepte les",
+      "termsOfUse": "Conditions d'utilisation",
+      "and": "et la",
+      "privacyPolicy": "Politique de confidentialité",
+      "submit": "Créer un compte",
+      "submitting": "Création du compte...",
+      "hasAccount": "Vous avez déjà un compte ?",
+      "signIn": "Se connecter",
+      "errorToastTitle": "L'inscription a échoué",
+      "errorToastUnknownDescription": "Une erreur inattendue s'est produite.",
+      "errorToastEmailAlreadyExistsDescription": "L'adresse email fournie est déjà utilisée.",
+      "errorToastInvalidDataDescription": "Les données fournies ne sont pas valides.",
+      "errorToastServiceDescription": "Exception lors de l'appel au service."
+    },
+    "verifyEmailAccount": {
+      "backToSignUp": "Retour à l'inscription",
+      "title": "Verify your email",
+      "subtitle": "We've sent a verification code to your email address.",
+      "code": "Verification code",
+      "codePlaceholder": "000000",
+      "submit": "Verify code",
+      "submitting": "Verifying...",
+      "noCode": "Didn't receive the code?",
+      "resend": "Resend",
+      "errorToastTitle": "Échec de la vérification",
+      "errorToastInvalidCodeDescription": "Le code de vérification est incorrect. Veuillez vérifier et réessayer.",
+      "errorToastInvalidDataDescription": "Les données saisies ne sont pas valides.",
+      "errorToastUserNotFoundDescription": "Utilisateur non trouvé.",
+      "errorToastUnknownDescription": "Une erreur inattendue s'est produite.",
+      "errorToastServiceDescription": "Exception lors de l'appel au service."
+    },
+    "forgotPassword": {
+      "backToSignIn": "Retour à la connexion",
+      "title": "Mot de passe oublié ?",
+      "subtitle": "Pas de souci, nous vous enverrons les instructions de réinitialisation.",
+      "email": "Adresse email",
+      "emailPlaceholder": "nom@exemple.com",
+      "submit": "Envoyer le code de réinitialisation",
+      "submitting": "Envoi en cours..."
+    },
+    "verifyCode": {
+      "backToSignIn": "Retour à la connexion",
+      "title": "Vérifiez votre email",
+      "subtitle": "Nous avons envoyé un code de vérification à votre adresse email.",
+      "code": "Code de vérification",
+      "codePlaceholder": "000000",
+      "submit": "Vérifier le code",
+      "submitting": "Vérification en cours...",
+      "noCode": "Vous n'avez pas reçu le code ?",
+      "resend": "Renvoyer"
+    },
+    "verificationSuccess": {
+      "title": "Email vérifié !",
+      "subtitle": "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter à votre compte.",
+      "continue": "Continuer vers la connexion"
+    },
+    "validation": {
+      "emailRequired": "L'email est requis",
+      "emailInvalid": "Adresse email invalide",
+      "passwordRequired": "Le mot de passe est requis",
+      "passwordMin": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordMax": "Le mot de passe doit contenir au maximum 255 caractères",
+      "passwordLowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
+      "passwordUppercase": "Le mot de passe doit contenir au moins une lettre majuscule",
+      "passwordDigit": "Le mot de passe doit contenir au moins un chiffre",
+      "passwordSymbol": "Le mot de passe doit contenir au moins un symbole (!#@&%$)",
+      "passwordWhitespace": "Le mot de passe ne doit pas contenir d'espaces",
+      "confirmPasswordRequired": "Veuillez confirmer votre mot de passe",
+      "passwordsMismatch": "Les mots de passe ne correspondent pas",
+      "passwordDifferent": "Le nouveau mot de passe doit être différent du mot de passe actuel",
+      "nameRequired": "Le prénom est requis",
+      "nameMin": "Le prénom doit contenir au moins 2 caractères",
+      "nameMax": "Le prénom doit contenir au maximum 50 caractères",
+      "nameInvalidChars": "Le prénom ne peut contenir que des lettres, des espaces et des apostrophes",
+      "surnameRequired": "Le nom est requis",
+      "surnameMin": "Le nom doit contenir au moins 2 caractères",
+      "surnameMax": "Le nom doit contenir au maximum 50 caractères",
+      "surnameInvalidChars": "Le nom ne peut contenir que des lettres, des espaces et des apostrophes",
+      "keywordsMax": "Maximum 8 mots-clés autorisés",
+      "keywordEmpty": "Le mot-clé ne peut pas être vide",
+      "keywordMax": "Chaque mot-clé doit contenir au maximum 40 caractères",
+      "keywordsTotalLength": "La longueur totale de tous les mots-clés doit être au maximum de 255 caractères",
+      "institutionMax": "L'institution doit contenir au maximum 255 caractères",
+      "institutionInvalidChars": "L'institution ne peut contenir que des lettres, des espaces et des apostrophes",
+      "acceptTermsRequired": "Vous devez accepter les conditions et la politique de confidentialité",
+      "codeRequired": "Le code de vérification est requis",
+      "codeLength": "Le code doit comporter 6 chiffres"
+    },
+    "branding": {
+      "title": "Criterion",
+      "subtitle": "Plateforme d'Édition Critique de Textes"
+    },
+    "logout": {
+      "title": "Se déconnecter de votre compte ?",
+      "subtitle": "Êtes-vous sûr de vouloir vous déconnecter de :",
+      "warning": "Vous serez déconnecté de votre compte et de tous les services connectés.",
+      "cancel": "Annuler",
+      "submit": "Se déconnecter",
+      "submitting": "Déconnexion en cours..."
+    },
+    "userNotVerified": {
+      "title": "Compte non vérifié",
+      "description": "Ce compte n'est pas vérifié.",
+      "instruction": "Veuillez vérifier votre adresse e-mail pour continuer à utiliser l'application.",
+      "verify": "Vérifier"
+    },
+    "required": "*"
+  },
+  "share": {
+    "title": "Partager le Document avec des Collaborateurs",
+    "document": "Document",
+    "documentOwner": "Propriétaire du Document",
+    "searchForCollaborators": "Rechercher des Collaborateurs",
+    "searchPlaceholder": "Name or email",
+    "searchResults": "Résultats de Recherche",
+    "noResults": "Aucun collaborateur trouvé",
+    "add": "Ajouter",
+    "added": "Ajouté",
+    "recipients": "Destinataires",
+    "invitationMessage": "Message d'Invitation",
+    "invitationMessagePlaceholder": "Entrez un message pour vos collaborateurs (max 255 caractères)...",
+    "cancel": "Annuler",
+    "send": "Envoyer",
+    "sending": "Envoi en cours...",
+    "error": "Erreur",
+    "errorLoadingDocument": "Échec du chargement des informations du document",
+    "errorSharing": "Échec du partage du document",
+    "successTitle": "Document partagé",
+    "successDescription": "Le document a été partagé avec succès avec les collaborateurs sélectionnés"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "ok": "OK",
+    "save": "Enregistrer",
+    "close": "Fermer"
+  },
+  "sharedFiles": {
+    "title": "Fichiers Partagés",
+    "myFiles": "Mes Fichiers Criterion",
+    "sharedWithMe": "Partagés avec moi",
+    "filters": "Filtres",
+    "file": "Fichier",
+    "owner": "Propriétaire",
+    "collaborator": "Collaborateur",
+    "collaborators": "Collaborateurs",
+    "collaboratorsList": "Liste des Collaborateurs",
+    "invitationStatus": "Statut de l'Invitation",
+    "actions": "Actions",
+    "dateOfFirstSharing": "Date du Premier Partage",
+    "dateOfLastSharing": "Date du Dernier Partage",
+    "deadlineForInvitation": "Échéance de l'Invitation",
+    "dateOfDownload": "Date de Téléchargement",
+    "searchByFileName": "Rechercher par nom de fichier...",
+    "searchByOwner": "Rechercher par propriétaire...",
+    "searchByCollaborator": "Rechercher par collaborateur...",
+    "allStatuses": "Tous les statuts",
+    "viewCollaborators": "Voir les collaborateurs ({{count}})",
+    "status": {
+      "pending": "En attente",
+      "accepted": "Accepté",
+      "declined": "Refusé",
+      "expired": "Expiré",
+      "revoked": "Révoqué"
+    },
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "download": "Télécharger",
+    "downloadNewVersion": "Télécharger Nouvelle Version",
+    "share": "Partager",
+    "upload": "Téléverser",
+    "delete": "Supprimer",
+    "close": "Fermer",
+    "revoke": "Révoquer",
+    "resendInvite": "Renvoyer l'Invitation",
+    "noActionsAvailable": "Aucune action disponible",
+    "notDownloaded": "Non téléchargé",
+    "noFilesFound": "Aucun fichier trouvé",
+    "inFocus": "En Focus",
+    "saved": "Enregistré",
+    "activeDocumentTitle": "Document actif :",
+    "activeDocumentDescription": "Les documents surlignés en bleu sont actuellement ouverts et en focus dans l'éditeur Criterion. Les actions collaboratives (Partager, Téléverser, Supprimer) ne sont activées que pour le document sur lequel vous travaillez.",
+    "newVersionAvailableTitle": "Nouvelle version disponible :",
+    "newVersionAvailableDescription": "Les lignes surlignées en rouge indiquent qu'une nouvelle version du document a été téléversée par le propriétaire. Téléchargez la dernière version pour accéder aux modifications les plus récentes.",
+    "acceptSuccess": "Invitation acceptée avec succès",
+    "declineSuccess": "Invitation refusée",
+    "downloadSuccess": "Document téléchargé avec succès",
+    "shareSuccess": "Document partagé avec succès",
+    "uploadSuccess": "Document téléversé avec succès",
+    "deleteSuccess": "Document supprimé du partage",
+    "revokeSuccess": "Accès révoqué avec succès",
+    "resendSuccess": "Invitation renvoyée avec succès",
+    "revokeConfirmTitle": "Révoquer l'Invitation",
+    "revokeConfirmDescription": "Êtes-vous sûr de vouloir révoquer cette invitation ? Le collaborateur ne pourra plus l'accepter."
   }
 }

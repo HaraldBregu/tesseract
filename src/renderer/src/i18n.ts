@@ -6,7 +6,7 @@ import esTranslations from "../../../i18n/es/translations.json";
 import frTranslations from "../../../i18n/fr/translations.json";
 import deTranslations from "../../../i18n/de/translations.json";
 
-const savedLocale: string | null = localStorage.getItem("locale");
+const savedLocale: string | null = localStorage.getItem("appLanguage");
 
 i18n.use(initReactI18next).init({
   resources: {

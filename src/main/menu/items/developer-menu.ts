@@ -1,6 +1,7 @@
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import i18next from "i18next";
-import { MenuItemId } from '../../shared/types';
+import { MenuItemId } from '../../types';
+import { getKeyboardShortcut } from '../../shared/keyboard-shortcuts-utils';
 
 export function buildDeveloperMenu(onClick: (menuItem: MenuItem) => void): MenuItemConstructorOptions {
     return {
@@ -9,13 +10,13 @@ export function buildDeveloperMenu(onClick: (menuItem: MenuItem) => void): MenuI
             {
                 id: MenuItemId.RELOAD,
                 label: i18next.t("menu.reload"),
-                accelerator: "CmdOrCtrl+R",
+                accelerator: getKeyboardShortcut(MenuItemId.RELOAD),
                 click: (menuItem: MenuItem): void => onClick(menuItem)
             },
             {
                 id: MenuItemId.TOGGLE_DEV_TOOLS,
                 label: i18next.t("menu.toggleDevTools"),
-                accelerator: "Alt+CmdOrCtrl+I",
+                accelerator: getKeyboardShortcut(MenuItemId.TOGGLE_DEV_TOOLS),
                 click: (menuItem: MenuItem): void => onClick(menuItem)
             }
         ]

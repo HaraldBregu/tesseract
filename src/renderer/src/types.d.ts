@@ -6,18 +6,93 @@ interface HistoryAction {
     description: string;
 }
 
+type EditorType = 'TEXT' | 'APPARATUS'
+
 type BulletStyleType = 'ORDER' | 'BULLET' | '';
+
+type BulletStyles = 'decimal' | 'upper-alpha' | 'lower-alpha' | 'upper-roman' | 'lower-roman' | 'disc' | 'circle' | 'square' | '';
+type ListStyle = 'decimal' | 'upper-alpha' | 'lower-alpha' | 'upper-roman' | 'lower-roman' | 'disc' | 'circle' | 'square' | '';
+
+
+type OrderedListType = '1' | 'a' | 'A' | 'i' | 'I';
+type BulletListType = 'disc' | 'circle' | 'square';
+
+type ListType = OrderedListType | BulletListType;
 
 type BulletStyle = {
     type: BulletStyleType;
-    style: 'decimal' | 'upper-alpha' | 'lower-alpha' | 'disc' | 'circle' | 'square' | '';
+    style: BulletStyles;
     previousType: BulletStyleType;
 }
 
+interface StandardPageDimension {
+    name: PaperSizeName;
+    width: number;
+    height: number;
+}
 interface Spacing {
-    before: number | null;
-    after: number | null;
+    before: number;
+    after: number;
     line: number;
+}
+
+type ToolbarState = {
+    headingLevel: number | undefined;
+    styleId: string | undefined;
+    fontFamily: string;
+    fontSize: string;
+    fontWeight: string;
+    fontStyle: string;
+    color: string;
+    highlightColor: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strikethrough: boolean;
+    superscript: boolean;
+    subscript: boolean;
+    alignment: Alignment;
+    listStyle: ListStyle;
+    spacing: Spacing;
+    link: string;
+}
+
+type MainTextStyle = {
+    headingLevel: number | undefined;
+    styleId: string | undefined;
+    fontFamily: string;
+    fontSize: string;
+    fontWeight: string;
+    fontStyle: string;
+    color: string;
+    highlightColor: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strikethrough: boolean;
+    superscript: boolean;
+    subscript: boolean;
+    alignment: Alignment;
+    listStyle: ListStyle;
+    spacing: Spacing;
+    link: string;
+}
+
+type ApparatusTextStyle = {
+    headingLevel: number;
+    fontFamily: string;
+    fontSize: string;
+    fontWeight: string;
+    fontStyle: string;
+    color: string;
+    highlightColor: string;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strikethrough: boolean;
+    superscript: boolean;
+    subscript: boolean;
+    link: string;
 }
 
 interface EmphasisState {
@@ -29,7 +104,7 @@ interface EmphasisState {
     italic: boolean;
     underline: boolean;
     strikethrough: boolean;
-    alignment: string;
+    alignment: Alignment;
     blockquote: boolean;
     isCodeBlock: boolean;
     bulletStyle: BulletStyle;
@@ -38,8 +113,8 @@ interface EmphasisState {
     superscript: boolean;
     subscript: boolean;
     spacing: Spacing;
-    showNonPrintingCharacters: boolean;
     link: string;
+    listStyle: ListStyle;
 }
 
 type TextFormatting = {
@@ -62,6 +137,11 @@ interface HistoryState {
     currentPosition: number;
 }
 
+type ItemOption = {
+    label: string;
+    value: any;
+}
+
 type BubbleToolbarItemOption = {
     label: string;
     value?: unknown;
@@ -82,64 +162,14 @@ interface UserInfo {
     uid: number
     username: string
 }
-
-type SetupOptionType = {
-    template_type: 'Community' | 'Personal',
-    paperSize_name: PaperSizeName,
-    paperSize_width: number,
-    paperSize_height: number,
-    paperSize_orientation: 'horizontal' | 'vertical',
-    header_show: boolean,
-    header_weight: number,
-    footer_show: boolean,
-    footer_weight: number,
-    margin_top: number,
-    margin_bottom: number,
-    margin_left: number,
-    margin_right: number,
-    innerMarginNote_show: boolean,
-    innerMarginNote_weight: number,
-    outerMarginNote_show: boolean,
-    outerMarginNote_weight: number,
-}
-
-type SetupDialogStateKeys = 'toc' | 'intro' | 'critical' | 'bibliography'
-
-type SetupDialogStateType = {
-    [key in SetupDialogStateKeys]: {
-        visible: boolean,
-        required: boolean,
-        layout: LayoutType,
-        apparatusDetails: TElement[]
-    }
-}
-
-interface FontStyle {
-    color: string,
-    fontSize: string,
-    fontStyle: string,
-    fontWeight: string,
-    type: string
-}
-
-interface PageSetupInterface {
-    pageSetup: SetupOptionType,
-    sort: SetupDialogStateKeys[],
-    layoutTemplate: setupDialogState,
-    styles?: FontStyle,
-    templateName?: string
-}
-
 interface PaginationSetupProps {
     settings: HeaderSettings;
     setSettings: (settings: HeaderSettings) => void;
 }
 
-interface Template {
-    template: PageSetupInterface
-}
-
 type CasingType = 'none-case' | 'all-caps' | 'small-caps' | 'title-case' | 'start-case'
+
+type SectionTypes = 'introduction' | 'toc' | 'maintext' | 'bibliography' | 'appendix';
 
 type TreeItem = {
     id: string;
@@ -153,3 +183,164 @@ type TreeItem = {
 }
 
 type TTextPosition = { from: number; to: number };
+
+type StatusBarOption = {
+    key: string;
+    label: string;
+    disabled?: boolean;
+    checked?: boolean;
+};
+
+type Siglum = {
+    id: string
+} & DocumentSiglum
+
+type SpacingList = {
+    label: string;
+    value: string;
+    onClick: () => void;
+}
+
+type BulletList = {
+    label: string;
+    value: ListStyle;
+    icon: React.MemoExoticComponent;
+    onClick: (value: ListStyle) => void;
+}
+
+/**
+ * Apparatus Note types
+ */
+type ApparatusNote = {
+    noteId: string; // Note id in main text
+    noteContent: string; // Note content in main text (string)
+    apparatusId: string; // Box of apparatus
+    entryNodes: JSONContent[]; // Content of the apparatus entry
+    visible: boolean; // If the note is visible in the apparatus
+}
+
+/**
+ * Apparatus Entry types
+ */
+type ApparatusEntryStyle = {
+    fontFamily: string;
+    fontSize: string;
+    fontWeight: string;
+    fontStyle: string;
+    color: string;
+}
+
+type ApparatusNoteEmphasis = {
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+}
+
+type ApparatusEntryContent = {
+    id: string
+    type: string
+    lemmaContent: string
+    lemmaStyle: LemmaStyle
+    fromToSeparatorContent: string
+    fromToSeparatorStyle: LemmaFromToSeparatorStyle
+    separatorContent: string
+    separatorStyle: LemmaSeparatorStyle
+    nodes: JSONContent[]
+}
+
+/**
+ * Apparatus Entry types
+ */
+type ApparatusEntryStyle = {
+    fontFamily: string;
+    fontWeight: string;
+    fontStyle: string;
+    fontSize: string;
+    color: string;
+}
+
+/**
+ * Lemma types
+ */
+
+type LemmaStyle = {
+    fontFamily: string;
+    fontSize: string;
+    textColor: string;
+    highlightColor: string;
+    bold: boolean;
+    italic: boolean;
+}
+
+type Lemma = {
+    content: string;
+    style: LemmaStyle;
+}
+
+type LemmaSeparatorStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline'>
+
+type LemmaSeparator = {
+    content: string;
+    style: LemmaSeparatorStyle;
+}
+
+type LemmaFromToSeparatorStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline'>
+
+type LemmaFromToSeparator = {
+    content: string;
+    style: LemmaFromToSeparatorStyle;
+}
+
+type ReadingSeparatorStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline' | 'highlightColor'>
+
+type ReadingSeparator = {
+    content: string;
+    style: ReadingSeparatorStyle;
+}
+
+type ReadingTypeAddStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline' | 'highlightColor'>
+
+type ReadingTypeAdd = {
+    content: string;
+    style: ReadingTypeAddStyle;
+}
+
+type ReadingTypeOmStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline' | 'highlightColor'>
+
+type ReadingTypeOm = {
+    content: string;
+    style: ReadingTypeOmStyle;
+}
+
+type ReadingTypeTrStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline' | 'highlightColor'>
+
+type ReadingTypeTr = {
+    content: string;
+    style: ReadingTypeTrStyle;
+}
+
+type ReadingTypeDelStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline' | 'highlightColor'>
+
+type ReadingTypeDel = {
+    content: string;
+    style: ReadingTypeDelStyle;
+}
+
+type ReadingTypeCustomStyle = Pick<LemmaStyle, 'bold' | 'italic' | 'underline' | 'highlightColor'>
+
+type ReadingType = ReadingTypeAdd | ReadingTypeOm | ReadingTypeTr | ReadingTypeDel;
+
+type SiglumStyle = {
+    fontFamily: string;
+    fontSize: string;
+    superscript: boolean;
+    subscript: boolean;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+}
+
+type SiglumNode = {
+    content: string;
+    style: SiglumStyle;
+}

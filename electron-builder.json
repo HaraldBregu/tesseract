@@ -2,39 +2,77 @@
   "productName": "Criterion",
   "appId": "com.finconsgroup.criterion",
   "copyright": "FinconGroup © 2025",
-  "files": ["out", "i18n", "buildResources"],
+  "afterAllArtifactBuild": "./scripts/electron-builder-hooks.cjs",
+  "files": [
+    "out/**",
+    "i18n/**",
+    "buildResources/**",
+    "!buildResources/printPreview/jre/**",
+    "!buildResources/printPreview/TinyTeX-lin/**",
+    "!buildResources/printPreview/TinyTeX-win/**",
+    "!buildResources/printPreview/TinyTeX-mac/**"
+  ],
   "icon": "./buildResources/appIcons/icon.ico",
   "extraResources": [
     "out/preload/preload.mjs",
-    {
-      "from": "./i18n",
-      "to": "i18n"
-    },
-    {
-      "from": "./LICENSE",
-      "to": "LICENSE"
-    },
+    { "from": "./i18n", "to": "i18n" },
+    { "from": "./LICENSE", "to": "LICENSE" },
     {
       "from": "./buildResources",
-      "to": "buildResources"
+      "to": "buildResources",
+      "filter": [
+        "icons/**",
+        "styles/**",
+        "templates/**",
+        "fileIcons/**",
+        "appIcons/**",
+        "entitlements.mac.plist",
+        "printPreview/pdfjs/**",
+        "printPreview/fonts/**",
+        "printPreview/preview/**",
+        "printPreview/printpreview-0.0.1-SNAPSHOT.jar",
+        "!printPreview/TinyTeX-lin/**",
+        "!printPreview/TinyTeX-win/**",
+        "!printPreview/TinyTeX-mac/**"
+      ]
     }
   ],
   "asar": true,
   "asarUnpack": [],
+  "nodeGypRebuild": false,
+  "buildDependenciesFromSource": false,
+  "npmRebuild": false,
   "mac": {
     "target": [
       {
-        "target": "dmg",
-        "arch": ["x64", "arm64"]
-      },
-      {
-        "target": "zip",
+        "target": "pkg",
         "arch": ["x64", "arm64"]
       }
     ],
     "icon": "./buildResources/appIcons/icon.icns",
     "extendInfo": {
-      "LSApplicationCategoryType": "public.app-category.utilities"
+      "LSApplicationCategoryType": "public.app-category.utilities",
+      "CFBundleDocumentTypes": [
+        {
+          "CFBundleTypeName": "Criterion File",
+          "CFBundleTypeIconFile": "fileIcon.icns",
+          "CFBundleTypeExtensions": ["critx"],
+          "CFBundleTypeRole": "Editor",
+          "LSHandlerRank": "Owner",
+          "LSItemContentTypes": ["com.finconsgroup.criterion.document"]
+        }
+      ],
+      "UTExportedTypeDeclarations": [
+        {
+          "UTTypeIdentifier": "com.finconsgroup.criterion.document",
+          "UTTypeDescription": "Criterion File",
+          "UTTypeConformsTo": ["public.data"],
+          "UTTypeTagSpecification": {
+            "public.filename-extension": ["critx"],
+            "public.mime-type": ["application/x-criterion-document"]
+          }
+        }
+      ]
     },
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "darkModeSupport": true,
@@ -42,54 +80,46 @@
     "gatekeeperAssess": false,
     "entitlements": "./buildResources/entitlements.mac.plist",
     "entitlementsInherit": "./buildResources/entitlements.mac.plist",
-    "identity": "FinconGroup",
+    "identity": null,
+    "type": "development",
     "fileAssociations": [
       {
         "ext": "critx",
-        "name": "Criterion Document",
+        "name": "Criterion File",
+        "description": "Criterion File",
+        "mimeType": "application/x-criterion-document",
         "icon": "./buildResources/fileIcons/mac/fileIcon.icns",
-        "role": "Editor"
+        "role": "Editor",
+        "rank": "Owner"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "./buildResources",
+        "to": "buildResources",
+        "filter": ["printPreview/jre/macos/**", "printPreview/TinyTeX-mac/**"]
       }
     ]
   },
-  "dmg": {
-    "icon": "./buildResources/appIcons/icon.icns",
-    "iconSize": 100,
-    "window": {
-      "width": 660,
-      "height": 400
-    },
-    "contents": [
-      {
-        "x": 180,
-        "y": 170,
-        "type": "file"
-      },
-      {
-        "x": 480,
-        "y": 170,
-        "type": "link",
-        "path": "/Applications"
-      }
-    ],
-    "title": "Install Criterion ${version}",
-    "internetEnabled": false,
-    "format": "UDZO",
-    "sign": true,
-    "artifactName": "${productName}-setup-${version}-${arch}.${ext}",
-    "writeUpdateInfo": false
+  "pkg": {
+    "license": "./LICENSE",
+    "allowAnywhere": true,
+    "allowCurrentUserHome": true,
+    "allowRootDirectory": true,
+    "isRelocatable": false,
+    "isVersionChecked": true,
+    "hasStrictIdentifier": true,
+    "overwriteAction": "upgrade",
+    "artifactName": "${productName}-installer-${version}-${arch}.${ext}"
   },
   "linux": {
-    "target": [
-      { "target": "AppImage" },
-      { "target": "deb" },
-      { "target": "rpm" }
-    ],
+    "target": [{ "target": "deb" }],
     "category": "Utility",
+    "artifactName": "${productName}-${version}.${ext}",
     "icon": "./buildResources/appIcons/linux_icons",
     "maintainer": "Fincons Group S.p.A.",
-    "synopsis": "Text editor for Critical editions",
-    "description": "Criterion is a professional text editor designed specifically for creating and editing critical editions of texts. It provides advanced features for scholarly text editing and academic publishing.",
+    "synopsis": "Criterion",
+    "description": "Criterion",
     "vendor": "Fincons Group",
     "executableName": "criterion",
     "desktop": {
@@ -106,17 +136,24 @@
     "fileAssociations": [
       {
         "ext": "critx",
-        "name": "Criterion Document",
-        "description": "Criterion Document File",
+        "name": "Criterion File",
+        "description": "Criterion File",
         "mimeType": "application/x-criterion-document",
         "icon": "./buildResources/fileIcons/linux/48x48.png"
       }
+    ],
+    "extraResources": [
+      {
+        "from": "./buildResources",
+        "to": "buildResources",
+        "filter": ["printPreview/jre/linux/**", "printPreview/TinyTeX-lin/**"]
+      }
     ]
   },
-  "appImage": {
-    "license": "./LICENSE"
-  },
   "deb": {
+    "packageCategory": "utils",
+    "maintainer": "Fincons Group S.p.A. <criterion@finconsgroup.com>",
+    "afterInstall": "./scripts/postinstall.sh",
     "depends": [
       "libgtk-3-0",
       "libnss3",
@@ -150,8 +187,15 @@
     "fileAssociations": [
       {
         "ext": "critx",
-        "name": "Criterion Document",
+        "name": "Criterion File",
         "icon": "./buildResources/fileIcons/win/fileIcon.ico"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "./buildResources",
+        "to": "buildResources",
+        "filter": ["printPreview/jre/win/**", "printPreview/TinyTeX-win/**"]
       }
     ]
   },

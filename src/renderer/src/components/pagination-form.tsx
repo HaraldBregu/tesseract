@@ -6,8 +6,7 @@ import Typography from "./Typography";
 import { Check } from "lucide-react";
 import AppCheckbox from "./app-checkbox";
 import { HeaderContentType, HeaderDisplayMode } from "@/utils/headerEnums";
-import { HeaderSettings } from "@/pages/editor/store/pagination/pagination.slice";
-import AppSeparator from "./app/app-separator";
+import { CommonSettings } from "@/pages/editor/store/pagination/pagination.slice";
 
 /**
  * Componente memoizzato per la selezione del punto di inizio
@@ -42,12 +41,12 @@ import AppSeparator from "./app/app-separator";
 /**
  * Componente memoizzato per le opzioni di visualizzazione
  */
-const ShowOptions = memo(({
+export const ShowOptions = memo(({
     settings,
     setSettings
 }: {
-    settings: HeaderSettings,
-    setSettings: (settings: HeaderSettings) => void
+    settings: CommonSettings,
+    setSettings: (settings: CommonSettings) => void
 }) => {
     const { t } = useTranslation();
 
@@ -195,6 +194,14 @@ const PositionColumn = memo(({
 });
 
 /**
+ * Props interface for PaginationSetup component
+ */
+interface PaginationSetupProps {
+    settings: HeaderSettings | FooterSettings;
+    setSettings: (settings: HeaderSettings | FooterSettings) => void;
+}
+
+/**
  * Componente principale per la configurazione della paginazione
  */
 const PaginationSetup = ({ settings, setSettings }: PaginationSetupProps) => {
@@ -227,15 +234,6 @@ const PaginationSetup = ({ settings, setSettings }: PaginationSetupProps) => {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1">
-                    <Typography component="h6" className="text-[1.125em] font-bold dark:text-grey-90">
-                        {t('headerFooter.show.label')}
-                    </Typography>
-                </div>
-                <ShowOptions settings={settings} setSettings={setSettings} />
-            </div>
-            <AppSeparator />
             <div className="flex flex-col gap-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
                     {positions.map((position) => (

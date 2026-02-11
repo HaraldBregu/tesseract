@@ -1,14 +1,12 @@
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { StandardPageDimensionsState } from "@/pages/editor/store/layout/layout.state"
 import { Dispatch, SetStateAction } from "react"
-
 interface IPaperSize {
     label: string
     setPaperSizeData: Dispatch<SetStateAction<string>>
     paperSizeData: string
     placeholder?: string
-    standardPageDimensions: StandardPageDimensionsState[]
+    standardPageDimensions: StandardPageDimension[]
     setOpenCustomWidthHeight: Dispatch<SetStateAction<boolean>>
     setPaperSizeDataCustom: Dispatch<SetStateAction<{
         name: string;
@@ -18,10 +16,18 @@ interface IPaperSize {
 
 }
 
-const PaperSize = ({ label, setPaperSizeData, paperSizeData, placeholder, standardPageDimensions, setOpenCustomWidthHeight, setPaperSizeDataCustom }: IPaperSize) => {
+const PaperSize = ({
+    label,
+    setPaperSizeData,
+    paperSizeData,
+    placeholder,
+    standardPageDimensions,
+    setOpenCustomWidthHeight,
+    setPaperSizeDataCustom,
+}: IPaperSize) => {
 
     return (
-        <div>
+        <div className="w-full">
             <Label className="font-600 text-[13px] leading-[15px] text-gray-900 dark:text-gray-100">{label}</Label>
             <Select onValueChange={(e) => {
                 setPaperSizeDataCustom({ name: '', height: 0, width: 0 });
@@ -30,7 +36,7 @@ const PaperSize = ({ label, setPaperSizeData, paperSizeData, placeholder, standa
             }
             }
                 defaultValue={paperSizeData}>
-                <SelectTrigger className='bg-grey-95 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600'>
+                <SelectTrigger className='w-full bg-grey-95 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600'>
                     <SelectValue placeholder={placeholder}> {paperSizeData}</SelectValue>
                 </SelectTrigger>
                 <SelectContent className="dark:bg-gray-800 dark:border-gray-600">

@@ -51,7 +51,7 @@ export const useEditorHistory = (editor: Editor | null) => {
     const TYPING_DEBOUNCE = 500;
 
     const generateUniqueId = useCallback(() => {
-        return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        return `${Date.now()}-${crypto.randomUUID().substring(0, 8)}`;
     }, []);
 
     const analyzeTransaction = useCallback((transaction: Transaction) => {

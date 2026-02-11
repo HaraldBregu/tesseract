@@ -1,8 +1,8 @@
 import { app, ipcMain } from 'electron';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 
-const ENABLE_LOG = false;
+const ENABLE_LOG = process.env.ENABLE_LOG !== 'false';
 
 enum LogLevel {
     DEBUG = 'DEBUG',
@@ -13,8 +13,8 @@ enum LogLevel {
 // MainLogger manages logging, using a singleton pattern.
 class MainLogger {
     private static instance: MainLogger;
-    private logFile: string;
-    private taskTimers: Map<string, number>;
+    private readonly logFile: string;
+    private readonly taskTimers: Map<string, number>;
 
     // Constructor: Initializes log file path, ensures logs directory exists, and sets up IPC listener for logging.
     private constructor() {
@@ -88,6 +88,12 @@ class MainLogger {
         this.log(LogLevel.ERROR, category, message, errorDetails);
     }
 
+    public assert(condition: boolean, category: string, message: string): void {
+        if (!condition) {
+            this.error(category, message);
+        }
+    }
+
     // info: Helper method to log informational messages.
     public info(category: string, message: string, details?: PerformanceDetails): void {
         this.log(LogLevel.INFO, category, message, details);
@@ -117,7 +123,7 @@ class MainLogger {
         fs.appendFileSync(this.logFile, JSON.stringify(entry) + '\n');
 
         if (process.env.NODE_ENV !== 'production' && ENABLE_LOG) {
-            console.log(JSON.stringify(entry, null, 2));
+            console.log(`${entry.process} ${entry.category} ${entry.message}`, entry.details ? entry.details : '');
         }
     }
 }

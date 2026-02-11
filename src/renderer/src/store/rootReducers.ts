@@ -3,22 +3,21 @@ import editorReducer, { EditorState } from '../pages/editor/store/editor/editor.
 import bookmarkReducer, { BookmarkState } from '../pages/editor/store/bookmark/bookmark.slice';
 import commentsReducer, { CommentState } from '../pages/editor/store/comment/comments.slice';
 import paginationReducer, { PaginationState } from '../pages/editor/store/pagination/pagination.slice';
-import layoutReducer, { type SetupPageState } from '../pages/editor/store/layout/layout.sclice';
-import preferencesReducer, { type PreferencesState } from '@/pages/preferences/store/preferences.slice';
-import stylesReducer from '@/pages/editor/store/editor-styles/editor-styles.slice';
-import { StylesState } from '@/pages/editor/store/editor-styles/editor-styles.state';
-import { MetadataState } from '@/pages/editor/store/metadata/metadata.slice';
-import metadataReducer from '@/pages/editor/store/metadata/metadata.slice';
-// Definisci l'interfaccia dello stato globale
+import chatReducer from '../pages/editor/store/chat/slice';
+import { ChatState } from '@/pages/editor/store/chat/state';
+import documentReducer from '../views/store/document/slice';
+import { DocumentState } from '../views/store/document/state';
+import authReducer from '../views/store/auth/slice';
+import { AuthState } from '@/views/store/auth/state';
+
 export interface RootState {
   editor: EditorState;
   bookmarkState: BookmarkState;
   commentState: CommentState;
   pagination: PaginationState;
-  layout: SetupPageState;
-  preferences: PreferencesState
-  styles: StylesState
-  metadata: MetadataState
+  chat: ChatState;
+  document: DocumentState;
+  auth: AuthState;
 }
 
 const rootReducer = combineReducers({
@@ -26,10 +25,9 @@ const rootReducer = combineReducers({
   bookmarkState: bookmarkReducer,
   commentState: commentsReducer,
   pagination: paginationReducer,
-  layout: layoutReducer,
-  preferences: preferencesReducer,
-  styles: stylesReducer,
-  metadata: metadataReducer,
+  chat: chatReducer,
+  document: documentReducer,
+  auth: authReducer,
 });
 
 export default rootReducer;

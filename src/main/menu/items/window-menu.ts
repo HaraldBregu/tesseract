@@ -1,6 +1,6 @@
 import { MenuItem, MenuItemConstructorOptions } from "electron";
 import i18next from "i18next";
-import { MenuItemId } from "../../shared/types";
+import { MenuItemId } from "../../types";
 
 export function buildWindowMenu(onClick: (menuItem: MenuItem) => void): MenuItemConstructorOptions {
     return {

@@ -1,16 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { v4 as uuidv4 } from 'uuid';
-
 export interface CommentState {
-    comments: AppComment[];
-    commentCategories: CommentCategory[];
-    selectedComment: AppComment | null;
+    comments: AppComment[] | null;
+    commentCategories: CommentCategory[] | null;
 }
 
 const initialState: CommentState = {
-    comments: [],
-    commentCategories: [],
-    selectedComment: null,
+    comments: null,
+    commentCategories: null,
 };
 
 const commentSlice = createSlice({
@@ -18,8 +14,9 @@ const commentSlice = createSlice({
     initialState,
     reducers: {
         addCommentCategory(state) {
+            const commentCategories = state.commentCategories || []
             const commentCategoryPattern = /^Category (\d+)$/;
-            const matchingCommentCategories = state.commentCategories.filter(categoryComments =>
+            const matchingCommentCategories = commentCategories.filter(categoryComments =>
                 commentCategoryPattern.test(categoryComments.name)
             );
 
@@ -38,54 +35,162 @@ const commentSlice = createSlice({
                 lastSortedNumber = number + 1;
             }
 
-            state.commentCategories.push({
-                id: uuidv4(),
+            commentCategories.push({
+                id: crypto.randomUUID(),
                 name: `Category ${lastSortedNumber}`
             })
+
+            state.commentCategories = commentCategories
         },
         updateCommentCategory(state, action: PayloadAction<CommentCategory>) {
+            if (!state.commentCategories)
+                return
             const category = state.commentCategories.find(category => category.id === action.payload.id)
             if (category) {
                 category.name = action.payload.name
             }
         },
         editComment(state, action: PayloadAction<AppComment>) {
-            const comment = state.comments.find(comment => comment.id === action.payload.id)
+            const comment = state.comments?.find(comment => comment.id === action.payload.id)
             if (comment) {
                 comment.author = action.payload.author
                 comment.description = action.payload.description
                 comment.updatedAt = new Date().toISOString()
             }
         },
-        editCommentContent(state, action: PayloadAction<{ commentId: string, content: string }>) {
-            const comment = state.comments.find(comment => comment.id === action.payload.commentId)
-            if (comment) {
-                comment.content = action.payload.content
-            }
+        editMainTextCommentsContent(state, action: PayloadAction<{ id: string, content: string }[]>) {
+            if (!state.comments)
+                return
+
+            const mainTextComments = state.comments
+                .filter(comment => comment.target === 'MAIN_TEXT')
+                .map(comment => ({
+                    ...comment,
+                    visible: action.payload.some(data => data.id === comment.id) || comment.visible,
+                    content: action.payload.find(data => data.id === comment.id)?.content || comment.content
+                }))
+
+            const apparatusComments = state.comments
+                .filter(comment => comment.target === 'APPARATUS_TEXT')
+
+            state.comments = [
+                ...mainTextComments,
+                ...apparatusComments,
+            ]
         },
+        hideMainTextCommentWithIds(state, action: PayloadAction<string[]>) {
+            if (!state.comments)
+                return
+
+            const mainTextComments = state.comments
+                .filter(comment => comment.target === 'MAIN_TEXT')
+                .map(comment => ({
+                    ...comment,
+                    visible: action.payload.includes(comment.id) ? false : comment.visible,
+                }))
+
+            const apparatusComments = state.comments
+                .filter(comment => comment.target === 'APPARATUS_TEXT')
+
+            state.comments = [
+                ...mainTextComments,
+                ...apparatusComments,
+            ]
+        },
+        hideCommentWithIds(state, action: PayloadAction<string[]>) {
+            if (!state.comments)
+                return
+
+            const newComments = state.comments
+                .map(comment => ({
+                    ...comment,
+                    visible: action.payload.includes(comment.id) ? false : comment.visible,
+                }))
+
+            state.comments = newComments
+        },
+        editApparatusTextCommentsContent(state, action: PayloadAction<{ id: string, content: string }[]>) {
+            if (!state.comments)
+                return
+
+            const mainTextComments = state.comments
+                .filter(comment => comment.target === 'MAIN_TEXT')
+
+            const apparatusComments = state.comments
+                .filter(comment => comment.target === 'APPARATUS_TEXT')
+                .map(comment => ({
+                    ...comment,
+                    visible: action.payload.some(data => data.id === comment.id) || comment.visible,
+                    content: action.payload.find(data => data.id === comment.id)?.content || comment.content
+                }))
+
+            state.comments = [
+                ...mainTextComments,
+                ...apparatusComments,
+            ]
+        },
+        hideApparatusTextCommentWithIds(state, action: PayloadAction<string[]>) {
+            if (!state.comments)
+                return
+
+            const mainTextComments = state.comments
+                .filter(comment => comment.target === 'MAIN_TEXT')
+
+            const apparatusComments = state.comments
+                .filter(comment => comment.target === 'APPARATUS_TEXT')
+                .map(comment => ({
+                    ...comment,
+                    visible: action.payload.includes(comment.id) ? false : comment.visible,
+                }))
+
+            state.comments = [
+                ...mainTextComments,
+                ...apparatusComments,
+            ]
+        },
+
         moveCommentToCategoryId(state, action: PayloadAction<{ comment: AppComment, categoryId?: string }>) {
-            const comment = state.comments.find(comment => comment.id === action.payload.comment.id)
+            const comment = state.comments?.find(comment => comment.id === action.payload.comment.id)
             if (comment) {
                 comment.categoryId = action.payload.categoryId
             }
         },
         deleteCommentCategory(state, action: PayloadAction<CommentCategory>) {
-            state.commentCategories = state.commentCategories.filter(category => category.id !== action.payload.id)
-            state.comments = state.comments.filter(comment => comment.categoryId !== action.payload.id)
+            if (!state.commentCategories)
+                return
+            state.commentCategories = state.commentCategories
+                .filter(category => category.id !== action.payload.id)
+
+            if (!state.comments)
+                return
+
+            state.comments = state.comments
+                .map(comment => {
+                    const newComment = {
+                        ...comment,
+                        visible: comment.categoryId === action.payload.id ? false : comment.visible,
+                    } as AppComment satisfies AppComment
+
+                    if (newComment.categoryId === action.payload.id
+                        || newComment.categoryId === null
+                        || newComment.categoryId === undefined)
+                        delete newComment.categoryId
+
+                    return newComment
+                })
         },
         moveCommentsFromCategory(state, action: PayloadAction<{ categoryId: string, newCategoryId: string | null }>) {
-            const comments = state.comments.filter(comment => comment.categoryId === action.payload.categoryId)
-            comments.forEach(comment => {
+            const comments = state.comments?.filter(comment => comment.categoryId === action.payload.categoryId)
+            comments?.forEach(comment => {
                 comment.categoryId = action.payload.newCategoryId ?? undefined
             })
         },
-        deleteComment(state, action: PayloadAction<AppComment>) {
-            const comment = state.comments.find(bookmark => bookmark.id === action.payload.id);
-            if (comment) {
-                comment.visible = false;
-            }
+        deleteCommentWithIds(state, action: PayloadAction<string[]>) {
+            if (!state.comments)
+                return
+            state.comments = state.comments.filter(comment => !action.payload.includes(comment.id))
         },
-        addComment(state, action: PayloadAction<{ id: string, content: string, target: 'MAIN_TEXT' | 'APPARATUS_TEXT', categoryId?: string, userInfo?: string }>) {
+        addComment(state, action: PayloadAction<{ id: string, content: string, target: CommentTarget, categoryId?: string, userInfo?: string }>) {
             const newComment: AppComment = {
                 id: action.payload.id,
                 content: action.payload.content,
@@ -99,73 +204,10 @@ const commentSlice = createSlice({
             if (action.payload.categoryId)
                 newComment.categoryId = action.payload.categoryId
 
-            state.selectedComment = newComment
+            if (!state.comments)
+                state.comments = []
+
             state.comments.push(newComment)
-        },
-        updateCommentList(state, action: PayloadAction<{ target: string, comments: any[] }>) {
-            const target = action.payload.target
-            const comments = action.payload.comments
-                .reduce((b: any[], a: any) => {
-                    let index = b.findIndex((arr: any) => arr.id == a.id);
-                    if (index > -1) b[index].content += "" + a.content;
-                    else b.push(a);
-                    return b;
-                }, [])
-
-            const commentsIds = comments.map(comment => comment.id)
-
-            // const newCommentsFromIds: any[] = []
-            // comments.forEach(comment => {
-            //     const currentTargetComment = state.comments
-            //         .filter(comment => comment.target === target)
-            //         .find(c => c.id === comment.id)
-
-            //     if (!currentTargetComment) {
-            //         newCommentsFromIds.push(comment)
-            //     }
-            // })
-
-            const currentTargetComments = state.comments
-                .filter(comment => comment.target === target)
-                .map(comment => ({
-                    ...comment,
-                    visible: commentsIds.includes(comment.id)
-                }))
-
-            const otherTargetComments = state.comments.filter(comment => comment.target !== target)
-
-            const newComments = [
-                ...currentTargetComments,
-                ...otherTargetComments,
-            ]
-
-            state.comments = newComments
-
-            // DO NOT DELETE THIS CODE
-
-            // const newCommentsFromIds = comments
-            //     .filter(comment => !newComments.filter(comment => comment.target === target).some(c => c.id === comment.id))
-            //     .map(data => ({
-            //         ...data,
-            //         id: data.id,
-            //         content: data.content ?? "",
-            //         target: target,
-            //         createdAt: new Date().toISOString(),
-            //         updatedAt: new Date().toISOString(),
-            //         author: "Unknown",
-            //         visible: true,
-            //     })).reduce((b, a) => {
-            //         let index = b.findIndex(arr => arr.id == a.id);
-            //         if (index > -1) b[index].content += " " + a.content;
-            //         else b.push(a);
-            //         return b;
-            //     }, [])
-
-
-            // state.comments = [
-            //     ...newComments,
-            //     ...newCommentsFromIds,
-            // ]
         },
         setComments(state, action: PayloadAction<AppComment[]>) {
             state.comments = action.payload ?? []
@@ -174,22 +216,6 @@ const commentSlice = createSlice({
         setCommentsCategories(state, action: PayloadAction<CommentCategory[]>) {
             state.commentCategories = action.payload ?? []
         },
-        selectComment(state, action: PayloadAction<AppComment | null>) {
-            state.selectedComment = action.payload
-        },
-        selectCommentWithId(state, action: PayloadAction<string | null>) {
-            state.selectedComment = null
-
-            if (!action.payload) return
-
-            state.selectedComment = state.comments.find(comment => comment.id === action.payload) ?? null
-        },
-        clearComments(state) {
-            state.comments = []
-        },
-        clearCommentCategories(state) {
-            state.commentCategories = []
-        },
     },
 });
 
@@ -197,19 +223,18 @@ export const {
     addCommentCategory,
     updateCommentCategory,
     editComment,
-    editCommentContent,
+    editMainTextCommentsContent,
+    editApparatusTextCommentsContent,
     moveCommentToCategoryId,
     deleteCommentCategory,
     moveCommentsFromCategory,
-    deleteComment,
+    hideMainTextCommentWithIds,
+    hideApparatusTextCommentWithIds,
+    deleteCommentWithIds,
     addComment,
-    updateCommentList,
     setComments,
     setCommentsCategories,
-    selectComment,
-    selectCommentWithId,
-    clearComments,
-    clearCommentCategories,
+    hideCommentWithIds,
 } = commentSlice.actions;
 
 export default commentSlice.reducer;

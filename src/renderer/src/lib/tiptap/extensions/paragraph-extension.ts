@@ -1,5 +1,15 @@
 import { Paragraph } from '@tiptap/extension-paragraph';
 
+declare module '@tiptap/core' {
+    interface Commands<ReturnType> {
+        extendedParagraph: {
+            setParagraph: (attributes: any) => ReturnType;
+            setParagraphStyle: (attributes: ElementAttribute) => ReturnType;
+        };
+
+    }
+}
+
 const defaultAttributes: ElementAttribute = {
     fontSize: '12pt',
     fontFamily: 'Times New Roman',
@@ -16,7 +26,6 @@ const defaultAttributes: ElementAttribute = {
 
 export const ExtendedParagraph = Paragraph
     .extend({
-
         onCreate() {
             this.editor.chain()
                 .focus()
@@ -140,63 +149,57 @@ export const ExtendedParagraph = Paragraph
                         return { style: `line-height: ${lineHeight}` };
                     },
                 },
+                color: {
+                    default: null,
+                    rendered: true,
+                    parseHTML: element => element.style.color || element.dataset.color || defaultAttributes.color,
+                    renderHTML: attributes => {
+                        const color = attributes.color || defaultAttributes.color;
+                        return { style: `color: ${color}` };
+                    },
+                },
             }
         },
-        
+
         renderHTML({ node, HTMLAttributes }) {
-            const fontFamily = defaultAttributes.fontFamily;
-            const fontSize = defaultAttributes.fontSize;
-            const fontWeight = defaultAttributes.fontWeight;
-            const fontStyle = defaultAttributes.fontStyle;
-            const textAlign = node.attrs.textAlign || defaultAttributes.textAlign;
-            const marginTop = `${node.attrs.marginTop}` || defaultAttributes.marginTop;
-            const marginBottom = `${node.attrs.marginBottom}` || defaultAttributes.marginBottom;
-            const marginLeft = `${(node.attrs.indent * 40)}px` || defaultAttributes.marginLeft;
-            const marginRight = node.attrs.marginRight || defaultAttributes.marginRight;
-            const lineHeight = node.attrs.lineHeight || defaultAttributes.lineHeight;
+            const attrs = { ...defaultAttributes, ...node.attrs, ...HTMLAttributes };
+
+            const fontFamily = attrs.fontFamily;
+            const fontSize = attrs.fontSize;
+            const fontWeight = attrs.fontWeight;
+            const fontStyle = attrs.fontStyle;
+            const textAlign = attrs.textAlign;
+            const marginTop = attrs.marginTop;
+            const marginBottom = attrs.marginBottom;
+            const marginLeft =  `${(node.attrs.indent * 40)}px`;
+            const marginRight = attrs.marginRight;
+            const lineHeight = attrs.lineHeight;
+            const color = attrs.color;
 
             const styleString = `
-            font-size: ${fontSize}; 
-            font-weight: ${fontWeight}; 
-            font-style: ${fontStyle}; 
-            font-family: ${fontFamily}; 
-            text-align: ${textAlign}; 
-            margin-top: ${marginTop}; 
-            margin-bottom: ${marginBottom};
-            margin-left: ${marginLeft};
-            margin-right: ${marginRight};
-            line-height: ${lineHeight};`;
+                font-size: ${fontSize};
+                font-weight: ${fontWeight};
+                font-style: ${fontStyle};
+                font-family: ${fontFamily};
+                text-align: ${textAlign};
+                margin-top: ${marginTop};
+                margin-bottom: ${marginBottom};
+                margin-left: ${marginLeft};
+                margin-right: ${marginRight};
+                line-height: ${lineHeight};
+                color: ${color};
+            `;
 
-            return [`p`, {
+            return ['p', {
                 ...HTMLAttributes,
                 style: styleString,
                 "data-font-size": fontSize,
                 "data-font-weight": fontWeight,
                 "data-font-style": fontStyle,
-                "data-font-family": fontFamily
+                "data-font-family": fontFamily,
+                "data-color": color,
             }, 0];
         },
-        // addKeyboardShortcuts() {
-        //     return {
-        //         'Enter': ({ editor }) => {
-        //             // Split block (create new paragraph) and clear stored marks
-        //             const result = editor
-        //                 .chain()
-        //                 .focus()
-        //                 .splitBlock()
-        //                 .run();
-
-        //             // Remove stored marks that would be applied to new content
-        //             if (result) {
-        //                 editor.view.dispatch(
-        //                     editor.state.tr.setStoredMarks([])
-        //                 );
-        //             }
-
-        //             return result;
-        //         },
-        //     }
-        // },
         addCommands() {
             return {
                 ...this.parent?.(),
@@ -206,6 +209,23 @@ export const ExtendedParagraph = Paragraph
                         // fontWeight: 'normal',
                         // fontStyle: 'normal',
                         // fontFamily: 'Times New Roman'
+                    }).run();
+                },
+                setParagraphStyle: (attributes: ElementAttribute) => ({ chain }) => {
+                    const styles = defaultAttributes
+
+                    return chain().setNode('paragraph', {
+                        fontSize: attributes.fontSize ?? styles.fontSize,
+                        fontWeight: attributes.fontWeight ?? styles.fontWeight,
+                        fontStyle: attributes.fontStyle ?? styles.fontStyle,
+                        color: attributes.color ?? styles.color,
+                        fontFamily: attributes.fontFamily ?? styles.fontFamily,
+                        textAlign: attributes.textAlign ?? styles.textAlign,
+                        marginTop: attributes.marginTop ?? styles.marginTop,
+                        marginBottom: attributes.marginBottom ?? styles.marginBottom,
+                        lineHeight: attributes.lineHeight ?? styles.lineHeight,
+                        marginLeft: attributes.marginLeft ?? styles.marginLeft,
+                        marginRight: attributes.marginRight ?? styles.marginRight,
                     }).run();
                 }
             }

@@ -1,6 +1,5 @@
 type FontSizes = number[];
 type Color = string[];
-type SectionTypes = 'introduction' | 'toc' | 'maintext' | 'bibliography' | 'appendix';
 
 interface SectionType {
     label: string;
@@ -63,6 +62,8 @@ const sectionDividerLabels: Record<SectionTypes, string> = {
 };
 
 const fontSizes: FontSizes = [
+    6,
+    7,
     8,
     9,
     10,
@@ -92,6 +93,27 @@ const fontSizes: FontSizes = [
     128,
 ];
 
+export const siglumFontSizes: FontSizes = [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    32,
+    36,
+    40,
+];
+
 const sectionTypes: SectionType[] = [
     { label: "editor.sectionTypes.title", value: 1 },
     { label: "editor.sectionTypes.heading", value: 2 },
@@ -100,10 +122,10 @@ const sectionTypes: SectionType[] = [
     { label: "editor.sectionTypes.heading4", value: 5 },
     { label: "editor.sectionTypes.heading5", value: 6 },
     { label: "editor.sectionTypes.body", value: 0 },
-    { label: "editor.sectionTypes.note", value: -1 },
+    // { label: "editor.sectionTypes.note", value: -1 },
 
     // { label: "editor.sectionTypes.heading6", value: 6 },
-    { label: "editor.sectionTypes.footerHeader", value: -2 },
+    // { label: "editor.sectionTypes.footerHeader", value: -2 },
 ];
 
 const fontFamilies: FontFamilyType[] = [
@@ -231,4 +253,159 @@ const converterFromSetupToEditor = (type: string): string => {
     }
 }
 
-export { converterFromEditorToSetup, converterFromSetupToEditor, sectionTypes, sectionDividerLabels, tabLeaderFormat, fontSizes, numberSeparator, numberFormat, levelFormat, fontFamilies, HighlightColors, textFormatColors, minorWords, MIN_FONT_SIZE, MAX_FONT_SIZE, DEFAULT_LINE_SPACING };
+export const converterApparatusTypeFromLayoutToData = (type: string): ApparatusType => {
+    switch (type) {
+        case "critical":
+            return "CRITICAL";
+        case "pageNotes":
+            return "PAGE_NOTES";
+        case "sectionNotes":
+            return "SECTION_NOTES";
+        case "innerMargin":
+            return "INNER_MARGIN";
+        case "outerMargin":
+            return "OUTER_MARGIN";
+        default:
+            return 'CRITICAL';
+    }
+}
+
+
+const STATUS_BAR_OPTIONS: StatusBarOption[] = [
+    {
+        key: "wordCount",
+        label: "customizeStatusBar.totalWords",
+    },
+    {
+        key: "characterCount",
+        label: "customizeStatusBar.totalCharacters",
+    },
+    {
+        key: "lastEditDate",
+        label: "customizeStatusBar.lastEditDate",
+    },
+    {
+        key: "author",
+        label: "customizeStatusBar.author",
+    },
+    {
+        key: "zoom",
+        label: "customizeStatusBar.zoom",
+        disabled: true,
+    },
+];
+
+const CITATION_STYLES: CitationStyle[] = [{
+    id: 'chicago-17-author-date',
+    label: 'citations.styleOptions.chicago17AuthDate.title',
+    subLabel: 'citations.styleOptions.chicago17AuthDate.description'
+}, {
+    id: 'chicago-17-note-bibliography',
+    label: 'citations.styleOptions.chicago17NoteBib.title',
+    subLabel: 'citations.styleOptions.chicago17NoteBib.description'
+}];
+
+const REFERENCE_SOURCE_TYPES: ReferenceSourceType[] = [{
+    value: 'book',
+    label: 'bibliography.references.sources.book'
+}, {
+    value: 'book_section',
+    label: 'bibliography.references.sources.book_section'
+}, {
+    value: 'journal',
+    label: 'bibliography.references.sources.journal'
+}];
+
+const REFERENCE_FIELD_VALIDATION_PATTERNS: Record<BIB_REFERENCE_FIELDS_EXCLUDED_SOURCE, VALIDATION> = {
+    title: { required: true, pattern: '^[\\s\\S]*$' }, // any text
+    editor: { required: false, pattern: '^[^,]+(?:,[^,]+)*$' }, // comma-separated list
+    author: { required: true, pattern: '^[^,]+(?:,[^,]+)*$' }, // comma-separated list
+    bookTitle: { required: false, pattern: '^[\\s\\S]*$' },
+    series: { required: false, pattern: '^[\\s\\S]*$' },
+    seriesNumber: { required: false, pattern: '^[\\s\\S]*$' },
+    volume: { required: false, pattern: '^[\\s\\S]*$' },
+    numberOfVolumes: { required: false, pattern: '^[\\s\\S]*$' },
+    issue: { required: false, pattern: '^[\\s\\S]*$' },
+    // doi: { required: false, pattern: '^10.\\d{4,9}\\/[-._;()/:A-Z0-9]+$/i' },
+    doi: { required: false, pattern: '^[\\s\\S]*$' },
+    place: { required: false, pattern: '^[\\s\\S]*$' },
+    publisher: { required: false, pattern: '^[\\s\\S]*$' },
+    // date: { required: false, pattern: '^(?:(?:\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01]))|(?:(?:0[1-9]|[12]\\d|3[01])-(?:0[1-9]|1[0-2])-\\d{4})|(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])-\\d{4})|(?:(?:\\d{4}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12]\\d|3[01]))|(?:(?:0[1-9]|[12]\\d|3[01])/(?:0[1-9]|1[0-2])/\\d{4})|(?:(?:0[1-9]|1[0-2])/(?:0[1-9]|[12]\\d|3[01])/\\d{4})))$' }, // old: strict date format validation
+    date: { required: false, pattern: String.raw`^[\s\S]*$` }, // any text - free format
+    pages: { required: false, pattern: '^(\\s*\\d+\\s*(?:-{1,2}\\s*\\d+\\s*)?)(?:\\s*,\\s*\\d+\\s*(?:-{1,2}\\s*\\d+\\s*)?)*$' }, // 123, 123-125, 123-125,128, 123--125
+    shortTitle: { required: false, pattern: '^[\\s\\S]*$' },
+    url: { required: false, pattern: '^(https?:\\/\\/).+$' },
+    // accessed: { required: false, pattern: '^(?:(?:\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01]))|(?:(?:0[1-9]|[12]\\d|3[01])-(?:0[1-9]|1[0-2])-\\d{4})|(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])-\\d{4})|(?:(?:\\d{4}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12]\\d|3[01]))|(?:(?:0[1-9]|[12]\\d|3[01])/(?:0[1-9]|1[0-2])/\\d{4})|(?:(?:0[1-9]|1[0-2])/(?:0[1-9]|[12]\\d|3[01])/\\d{4})))$' },
+    accessed: { required: false, pattern: '^[\\s\\S]*$' },
+};
+
+const SHOW_FIELDS_BASED_ON_SOURCE: Record<BIB_REFERENCE_TYPES, BIB_REFERENCE_FIELDS[]> = {
+    book: [
+        "title",
+        "author",
+        "series",
+        "seriesNumber",
+        "volume",
+        "numberOfVolumes",
+        "place",
+        "publisher",
+        "date",
+        "shortTitle",
+        "url",
+        "accessed",
+    ],
+    book_section: [
+        "title",
+        "editor",
+        "author",
+        "bookTitle",
+        "series",
+        "seriesNumber",
+        "volume",
+        "numberOfVolumes",
+        "place",
+        "publisher",
+        "date",
+        "pages",
+        "shortTitle",
+        "url",
+        "accessed",
+    ],
+    journal: [
+        "title",
+        "author",
+        "bookTitle", // assuming "bookTitle" here means "publication" or journal name
+        "volume",
+        "issue",
+        "pages",
+        "date",
+        "doi",
+        "shortTitle",
+        "url",
+        "accessed",
+    ],
+};
+
+export {
+    converterFromEditorToSetup,
+    converterFromSetupToEditor,
+    sectionTypes,
+    sectionDividerLabels,
+    tabLeaderFormat,
+    fontSizes,
+    numberSeparator,
+    numberFormat,
+    levelFormat,
+    fontFamilies,
+    HighlightColors,
+    textFormatColors,
+    minorWords,
+    MIN_FONT_SIZE,
+    MAX_FONT_SIZE,
+    DEFAULT_LINE_SPACING,
+    STATUS_BAR_OPTIONS,
+    CITATION_STYLES,
+    REFERENCE_SOURCE_TYPES,
+    REFERENCE_FIELD_VALIDATION_PATTERNS,
+    SHOW_FIELDS_BASED_ON_SOURCE
+};

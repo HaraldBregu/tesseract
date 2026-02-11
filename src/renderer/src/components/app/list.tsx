@@ -1,6 +1,6 @@
 type ListProps<T> = {
     data: T[];
-    renderItem: (item: T, index: number) => JSX.Element;
+    renderItem: (item: T, index: number) => React.ReactElement;
 }
 
 export default function List<T>({ data, renderItem }: ListProps<T>) {

@@ -32,6 +32,7 @@ interface TextFieldProps {
     dateValueFormat?: "dd-mm-yyyy" | "mm-dd-yyyy" | "yyyy-mm-dd"
     min?: number | string
     max?: number | string
+    step?: number
     decimals?: number
     unitMesure?: string
 }
@@ -60,6 +61,7 @@ export default function TextField({
     dateValueFormat = "yyyy-mm-dd",
     min,
     max,
+    step = 1,
     decimals = 0,
     unitMesure,
     ...props
@@ -104,10 +106,6 @@ export default function TextField({
                 dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
             }
 
-            else if (/^\d{2}-\d{2}-\d{4}$/.test(dateString)) {
-                const [month, day, year] = dateString.split('-');
-                dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            }
             else {
                 dateObj = new Date(dateString);
             }
@@ -203,9 +201,13 @@ export default function TextField({
         let inputValue = e.target.value;
         inputValue = inputValue.replace(/,/g, '.');
 
-        // More permissive regex that allows intermediate states while typing
-        const numericRegex = /^-?(\d*\.?\d*)?$/;
-        const isValidInput = inputValue === '' || numericRegex.test(inputValue);
+        const isValidInput = inputValue === '' || 
+            inputValue === '-' || 
+            inputValue === '.' || 
+            inputValue === '-.' ||
+            /^-?\d+$/.test(inputValue) ||           // integers: -123, 123
+            /^-?\d+\.\d*$/.test(inputValue) ||      // decimals starting with digits: 123., 123.45
+            /^-?\.\d+$/.test(inputValue);           // decimals starting with dot: .123
 
         if (isValidInput) {
             let validValue = inputValue;
@@ -249,7 +251,7 @@ export default function TextField({
         let currentValue = typeof value === 'string' ? parseFloat(value) : value as number;
         if (isNaN(currentValue)) currentValue = 0;
 
-        let newValue = parseFloat((currentValue + 1 * Math.pow(10, -decimals)).toFixed(decimals));
+        let newValue = parseFloat((currentValue + step * Math.pow(10, -decimals)).toFixed(decimals));
 
         // Controllo del limite massimo
         if (max !== undefined && newValue > parseFloat(max.toString())) {
@@ -275,7 +277,7 @@ export default function TextField({
         let currentValue = typeof value === 'string' ? parseFloat(value) : value as number;
         if (isNaN(currentValue)) currentValue = 0;
 
-        let newValue = parseFloat((currentValue - 1 * Math.pow(10, -decimals)).toFixed(decimals));
+        let newValue = parseFloat((currentValue - step * Math.pow(10, -decimals)).toFixed(decimals));
 
         // Controllo del limite minimo
         if (min !== undefined && newValue < parseFloat(min.toString())) {
@@ -385,6 +387,7 @@ export default function TextField({
                     readOnly={type === "date"}
                     min={type === "number" ? min : undefined}
                     max={type === "number" ? max : undefined}
+                    step={type === "number" ? step : undefined}
                     {...props}
                 />
                 {unitMesure && typeof value === 'number' && <span className={`absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none`}>

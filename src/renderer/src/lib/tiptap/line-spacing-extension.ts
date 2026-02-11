@@ -23,26 +23,45 @@ const LineSpacing = Extension.create({
         attributes: {
           lineHeight: {
             default: 1,
-            parseHTML: (element) => element.style.lineHeight?.replace(/['"]+/g, ''),
-            renderHTML: (attributes) => ({
-              style: attributes.lineHeight ? `line-height: ${attributes.lineHeight}` : '',
-            }),
+            parseHTML: (element) => {
+              const lineHeight = element.dataset.lineHeight;
+              return lineHeight ? Number.parseFloat(lineHeight) : 1;
+            },
+            renderHTML: (attributes) => {
+              const lineHeight = attributes.lineHeight || 1;
+              const marginTop = attributes.marginTop ?? 10;
+              const marginBottom = attributes.marginBottom ?? 10;
+
+              const styles: string[] = [
+                `margin-top: ${marginTop}px !important`,
+                `margin-bottom: ${marginBottom}px !important`
+              ];
+
+              if (lineHeight !== 1) {
+                styles.unshift(`line-height: ${lineHeight}`);
+              }
+
+              return {
+                style: styles.join('; '),
+                'data-line-height': lineHeight,
+                'data-margin-top': marginTop,
+                'data-margin-bottom': marginBottom,
+              };
+            },
           },
           marginTop: {
             default: 10,
-            parseHTML: (element) => element.style.marginTop?.replace(/['"]+/g, ''),
-            renderHTML: (attributes) => {
-              return {
-              style: Number.isSafeInteger(attributes.marginTop) ? `margin-top: ${attributes.marginTop}px` : '',
-            }
-          },
+            parseHTML: (element) => {
+              const margin = element.dataset.marginTop;
+              return margin ? Number.parseFloat(margin) : 10;
+            },
           },
           marginBottom: {
             default: 10,
-            parseHTML: (element) => element.style.marginBottom?.replace(/['"]+/g, ''),
-            renderHTML: (attributes) => ({
-              style: Number.isSafeInteger(attributes.marginBottom) ? `margin-bottom: ${attributes.marginBottom}px` : '',
-            }),
+            parseHTML: (element) => {
+              const margin = element.dataset.marginBottom;
+              return margin ? Number.parseFloat(margin) : 10;
+            },
           },
         },
       },
@@ -50,44 +69,45 @@ const LineSpacing = Extension.create({
   },
   addCommands() {
     return {
-      setLineSpacing:
-        (lineSpacing: Spacing) =>
-          ({ commands }) => {
-            return this.options.types.every((type: string) =>
-              commands.updateAttributes(type, { lineHeight: lineSpacing.line, marginTop: lineSpacing.before, marginBottom: lineSpacing.after }),
-            );
-          },
-      resetLineSpacing:
-        () =>
-          ({ commands }) => {
-            return this.options.types.every((type: string) =>
-              commands.resetAttributes(type, ['lineHeight', 'marginTop', 'marginBottom']),
-            );
-          },
+      setLineSpacing: (lineSpacing: Spacing) => ({ commands }) => {
+        return this.options.types.every((type: string) =>
+          commands.updateAttributes(type, {
+            lineHeight: `${lineSpacing.line}`,
+            marginTop: `${lineSpacing.before}px`,
+            marginBottom: `${lineSpacing.after}px`,
+          }),
+        );
+      },
+      resetLineSpacing: () => ({ commands }) => {
+        return this.options.types.every((type: string) =>
+          commands.resetAttributes(type, ['lineHeight', 'marginTop', 'marginBottom']),
+        );
+      },
     };
   },
   addKeyboardShortcuts() {
     return {
-      'Mod+1': () => this.editor.commands.setLineSpacing({
-        line: 1,
-        before: null,
-        after: null,
-      }),
-      'Mod+2': () => this.editor.commands.setLineSpacing({
-        line: 1.15,
-        before: null,
-        after: null,
-      }),
-      'Mod+3': () => this.editor.commands.setLineSpacing({
-        line: 1.5,
-        before: null,
-        after: null,
-      }),
-      'Mod+4': () => this.editor.commands.setLineSpacing({
-        line: 2,
-        before: null,
-        after: null,
-      }),
+      // REMOVED shortcut management of this extension because they should be dynamically managed
+      // 'Mod+1': () => this.editor.commands.setLineSpacing({
+      //   line: 1,
+      //   before: null,
+      //   after: null,
+      // }),
+      // 'Mod+2': () => this.editor.commands.setLineSpacing({
+      //   line: 1.15,
+      //   before: null,
+      //   after: null,
+      // }),
+      // 'Mod+3': () => this.editor.commands.setLineSpacing({
+      //   line: 1.5,
+      //   before: null,
+      //   after: null,
+      // }),
+      // 'Mod+4': () => this.editor.commands.setLineSpacing({
+      //   line: 2,
+      //   before: null,
+      //   after: null,
+      // }),
     };
   },
 });

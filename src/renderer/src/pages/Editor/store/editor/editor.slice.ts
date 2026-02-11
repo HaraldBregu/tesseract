@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import colors from "tailwindColors.json"
-import { v4 as uuidv4 } from 'uuid';
+// import colors from "tailwindColors.json"
 
 export const initialTocSettings: TocSettings = {
     show: false,
@@ -18,152 +17,139 @@ export const initialTocSettings: TocSettings = {
     level6Format: "1",
 }
 
-const initialEmphasisState: EmphasisState = {
-    link: '',
-    styleId: "13",
-    headingLevel: 0,
-    fontFamily: "Times New Roman",
-    fontSize: "12pt",
-    bold: false,
-    italic: false,
-    underline: false,
-    strikethrough: false,
-    alignment: 'left',
-    blockquote: false,
-    isCodeBlock: false,
-    bulletStyle: {
-        type: '',
-        style: '',
-        previousType: '',
-    },
-    highlight: "#ffffff",
-    textColor: colors.primary[20],
-    superscript: false,
-    subscript: false,
-    spacing: {
-        before: null,
-        after: null,
-        line: 1,
-    },
-    showNonPrintingCharacters: false
-}
+// const initialEmphasisState: EmphasisState = {
+//     link: '',
+//     styleId: '',
+//     headingLevel: 0,
+//     fontFamily: "Times New Roman",
+//     fontSize: "12pt",
+//     bold: false,
+//     italic: false,
+//     underline: false,
+//     strikethrough: false,
+//     alignment: 'left',
+//     blockquote: false,
+//     isCodeBlock: false,
+//     bulletStyle: {
+//         type: '',
+//         style: '',
+//         previousType: '',
+//     },
+//     highlight: "#ffffff",
+//     textColor: colors.primary[20],
+//     superscript: false,
+//     subscript: false,
+//     spacing: {
+//         before: null,
+//         after: null,
+//         line: 1,
+//     },
+// }
 
 export interface EditorState {
     data: string[];
-    toolbarEmphasisState: EmphasisState;
+    // toolbarEmphasisState: EmphasisState;
     editorMode: 'editing' | 'review';
     canEdit: boolean;
     canUndo: boolean;
     canRedo: boolean;
     headingEnabled: boolean;
+    toolbarEnabled: boolean;
     isBlockquote: boolean;
     alignment: string;
     mode: string;
     isNonPrintingCharacter: boolean;
-    canAddBookmark: boolean;
-    canAddComment: boolean;
-    tocSettings: TocSettings;
     history?: HistoryState;
     changeIndent: 'increase' | 'decrease' | null;
-    bookmarkActive: boolean;
-    commentActive: boolean;
-    tocStructure: TreeItem[];
+    tocStructureCriticalText: TreeItem[];
+    tocStructureIntroduction: TreeItem[];
+    tocStructureBibliography: TreeItem[];
     apparatuses: Apparatus[];
-    documentTemplate: any
+    documentTemplate: Template | null,
+    selectedNodeType: 'heading' | 'paragraph' | 'mixed' | null;
 }
 
 const initialState: EditorState = {
     data: [],
-    toolbarEmphasisState: initialEmphasisState,
+    // toolbarEmphasisState: initialEmphasisState,
     editorMode: 'editing',
     canEdit: true,
     headingEnabled: true,
+    toolbarEnabled: false,
     canUndo: false,
     canRedo: false,
     isBlockquote: false,
     alignment: 'left',
     mode: 'editing',
     isNonPrintingCharacter: false,
-    canAddBookmark: true,
-    canAddComment: true,
-    tocSettings: initialTocSettings,
     changeIndent: null,
-    bookmarkActive: false,
-    commentActive: false,
-    tocStructure: [],
-    apparatuses: [
-        {
-            id: uuidv4(),
-            title: "Apparatus 1",
-            type: "CRITICAL",
-            visible: true,
-        },
-    ],
-    documentTemplate: null
+    tocStructureCriticalText: [],
+    tocStructureIntroduction: [],
+    tocStructureBibliography: [],
+    apparatuses: [],
+    documentTemplate: null,
+    selectedNodeType: null
 };
 
 const editorSlice = createSlice({
     name: 'editor',
     initialState,
     reducers: {
-        setEmphasisState(state, action: PayloadAction<EmphasisState>) {
-            const emphasisState = action.payload;
-            state.toolbarEmphasisState = {
-                ...emphasisState,
-            };
-        },
-        setFontFamily(state, action
-            : PayloadAction<{ fontFamily: string }>) {
-            state.toolbarEmphasisState.fontFamily = action.payload.fontFamily;
-        },
+        // setEmphasisState(state, action: PayloadAction<EmphasisState>) {
+        //     const emphasisState = action.payload;
+        //     if (JSON.stringify(state.toolbarEmphasisState) === JSON.stringify(emphasisState)) return;
+        //     state.toolbarEmphasisState = {
+        //         ...emphasisState,
+        //     };
+        // },
+        // setFontFamily(state, action
+        //     : PayloadAction<{ fontFamily: string }>) {
+        //     state.toolbarEmphasisState.fontFamily = action.payload.fontFamily;
+        // },
         setCanUndo(state, action: PayloadAction<boolean>) {
+            if (action.payload === state.canUndo) return;
             state.canUndo = action.payload;
         },
         setCanRedo(state, action: PayloadAction<boolean>) {
+            if (action.payload === state.canRedo) return;
             state.canRedo = action.payload;
         },
         setEditorMode(state, action: PayloadAction<'editing' | 'review'>) {
             state.editorMode = action.payload;
             state.canEdit = action.payload === 'editing';
         },
-        updateTocSettings(state, action: PayloadAction<TocSettings>) {
-            state.tocSettings = { ...state.tocSettings, ...action.payload };
-        },
-        clearTocSettings(state) {
-            state.tocSettings = initialTocSettings;
-        },
-        toggleTocVisibility(state) {
-            state.tocSettings.show = !state.tocSettings.show;
-        },
         setHistory(state, action: PayloadAction<HistoryState>) {
             state.history = action.payload;
-        },
-        setCanAddBookmark(state, action: PayloadAction<boolean>) {
-            state.canAddBookmark = action.payload;
-        },
-        setCanAddComment(state, action: PayloadAction<boolean>) {
-            state.canAddComment = action.payload;
         },
         changeIndentention(state, action: PayloadAction<'increase' | 'decrease' | null>) {
             state.changeIndent = action.payload;
         },
-        setBookmark(state, action: PayloadAction<boolean>) {
-            state.bookmarkActive = action.payload;
+        setTocStructureCriticalText(state, action: PayloadAction<TreeItem[]>) {
+            state.tocStructureCriticalText = action.payload;
         },
-        setComment(state, action: PayloadAction<boolean>) {
-            state.commentActive = action.payload;
+        setTocStructureIntroduction(state, action: PayloadAction<TreeItem[]>) {
+            state.tocStructureIntroduction = action.payload;
         },
-        toggleBookmark(state) {
-            state.bookmarkActive = !state.bookmarkActive;
-        },
-        setTocStructure(state, action: PayloadAction<TreeItem[]>) {
-            state.tocStructure = action.payload;
+        setTocStructureBibliography(state, action: PayloadAction<TreeItem[]>) {
+            state.tocStructureBibliography = action.payload;
         },
         setHeadingEnabled(state, action: PayloadAction<boolean>) {
             state.headingEnabled = action.payload;
         },
-        updateApparatuses(state, action: PayloadAction<Apparatus[]>) {
-            state.apparatuses = action.payload;
+        setToolbarEnabled(state, action: PayloadAction<boolean>) {
+            state.toolbarEnabled = action.payload;
+        },
+        expandApparatus(state, action: PayloadAction<{ id: string }>) {
+            const apparatus = state.apparatuses.find(apparatus => apparatus.id === action.payload.id);
+            if (apparatus) {
+                apparatus.expanded = true;
+            }
+        },
+        toggleExpandedApparatus(state, action: PayloadAction<{ id: string }>) {
+            const apparatus = state.apparatuses.find(apparatus => apparatus.id === action.payload.id);
+            if (apparatus) {
+                apparatus.expanded = !apparatus.expanded;
+            }
         },
         updateVisibleApparatuses(state, action: PayloadAction<Apparatus[]>) {
             const invisibleApparatuses = state.apparatuses.filter(apparatus => !apparatus.visible);
@@ -171,14 +157,6 @@ const editorSlice = createSlice({
                 ...invisibleApparatuses,
                 ...action.payload
             ]
-        },
-        addApparatus(state, action: PayloadAction<ApparatusType>) {
-            state.apparatuses.push({
-                id: uuidv4(),
-                title: "Apparatus " + (state.apparatuses.length + 1),
-                type: action.payload,
-                visible: true,
-            });
         },
         toggleVisibilityApparatus(state, action: PayloadAction<{ id: string, visible: boolean }>) {
             const apparatuses = state.apparatuses
@@ -188,41 +166,25 @@ const editorSlice = createSlice({
             }
             state.apparatuses = apparatuses
         },
-        createApparatusesFromDocument(state, action: PayloadAction<DocumentApparatus[]>) {
-            const apparatusesData = action.payload
-            if (apparatusesData.length === 0) return
-            state.apparatuses = apparatusesData.map((apparatus) => ({
-                id: uuidv4(),
-                title: apparatus.title,
-                type: apparatus.type,
-                visible: apparatus.visible ?? true,
-            }));
+        loadApparatuses(state, action: PayloadAction<Apparatus[]>) {
+            state.apparatuses = action.payload;
         },
-        createApparatusesFromLayout(state, action: PayloadAction<any[]>) {
-            const apparatusesData = action.payload
-            if (apparatusesData === undefined) return
-            state.apparatuses = apparatusesData.map((apparatus) => ({
+        loadDocumentApparatuses(state, action: PayloadAction<DocumentApparatus[]>) {
+            state.apparatuses = action.payload.map((apparatus) => ({
                 id: apparatus.id,
                 title: apparatus.title,
                 type: apparatus.type,
                 visible: apparatus.visible ?? true,
+                expanded: apparatus.expanded ?? true,
+                notesVisible: apparatus.notesVisible ?? true,
+                commentsVisible: apparatus.commentsVisible ?? true,
             }));
         },
-        addApparatusAfterIndex(state, action: PayloadAction<{ type: ApparatusType, index: number }>) {
-            state.apparatuses.splice(action.payload.index + 1, 0, {
-                id: uuidv4(),
-                title: "Apparatus " + (state.apparatuses.length + 1),
-                type: action.payload.type,
-                visible: true,
-            });
+        addApparatusAtIndex(state, action: PayloadAction<{ apparatus: Apparatus, index: number }>) {
+            state.apparatuses.splice(action.payload.index, 0, action.payload.apparatus);
         },
-        addApparatusAtTop(state, action: PayloadAction<ApparatusType>) {
-            state.apparatuses.unshift({
-                id: uuidv4(),
-                title: "Apparatus " + (state.apparatuses.length + 1),
-                type: action.payload,
-                visible: true,
-            });
+        addApparatusAtTop(state, action: PayloadAction<DocumentApparatus>) {
+            state.apparatuses.unshift(action.payload);
         },
         removeApparatus(state, action: PayloadAction<Apparatus>) {
             state.apparatuses = state.apparatuses.filter(apparatus => apparatus.id !== action.payload.id);
@@ -239,43 +201,63 @@ const editorSlice = createSlice({
                 apparatus.title = action.payload.title;
             }
         },
+        setApparatusNoteVisibility(state, action: PayloadAction<{ id: string, notesVisible: boolean }>) {
+            const apparatus = state.apparatuses.find(apparatus => apparatus.id === action.payload.id);
+            if (apparatus) {
+                apparatus.notesVisible = action.payload.notesVisible;
+            }
+        },
+        setApparatusCommentVisibility(state, action: PayloadAction<{ id: string, commentsVisible: boolean }>) {
+            const apparatus = state.apparatuses.find(apparatus => apparatus.id === action.payload.id);
+            if (apparatus) {
+                apparatus.commentsVisible = action.payload.commentsVisible;
+            }
+        },
         setDocumentTemplate(state, action: PayloadAction<any>) {
             state.documentTemplate = action.payload;
+        },
+        setSelectedNodeType(state, action: PayloadAction<'heading' | 'paragraph' | 'mixed' | null>) {
+            state.selectedNodeType = action.payload;
+        },
+        toggleAllApparatuses(state) {
+            const allExpanded = state.apparatuses.every(apparatus => apparatus.expanded);
+            state.apparatuses.forEach(apparatus => {
+                apparatus.expanded = allExpanded ? false : true;
+            });
         },
     },
 
 });
 
 export const {
-    setEmphasisState,
+    // setEmphasisState,
     setCanUndo,
     setCanRedo,
-    updateTocSettings,
-    toggleTocVisibility,
     setEditorMode,
     setHistory,
-    setCanAddBookmark,
-    clearTocSettings,
     changeIndentention,
-    setBookmark,
-    toggleBookmark,
-    setTocStructure,
+    setTocStructureCriticalText,
+    setTocStructureIntroduction,
+    setTocStructureBibliography,
     setHeadingEnabled,
-    setCanAddComment,
-    setComment,
-    updateApparatuses,
+    setToolbarEnabled,
+    expandApparatus,
+    toggleExpandedApparatus,
     updateVisibleApparatuses,
-    addApparatus,
     toggleVisibilityApparatus,
-    createApparatusesFromDocument,
-    createApparatusesFromLayout,
-    addApparatusAfterIndex,
+    loadApparatuses,
+    loadDocumentApparatuses,
+    addApparatusAtIndex,
     addApparatusAtTop,
     removeApparatus,
     changeApparatusType,
     changeApparatusTitle,
+    setApparatusNoteVisibility,
+    setApparatusCommentVisibility,
     setDocumentTemplate,
-    setFontFamily
+    // setFontFamily,
+    setSelectedNodeType,
+    toggleAllApparatuses
 } = editorSlice.actions;
 
 export default editorSlice.reducer;

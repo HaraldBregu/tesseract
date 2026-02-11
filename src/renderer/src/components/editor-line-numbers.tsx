@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const LineNumbers = ({ editor }) => {
-    const [lineNumbers, setLineNumbers] = useState<JSX.Element[]>([]);
+    const [lineNumbers, setLineNumbers] = useState<React.ReactElement[]>([]);
     const [options, setOptions] = useState({
         show: false,
         frequency: 5,
@@ -87,7 +87,7 @@ const LineNumbers = ({ editor }) => {
             const blockElements = editorElement.querySelectorAll('p, h1, h2, h3, h4, h5, h6, pre, blockquote, ul, ol');
 
             // Genera i numeri di riga basati sulle righe fisiche effettive
-            const numbers: JSX.Element[] = [];
+            const numbers: React.ReactNode[] = [];
 
             let physicalLineIndex = 0;
 
@@ -157,7 +157,7 @@ const LineNumbers = ({ editor }) => {
                 );
             }
 
-            setLineNumbers(numbers);
+            setLineNumbers(numbers as React.ReactElement[]);
         };
 
         // Configurare lo scroll con IntersectionObserver

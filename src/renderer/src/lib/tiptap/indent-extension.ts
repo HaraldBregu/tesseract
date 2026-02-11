@@ -28,7 +28,7 @@ const IndentExtension = Extension.create<IndentOptions>({
   addGlobalAttributes() {
     return [
       {
-        types: ['paragraph', 'heading', 'bulletedList', 'orderList'],
+        types: ['paragraph', 'heading'],
         attributes: {
           indent: {
             default: 0,
@@ -78,8 +78,9 @@ const IndentExtension = Extension.create<IndentOptions>({
     return {
       'Shift-Tab': ({ editor }) => {
         if (editor.isActive('codeBlock')) return false;
-        if (editor.isActive('bulletedList') || editor.isActive('orderList')) {
-          return editor.chain().focus().liftListItem('listItem').run();
+        // Lists are handled by ListItem extension
+        if (editor.isActive('bulletList') || editor.isActive('orderedList')) {
+          return false;
         }
 
         try {
@@ -150,110 +151,28 @@ const IndentExtension = Extension.create<IndentOptions>({
         return false;
       },
       'Backspace': ({ editor }) => {
-        if (editor.isActive('bulletedList') || editor.isActive('orderList')) {
-          const { selection } = editor.state;
-
-          // Se c'è una selezione non vuota (selezione multipla), applica liftListItem a tutti gli elementi
-          if (!selection.empty) {
-            return editor.chain().focus().liftListItem('listItem').run();
-          }
-
-          // Per la selezione singola, controlla se siamo all'inizio dell'elemento
-          const { $from } = selection;
-          if ($from.parentOffset === 0) {
-            // Prova a diminuire il livello di rientro
-            if (editor.can().liftListItem('listItem')) {
-              return editor.chain().focus().liftListItem('listItem').run();
-            }
-            // Se non possiamo diminuire il rientro, esci dalla lista
-            return editor.chain().focus().liftListItem('listItem').run();
-          }
+        // Lists are handled by ListItem extension
+        if (editor.isActive('bulletList') || editor.isActive('orderedList')) {
+          return false;
         }
         return false;
       },
     };
   },
-  
+
   addProseMirrorPlugins() {
     return [
       new Plugin({
         key: new PluginKey('handleTabIndent'),
         props: {
           handleKeyDown: (_, event) => {
+            // Lists are handled by ListItem extension - skip them here
+            if (this.editor.isActive('bulletList') || this.editor.isActive('orderedList')) {
+              return false;
+            }
+
+            // Handle Tab for non-list content
             if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey) {
-              if (this.editor.isActive('bulletedList') || this.editor.isActive('orderList')) {
-                if (!event.shiftKey) {
-                  event.preventDefault();
-                  const { state } = this.editor;
-                  const { selection } = state;
-                  const { $from } = selection;
-
-                  const isFirstListItem = () => {
-                    const resolvedPos = state.doc.resolve($from.pos);
-                    let depth = resolvedPos.depth;
-
-                    while (depth > 0) {
-                      const node = resolvedPos.node(depth);
-                      if (node.type.name === 'listItem') {
-                        const index = resolvedPos.index(depth);
-                        return index === 0;
-                      }
-                      depth--;
-                    }
-                    return false;
-                  };
-
-                  if (isFirstListItem()) {
-                    const listType = this.editor.isActive('bulletedList') ? 'bulletedList' : 'orderList';
-                    const listIndent = this.editor.getAttributes(listType).indent || 0;
-                    const maxIndent = Math.min(this.options.maxIndent, (this.editor.view.dom.offsetWidth / this.options.indentStep) - 2);
-                    try {
-                      const newIndent = Math.min(listIndent + 1, maxIndent);
-                      const tr = this.editor.state.tr;
-                      const selection = this.editor.state.selection;
-                      let found = false;
-
-                      this.editor.state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
-                        if ((node.type.name === 'bulletedList' || node.type.name === 'orderList') && !found) {
-                          found = true;
-                          tr.setNodeMarkup(pos, null, {
-                            ...node.attrs,
-                            indent: newIndent
-                          });
-                          return false;
-                        }
-                        return true;
-                      });
-
-                      if (found) {
-                        this.editor.view.dispatch(tr);
-                        return true;
-                      }
-
-                      return this.editor.chain()
-                        .focus()
-                        .updateAttributes(listType, { indent: newIndent })
-                        .run();
-                    } catch (e) {
-                      console.error('Error indenting list:', e);
-                      // Fallback: usa il comportamento standard
-                      return this.editor.chain().focus()
-                        .splitListItem('listItem')
-                        .sinkListItem('listItem')
-                        .run();
-                    }
-                  } else {
-                    // Comportamento normale per elementi successivi
-                    return this.editor.chain()
-                      .focus()
-                      .splitListItem('listItem')
-                      .sinkListItem('listItem')
-                      .run();
-                  }
-                }
-                // Shift+Tab gestito in addKeyboardShortcuts
-                return false;
-              }
 
               // Gestione per paragrafi normali
               if (this.editor.isActive('codeBlock'))
@@ -362,7 +281,7 @@ const IndentExtension = Extension.create<IndentOptions>({
                   doc.nodesBetween(initialFrom, initialTo, (node, pos) => {
                     if (node.type.name === 'paragraph' || node.type.name === 'heading') {
                       const content = node.content.toJSON() as any[];
-                      
+
                       if (content && Array.isArray(content)) {
                         let currentLineStartInParagraph = pos + 1;
 

@@ -1,17 +1,35 @@
 import i18next from "i18next";
 import { MenuItem, MenuItemConstructorOptions } from "electron";
-import { MenuItemId } from "../../shared/types";
+import { MenuItemId } from "../../types";
 import { getMenuViewMode } from "../../shared/constants";
+import { getKeyboardShortcut } from '../../shared/keyboard-shortcuts-utils';
+import { getReferencesMenuCurrentContext } from "./references-menu";
 
-let enableTocSettingsMenu = true;
-export function setEnableTocSettingsMenu(disable: boolean): void {
-  enableTocSettingsMenu = disable;
+let isTextFormattingEnabled = true;
+let enableTocSettingsMenu = false;
+
+export function setTextFormattingMenuEnabled(value: boolean): void {
+  isTextFormattingEnabled = value;
+}
+
+export function setEnableTocSettingsMenu(enable: boolean): void {
+  enableTocSettingsMenu = enable
+}
+
+export function getEnableTocSettingsMenu(): boolean {
+  return enableTocSettingsMenu;
+}
+
+export function getTextFormattingMenuEnabled(): boolean {
+  return isTextFormattingEnabled;
 }
 
 export function buildFormatMenu(
   onClick: (menuItem: MenuItem) => void
 ): MenuItemConstructorOptions {
   const viewMode = getMenuViewMode();
+  const editorContext = getReferencesMenuCurrentContext();
+  const isMainTextEditor = editorContext === "maintext_editor";
 
   const menu: MenuItemConstructorOptions = {};
   menu.label = i18next.t("menu.format.label");
@@ -23,43 +41,49 @@ export function buildFormatMenu(
         {
           id: MenuItemId.FONT_BOLD,
           label: i18next.t("menu.format.font.bold"),
-          accelerator: "CmdOrCtrl+B",
+          accelerator: getKeyboardShortcut(MenuItemId.FONT_BOLD),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()
         },
         {
           id: MenuItemId.FONT_ITALIC,
           label: i18next.t("menu.format.font.italic"),
-          accelerator: "CmdOrCtrl+I",
+          accelerator: getKeyboardShortcut(MenuItemId.FONT_ITALIC),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()
         },
         {
           id: MenuItemId.FONT_UNDERLINE,
           label: i18next.t("menu.format.font.underline"),
-          accelerator: "CmdOrCtrl+U",
+          accelerator: getKeyboardShortcut(MenuItemId.FONT_UNDERLINE),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()
         },
         {
           id: MenuItemId.FONT_STRIKETHROUGH,
           label: i18next.t("menu.format.font.strikethrough"),
-          accelerator: "CmdOrCtrl+T",
+          accelerator: getKeyboardShortcut(MenuItemId.FONT_STRIKETHROUGH),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()
         },
         {
           id: MenuItemId.FONT_SUPERSCRIPT,
           label: i18next.t("menu.format.font.superscript"),
-          accelerator: "CmdOrCtrl+.",
+          accelerator: getKeyboardShortcut(MenuItemId.FONT_SUPERSCRIPT),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()
         },
         {
           id: MenuItemId.FONT_SUBSCRIPT,
           label: i18next.t("menu.format.font.subscript"),
-          accelerator: "CmdOrCtrl+,",
+          accelerator: getKeyboardShortcut(MenuItemId.FONT_SUBSCRIPT),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()
         },
         {
           id: MenuItemId.FONT_NPC,
           label: i18next.t("menu.format.font.npc"),
-          accelerator: "Fn+F7",
+          accelerator: getKeyboardShortcut(MenuItemId.FONT_NPC),
           click: (menuItem: MenuItem): void => onClick(menuItem),
         },
         { type: "separator" },
@@ -69,17 +93,23 @@ export function buildFormatMenu(
             {
               id: MenuItemId.FONT_CHARACTER_SPACING_NORMAL,
               label: i18next.t("menu.format.font.characterSpacing.normal"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CHARACTER_SPACING_NORMAL),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_CHARACTER_SPACING_TIGHTEN,
               label: i18next.t("menu.format.font.characterSpacing.tighten"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CHARACTER_SPACING_TIGHTEN),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_CHARACTER_SPACING_LOOSEN,
               label: i18next.t("menu.format.font.characterSpacing.loosen"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CHARACTER_SPACING_LOOSEN),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
           ],
         },
@@ -89,47 +119,63 @@ export function buildFormatMenu(
             {
               id: MenuItemId.FONT_LIGATURE_DEFAULT,
               label: i18next.t("menu.format.font.ligature.default"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_LIGATURE_DEFAULT),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_LIGATURE_NONE,
               label: i18next.t("menu.format.font.ligature.none"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_LIGATURE_NONE),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_LIGATURE_ALL,
               label: i18next.t("menu.format.font.ligature.all"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_LIGATURE_ALL),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
           ],
         },
         {
-          label: i18next.t("menu.format.font.captalization.label"),
+          label: i18next.t("menu.format.font.capitalization.label"),
           submenu: [
             {
               id: MenuItemId.FONT_CAPTALIZATION_ALL_CAPS,
-              label: i18next.t("menu.format.font.captalization.allCaps"),
+              label: i18next.t("menu.format.font.capitalization.allCaps"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CAPTALIZATION_ALL_CAPS),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_CAPTALIZATION_SMALL_CAPS,
-              label: i18next.t("menu.format.font.captalization.smallCaps"),
+              label: i18next.t("menu.format.font.capitalization.smallCaps"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CAPTALIZATION_SMALL_CAPS),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_CAPTALIZATION_TITLE_CASE,
-              label: i18next.t("menu.format.font.captalization.titleCase"),
+              label: i18next.t("menu.format.font.capitalization.titleCase"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CAPTALIZATION_TITLE_CASE),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_CAPTALIZATION_START_CASE,
-              label: i18next.t("menu.format.font.captalization.startCase"),
+              label: i18next.t("menu.format.font.capitalization.startCase"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CAPTALIZATION_START_CASE),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
             {
               id: MenuItemId.FONT_CAPTALIZATION_NONE,
-              label: i18next.t("menu.format.font.captalization.none"),
+              label: i18next.t("menu.format.font.capitalization.none"),
+              accelerator: getKeyboardShortcut(MenuItemId.FONT_CAPTALIZATION_NONE),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled(),
             },
           ],
         },
@@ -137,79 +183,89 @@ export function buildFormatMenu(
     },
     {
       label: i18next.t("menu.format.text.label"),
-      enabled: viewMode === "critix_editor",
+      enabled: viewMode === "critix_editor" && isMainTextEditor,
       submenu: [
         {
           id: MenuItemId.TEXT_ALIGN_LEFT,
           label: i18next.t("menu.format.text.alignLeft"),
-          accelerator: "CmdOrCtrl+shift+L",
+          accelerator: getKeyboardShortcut(MenuItemId.TEXT_ALIGN_LEFT),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled() && isMainTextEditor,
         },
         {
           id: MenuItemId.TEXT_ALIGN_CENTER,
           label: i18next.t("menu.format.text.alignCenter"),
-          accelerator: "CmdOrCtrl+shift+E",
+          accelerator: getKeyboardShortcut(MenuItemId.TEXT_ALIGN_CENTER),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
+          registerAccelerator: true,
         },
         {
           id: MenuItemId.TEXT_ALIGN_RIGHT,
           label: i18next.t("menu.format.text.alignRight"),
-          accelerator: "CmdOrCtrl+shift+R",
+          accelerator: getKeyboardShortcut(MenuItemId.TEXT_ALIGN_RIGHT),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.TEXT_ALIGN_JUSTIFY,
           label: i18next.t("menu.format.text.justify"),
-          accelerator: "CmdOrCtrl+shift+J",
+          accelerator: getKeyboardShortcut(MenuItemId.TEXT_ALIGN_JUSTIFY),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
-        { type: "separator" },
         {
           id: MenuItemId.TEXT_INCREASE_INDENT,
           label: i18next.t("menu.format.text.increaseIndent"),
-          accelerator: "CmdOrCtrl+_",
+          accelerator: getKeyboardShortcut(MenuItemId.TEXT_INCREASE_INDENT),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.TEXT_DECREASE_INDENT,
           label: i18next.t("menu.format.text.decreaseIndent"),
-          accelerator: "CmdOrCtrl+-",
+          accelerator: getKeyboardShortcut(MenuItemId.TEXT_DECREASE_INDENT),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
-        { type: "separator" },
         {
           label: i18next.t("menu.format.text.spacing.label"),
           submenu: [
             {
               id: MenuItemId.TEXT_SPACING_SINGLE,
               label: i18next.t("menu.format.text.spacing.single"),
-              accelerator: "CmdOrCtrl+1",
+              accelerator: getKeyboardShortcut(MenuItemId.TEXT_SPACING_SINGLE),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
             },
             {
               id: MenuItemId.TEXT_SPACING_1_15,
               label: i18next.t("menu.format.text.spacing.1_15"),
-              accelerator: "CmdOrCtrl+2",
+              accelerator: getKeyboardShortcut(MenuItemId.TEXT_SPACING_1_15),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
             },
             {
               id: MenuItemId.TEXT_SPACING_ONE_AND_HALF,
               label: i18next.t("menu.format.text.spacing.oneAndHalf"),
-              accelerator: "CmdOrCtrl+3",
+              accelerator: getKeyboardShortcut(MenuItemId.TEXT_SPACING_ONE_AND_HALF),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
             },
             {
               id: MenuItemId.TEXT_SPACING_DOUBLE,
               label: i18next.t("menu.format.text.spacing.double"),
-              accelerator: "CmdOrCtrl+4",
+              accelerator: getKeyboardShortcut(MenuItemId.TEXT_SPACING_DOUBLE),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
             },
             { type: "separator" },
             {
               id: MenuItemId.CUSTOM_SPACING,
               label: i18next.t("customSpacing.title"),
-              accelerator: "CmdOrCtrl+5",
+              accelerator: getKeyboardShortcut(MenuItemId.CUSTOM_SPACING),
               click: (menuItem: MenuItem): void => onClick(menuItem),
+              enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
             },
           ],
         },
@@ -217,111 +273,126 @@ export function buildFormatMenu(
     },
     {
       label: i18next.t("menu.format.list.label"),
-      enabled: viewMode === "critix_editor",
+      enabled: viewMode === "critix_editor" && isMainTextEditor,
       submenu: [
         {
           id: MenuItemId.NUMBER_BULLET,
           label: i18next.t("menu.format.list.number"),
-          accelerator: "CmdOrCtrl+shift+1",
+          accelerator: getKeyboardShortcut(MenuItemId.NUMBER_BULLET),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.UPPER_LETTER_BULLET,
           label: i18next.t("menu.format.list.maxLetter"),
-          accelerator: "CmdOrCtrl+shift+2",
+          accelerator: getKeyboardShortcut(MenuItemId.UPPER_LETTER_BULLET),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.LOW_LETTER_BULLET,
           label: i18next.t("menu.format.list.lowerLetter"),
-          accelerator: "CmdOrCtrl+shift+3",
+          accelerator: getKeyboardShortcut(MenuItemId.LOW_LETTER_BULLET),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
+        },
+        {
+          id: MenuItemId.UPPER_ROMAN_BULLET,
+          label: i18next.t("menu.format.list.maxRoman"),
+          accelerator: getKeyboardShortcut(MenuItemId.UPPER_ROMAN_BULLET),
+          click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
+        },
+        {
+          id: MenuItemId.LOW_ROMAN_BULLET,
+          label: i18next.t("menu.format.list.lowerRoman"),
+          accelerator: getKeyboardShortcut(MenuItemId.LOW_ROMAN_BULLET),
+          click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.POINT_BULLET,
           label: i18next.t("menu.format.list.point"),
-          accelerator: "CmdOrCtrl+shift+4",
+          accelerator: getKeyboardShortcut(MenuItemId.POINT_BULLET),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.CIRCLE_BULLET,
           label: i18next.t("menu.format.list.emptyPoint"),
-          accelerator: "CmdOrCtrl+shift+5",
+          accelerator: getKeyboardShortcut(MenuItemId.CIRCLE_BULLET),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.SQUARE_BULLET,
           label: i18next.t("menu.format.list.square"),
-          accelerator: "CmdOrCtrl+shift+6",
+          accelerator: getKeyboardShortcut(MenuItemId.SQUARE_BULLET),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.RESUME_NUMBERING,
-          label: i18next.t("resumeNumbering.title"),
-          accelerator: "CmdOrCtrl+shift+7",
+          label: i18next.t("menu.format.list.resumeNumbering"),
+          accelerator: getKeyboardShortcut(MenuItemId.RESUME_NUMBERING),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
         {
           id: MenuItemId.PREVIOUS_NUMBERING,
           label: i18next.t("menu.format.list.continuePreviousNumbering"),
-          accelerator: "CmdOrCtrl+shift+8",
+          accelerator: getKeyboardShortcut(MenuItemId.PREVIOUS_NUMBERING),
           click: (menuItem: MenuItem): void => onClick(menuItem),
+          enabled: getTextFormattingMenuEnabled()&& isMainTextEditor,
         },
       ],
     },
     {
       id: MenuItemId.PAGE_NUMBER,
       label: i18next.t("menu.format.pageNumber.label"),
+      accelerator: getKeyboardShortcut(MenuItemId.PAGE_NUMBER),
       click: (menuItem: MenuItem): void => onClick(menuItem),
       enabled: viewMode === "critix_editor",
     },
     {
       id: MenuItemId.OPEN_LINE_NUMBER_SETTINGS,
       label: i18next.t("menu.format.lineNumber.label"),
+      accelerator: getKeyboardShortcut(MenuItemId.OPEN_LINE_NUMBER_SETTINGS),
       click: (menuItem: MenuItem): void => onClick(menuItem),
       enabled: viewMode === "critix_editor",
     },
     {
       id: MenuItemId.SECTIONS_STYLE,
       label: i18next.t("menu.format.sectionsStyle"),
-      click: (menuItem: MenuItem): void => onClick(menuItem),
-      enabled: viewMode === "critix_editor",
-    },
-    {
-      id: MenuItemId.OPEN_HEADER_SETTINGS,
-      label: i18next.t("menu.format.header.label"),
+      accelerator: getKeyboardShortcut(MenuItemId.SECTIONS_STYLE),
       click: (menuItem: MenuItem): void => onClick(menuItem),
       enabled: viewMode === "critix_editor",
     },
     {
       id: MenuItemId.OPEN_FOOTER_SETTINGS,
-      label: i18next.t("menu.format.footer.label"),
+      label: i18next.t("menu.format.headerFooter.label"),
+      accelerator: getKeyboardShortcut(MenuItemId.OPEN_FOOTER_SETTINGS),
       click: (menuItem: MenuItem): void => onClick(menuItem),
       enabled: viewMode === "critix_editor",
     },
     {
       id: MenuItemId.OPEN_TOC_SETTINGS,
       label: i18next.t("menu.format.toc.label"),
+      accelerator: getKeyboardShortcut(MenuItemId.OPEN_TOC_SETTINGS),
       click: (menuItem: MenuItem): void => onClick(menuItem),
       enabled: viewMode === "critix_editor" && enableTocSettingsMenu,
     },
     {
-      id: MenuItemId.REMOVE_LINK,
-      label: i18next.t("menu.format.removeLink"),
-      accelerator: "CmdOrCtrl+Shift+K",
-      click: (menuItem: MenuItem): void => onClick(menuItem),
-      enabled: viewMode === "critix_editor",
-    },
-    {
       id: MenuItemId.CHANGE_TEMPLATE,
       label: i18next.t("menu.format.changeTemplate"),
+      accelerator: getKeyboardShortcut(MenuItemId.CHANGE_TEMPLATE),
       click: (menuItem: MenuItem): void => onClick(menuItem),
       enabled: viewMode === "critix_editor",
     },
     {
       id: MenuItemId.LAYOUT_PAGE_SETUP,
       label: i18next.t("menu.format.layout.label"),
-      accelerator: "CmdOrCtrl+Shift+P",
+      accelerator: getKeyboardShortcut(MenuItemId.LAYOUT_PAGE_SETUP),
       click: (menuItem: MenuItem): void => onClick(menuItem),
       enabled: viewMode === "critix_editor",
     },

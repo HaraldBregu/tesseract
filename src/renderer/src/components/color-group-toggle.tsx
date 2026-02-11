@@ -1,6 +1,7 @@
 import { clsx } from "clsx";
 import Typogaphy from "@/components/Typography";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
+import { useEffect, useMemo, useState } from "react";
 
 const COLORS = [
   { value: '#ffffff', label: 'White' },
@@ -11,10 +12,22 @@ const COLORS = [
   { value: '#4682b4', label: 'Steel Blue' },
   { value: '#0000ff', label: 'Blue' },
   { value: '#8000ff', label: 'Purple' },
-  { value: '#000000', label: 'Black' }
+  { value: '#000000', label: 'Black' },
 ];
 
 const COLOR_VALUES = COLORS.map(c => c.value.toLowerCase());
+
+const ensureHexColor = (c?: string) => {
+  if (!c) return '#000000';
+  const s = c.trim();
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(s)) {
+    if (s.length === 4) return '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+    return s.toUpperCase();
+  }
+  const noHash = s.replace(/^#/, '');
+  if (/^[0-9a-f]{6}$/i.test(noHash)) return ('#' + noHash).toUpperCase();
+  return '#000000';
+};
 
 function ColorToggleGroup({
   value,
@@ -23,9 +36,25 @@ function ColorToggleGroup({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const normalized = value?.toLowerCase();
-  const isPredefined = COLOR_VALUES.includes(normalized);
-  const activeToggleValue = isPredefined ? normalized : (value ? 'custom' : '');
+  const normalized = ensureHexColor(value);
+  const isPredefined = COLOR_VALUES.includes(normalized.toLowerCase());
+
+  const [customColor, setCustomColor] = useState('#000000');
+
+  useEffect(() => {
+    if (!isPredefined) {
+      setCustomColor(normalized);
+    }
+  }, [isPredefined, normalized]);
+
+  const activeToggleValue = useMemo(() => {
+    return isPredefined ? normalized.toLowerCase() : 'custom';
+  }, [isPredefined, normalized]);
+
+  const safeEmit = (next: string) => {
+    const hex = ensureHexColor(next);
+    if (hex !== normalized) onChange(hex);
+  };
 
   return (
     <div>
@@ -37,26 +66,33 @@ function ColorToggleGroup({
         type="single"
         value={activeToggleValue}
         onValueChange={(val) => {
-          if (val === 'custom') return;
-          if (val) onChange(val);
+          if (!val) return;
+          if (val === 'custom') {
+            safeEmit(customColor);
+          } else {
+            safeEmit(val);
+          }
         }}
         className="flex gap-2 flex-wrap p-1"
       >
-        {COLORS.map((color) => (
-          <ToggleGroup.Item
-            key={color.value}
-            value={color.value.toLowerCase()}
-            className={clsx(
-              'w-[40px] h-[40px] border border-gray-300 rounded overflow-hidden',
-              activeToggleValue === color.value.toLowerCase() && 'outline outline-[3px] outline-blue-600'
-            )}
-            style={{
-              background: color.value,
-              borderColor: color.value === '#ffffff' ? '#C2C7CF' : undefined,
-            }}
-            aria-label={`Color ${color.label}`}
-          />
-        ))}
+        {COLORS.map((color) => {
+          const v = color.value.toLowerCase();
+          return (
+            <ToggleGroup.Item
+              key={v}
+              value={v}
+              className={clsx(
+                'w-[40px] h-[40px] border border-gray-300 rounded overflow-hidden',
+                activeToggleValue === v && 'outline outline-[3px] outline-blue-600'
+              )}
+              style={{
+                background: color.value,
+                borderColor: color.value === '#ffffff' ? '#C2C7CF' : undefined,
+              }}
+              aria-label={`Color ${color.label}`}
+            />
+          );
+        })}
 
         <ToggleGroup.Item
           value="custom"
@@ -65,14 +101,14 @@ function ColorToggleGroup({
             activeToggleValue === 'custom' && 'outline outline-[3px] outline-blue-600'
           )}
           style={{
-            background: !value || isPredefined
+            background: isPredefined
               ? 'conic-gradient(red, orange, yellow, lime, cyan, blue, indigo, violet, red)'
-              : value,
+              : normalized,
             borderColor: '#C2C7CF',
           }}
           aria-label="Custom Color"
         >
-          {(!isPredefined && value) && (
+          {!isPredefined && (
             <div
               style={{
                 position: 'absolute',
@@ -86,8 +122,11 @@ function ColorToggleGroup({
           )}
           <input
             type="color"
-            value={isPredefined ? '' : value}
-            onChange={(e) => onChange(e.target.value)}
+            value={isPredefined ? customColor : normalized}
+            onChange={(e) => {
+              setCustomColor(e.target.value);
+              safeEmit(e.target.value);
+            }}
             className="absolute inset-0 opacity-0 cursor-pointer"
           />
         </ToggleGroup.Item>

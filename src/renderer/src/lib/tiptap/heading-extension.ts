@@ -1,12 +1,22 @@
-import Heading from '@tiptap/extension-heading';
+import Heading, { Level } from '@tiptap/extension-heading';
 
+declare module '@tiptap/core' {
+    interface Commands<ReturnType> {
+        extendedHeading: {
+            setHeading: (attributes: { level: Level }) => ReturnType;
+            toggleHeading: (attributes: { level: Level }) => ReturnType;
+            setHeadingStyle: (level: number, attributes: ElementAttribute) => ReturnType;
+        };
+
+    }
+}
 
 const h1: ElementAttribute = {
     fontSize: '18pt',
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: 'normal',
+    color: '#000000',
     fontStyle: 'normal',
-    fontFamily: 'Times New Roman',
+    fontFamily: "Times New Roman",
     textAlign: 'left',
     marginLeft: '0px',
     marginRight: '0px',
@@ -17,10 +27,10 @@ const h1: ElementAttribute = {
 
 const h2: ElementAttribute = {
     fontSize: '16pt',
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: 'normal',
+    color: '#000000',
     fontStyle: 'normal',
-    fontFamily: 'Times New Roman',
+    fontFamily: "Times New Roman",
     textAlign: 'left',
     marginLeft: '0px',
     marginRight: '0px',
@@ -31,10 +41,10 @@ const h2: ElementAttribute = {
 
 const h3: ElementAttribute = {
     fontSize: '14pt',
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: 'normal',
+    color: '#000000',
     fontStyle: 'normal',
-    fontFamily: 'Times New Roman',
+    fontFamily: "Times New Roman",
     textAlign: 'left',
     marginLeft: '0px',
     marginRight: '0px',
@@ -45,10 +55,10 @@ const h3: ElementAttribute = {
 
 const h4: ElementAttribute = {
     fontSize: '12pt',
-    fontWeight: 'bold',
-    color: '#000',
-    fontStyle: 'italic',
-    fontFamily: 'Times New Roman',
+    fontWeight: 'normal',
+    color: '#000000',
+    fontStyle: 'normal',
+    fontFamily: "Times New Roman",
     textAlign: 'left',
     marginLeft: '0px',
     marginRight: '0px',
@@ -59,10 +69,10 @@ const h4: ElementAttribute = {
 
 const h5: ElementAttribute = {
     fontSize: '12pt',
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: 'normal',
+    color: '#000000',
     fontStyle: 'italic',
-    fontFamily: 'Times New Roman',
+    fontFamily: "Times New Roman",
     textAlign: 'left',
     marginLeft: '0px',
     marginRight: '0px',
@@ -73,10 +83,10 @@ const h5: ElementAttribute = {
 
 const h6: ElementAttribute = {
     fontSize: '10pt',
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: 'normal',
+    color: '#000000',
     fontStyle: 'italic',
-    fontFamily: 'Times New Roman',
+    fontFamily: "Times New Roman",
     textAlign: 'left',
     marginLeft: '0px',
     marginRight: '0px',
@@ -100,6 +110,40 @@ export const ExtendedHeading = Heading
         levels: [1, 2, 3, 4, 5, 6],
     })
     .extend({
+        onCreate() {
+            this.editor.chain()
+                .focus()
+                .command(({ tr, state }) => {
+                    let modified = false;
+                    state.doc.descendants((node, pos) => {
+                        if (node.type.name === 'heading') {
+                            const level = node.attrs.level;
+                            const style = headingStyles[level];
+
+                            if (!node.attrs.fontSize || !node.attrs.fontFamily) {
+                                tr
+                                    .setNodeMarkup(pos, undefined, {
+                                        ...node.attrs,
+                                        fontSize: node.attrs.fontSize || style.fontSize,
+                                        fontFamily: node.attrs.fontFamily || style.fontFamily,
+                                        fontWeight: node.attrs.fontWeight || style.fontWeight,
+                                        fontStyle: node.attrs.fontStyle || style.fontStyle,
+                                        textAlign: node.attrs.textAlign || style.textAlign,
+                                        marginLeft: node.attrs.marginLeft || style.marginLeft,
+                                        marginRight: node.attrs.marginRight || style.marginRight,
+                                        marginTop: node.attrs.marginTop || style.marginTop,
+                                        marginBottom: node.attrs.marginBottom || style.marginBottom,
+                                        lineHeight: node.attrs.lineHeight || style.lineHeight,
+                                        color: node.attrs.color || style.color,
+                                    });
+                                modified = true;
+                            }
+                        }
+                    });
+                    return modified;
+                }).run();
+        },
+
         addAttributes() {
             return {
                 level: {
@@ -148,7 +192,7 @@ export const ExtendedHeading = Heading
                 },
                 color: {
                     default: null, // Rimosso valore di default statico
-                    parseHTML: element => element.style.color || element.dataset.color || '#000',
+                    parseHTML: element => element.style.color || element.dataset.color || '#000000',
                     renderHTML: attributes => {
                         const level = attributes.level || 1;
                         const color = attributes.color || headingStyles[level].color;
@@ -212,50 +256,9 @@ export const ExtendedHeading = Heading
             };
         },
 
-        onTransaction({ transaction }) {
-            // Quando c'è una transazione che cambia il livello, aggiorniamo gli attributi
-            const docChanged = transaction.docChanged;
-            if (!docChanged) return;
-
-            const { state } = this.editor.view;
-            const { tr } = state;
-            let modified = false;
-
-            // Itera attraverso tutti i nodi del documento per trovare gli heading
-            state.doc.descendants((node, pos) => {
-                if (node.type.name === 'heading') {
-                    const level = node.attrs.level;
-                    const style = headingStyles[level];
-
-                    // Se gli attributi non corrispondono agli stili predefiniti per questo livello, aggiornali
-                    if (node.attrs.fontSize !== style.fontSize ||
-                        node.attrs.fontWeight !== style.fontWeight ||
-                        node.attrs.fontStyle !== style.fontStyle ||
-                        node.attrs.color !== style.color ||
-                        node.attrs.fontFamily !== style.fontFamily) {
-
-                        tr.setNodeMarkup(pos, undefined, {
-                            ...node.attrs,
-                            fontSize: style.fontSize,
-                            fontWeight: style.fontWeight,
-                            fontStyle: style.fontStyle,
-                            color: style.color,
-                            fontFamily: style.fontFamily
-                        });
-                        modified = true;
-                    }
-                }
-                return true;
-            });
-
-            if (modified) {
-                this.editor.view.dispatch(tr);
-            }
-        },
-
         addCommands() {
             return {
-                ...this.parent?.(),
+
                 setHeading: attributes => ({ chain }) => {
                     const level = attributes.level;
                     const styles = headingStyles[level];
@@ -268,6 +271,26 @@ export const ExtendedHeading = Heading
                         color: styles.color,
                         fontFamily: styles.fontFamily
                     }).run();
+                },
+                setHeadingStyle: (level, attributes) => ({ chain }) => {
+                    const styles = headingStyles[level]
+
+                    return chain()
+                        .setNode('heading', {
+                            level,
+                            fontSize: attributes.fontSize ?? styles.fontSize,
+                            fontWeight: attributes.fontWeight ?? styles.fontWeight,
+                            fontStyle: attributes.fontStyle ?? styles.fontStyle,
+                            color: attributes.color ?? styles.color,
+                            fontFamily: attributes.fontFamily ?? styles.fontFamily,
+                            textAlign: attributes.textAlign ?? styles.textAlign,
+                            marginTop: attributes.marginTop ?? styles.marginTop,
+                            marginBottom: attributes.marginBottom ?? styles.marginBottom,
+                            lineHeight: attributes.lineHeight ?? styles.lineHeight,
+                            marginLeft: attributes.marginLeft ?? styles.marginLeft,
+                            marginRight: attributes.marginRight ?? styles.marginRight,
+                        })
+                        .run();
                 }
             }
         },
@@ -276,31 +299,32 @@ export const ExtendedHeading = Heading
             const level = node.attrs.level;
             const styles = headingStyles[level];
 
-            const fontSize = node.attrs.fontSize || styles.fontSize;
-            const fontWeight = node.attrs.fontWeight || styles.fontWeight;
-            const fontStyle = node.attrs.fontStyle || (level >= 4 ? 'italic' : 'normal');
-            const color = node.attrs.color || styles.color;
-            const fontFamily = node.attrs.fontFamily || styles.fontFamily;
-            const textAlign = node.attrs.textAlign || styles.textAlign;
+            const attrs = { ...styles, ...node.attrs, ...HTMLAttributes };
 
-            const marginTop = `${node.attrs.marginTop}px` || styles.marginTop;
-            const marginBottom = `${node.attrs.marginBottom}px` || styles.marginBottom;
-            const marginLeft = `${(node.attrs.indent * 40)}px` || styles.marginLeft;
-            const marginRight = node.attrs.marginRight || styles.marginRight;
-            const lineHeight = node.attrs.lineHeight || styles.lineHeight;
+            const fontSize = attrs.fontSize;
+            const fontWeight = attrs.fontWeight;
+            const fontStyle = attrs.fontStyle;
+            const color = attrs.color;
+            const fontFamily = attrs.fontFamily;
+            const textAlign = attrs.textAlign;
+            const marginTop = attrs.marginTop;
+            const marginBottom = attrs.marginBottom;
+            const marginLeft = `${(node.attrs.indent * 40)}px`;
+            const marginRight = attrs.marginRight;
+            const lineHeight = attrs.lineHeight;
 
             const styleString = `
-            font-size: ${fontSize}; 
-            font-weight: ${fontWeight}; 
-            color: ${color}; 
-            ${fontStyle === 'italic' ? 'font-style: italic' : ''}; 
-            font-family: ${fontFamily}; 
-            text-align: ${textAlign}; 
-            margin-left: ${marginLeft}; 
-            margin-right: ${marginRight};
-            margin-top: ${marginTop}; 
-            margin-bottom: ${marginBottom};
-            line-height: ${lineHeight};`;
+        font-size: ${fontSize};
+        font-weight: ${fontWeight};
+        color: ${color};
+        ${fontStyle === 'italic' ? 'font-style: italic' : 'font-style: normal'};
+        font-family: ${fontFamily};
+        text-align: ${textAlign};
+        margin-left: ${marginLeft};
+        margin-right: ${marginRight};
+        margin-top: ${marginTop};
+        margin-bottom: ${marginBottom};
+        line-height: ${lineHeight};`;
 
             return [`h${level}`, {
                 ...HTMLAttributes,
@@ -312,5 +336,6 @@ export const ExtendedHeading = Heading
                 "data-font-style": fontStyle,
                 "data-font-family": fontFamily,
             }, 0];
-        }
+        },
+
     });

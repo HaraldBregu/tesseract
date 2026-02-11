@@ -1,8 +1,7 @@
 import { BaseWindow, shell, WebContentsView } from 'electron'
 import { join } from 'path'
-import { getRootUrl } from './shared/util'
+import { getRootUrl, getAppLanguage } from './shared/util'
 import { getTabs, setTabs } from './store';
-import { is } from '@electron-toolkit/utils';
 
 const toolbarHeight = 32
 const toolbar: Route = "/browser-tab-bar";
@@ -27,7 +26,8 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
         sandbox: false,
         nodeIntegration: false,
         contextIsolation: true,
-      }
+        partition: 'persist:toolbar'
+      },
     })
 
     toolbarWebContentsView.webContents.setWindowOpenHandler((details) => {
@@ -35,7 +35,7 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
       return { action: 'deny' }
     })
 
-    const bounds = baseWindow.getBounds()
+    const bounds = baseWindow.getContentBounds()
 
     toolbarWebContentsView.setBounds({
       x: 0,
@@ -45,7 +45,7 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
     })
 
     baseWindow.on('resize', () => {
-      const newBounds = baseWindow.getBounds()
+      const newBounds = baseWindow.getContentBounds()
 
       if (toolbarWebContentsView === null)
         return
@@ -62,11 +62,14 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
     toolbarWebContentsView.webContents.loadURL(url)
 
     toolbarWebContentsView.webContents.on('did-finish-load', () => {
+      // Send initial language to toolbar after load
+      const currentLanguage = getAppLanguage();
+      toolbarWebContentsView?.webContents.send("language-changed", currentLanguage);
       return resolve(toolbarWebContentsView)
     })
 
-    if (is.dev)
-      toolbarWebContentsView.webContents.toggleDevTools()
+    // if (is.dev)
+    //   toolbarWebContentsView.webContents.toggleDevTools()
 
     toolbarWebContentsView.webContents.on('did-fail-load', () => {
       return resolve(null)
@@ -75,7 +78,7 @@ export function createToolbarWebContentsView(baseWindow: BaseWindow | null): Pro
 }
 
 export function resizeToolbarWebContentsView(baseWindow: BaseWindow): void {
-  const newBounds = baseWindow.getBounds()
+  const newBounds = baseWindow.getContentBounds()
 
   if (toolbarWebContentsView === null)
     return

@@ -1,13 +1,11 @@
 import { mainLogger } from "./shared/logger";
-import { readAutomaticFileSave } from "./store";
-import { getTabs } from "./store";
+import { readAutomaticFileSave, getTabs } from "./store";
 import { getWebContentsViews } from "./content";
-import { saveDocument } from "./document/document-manager";
 import { Route } from "./shared/constants";
 
 let autoSaveInterval: NodeJS.Timeout | null = null;
 
-export const initializeAutoSave = (): void => {
+export const initializeAutoSave = (onAutoSave: (() => void)): void => {
     const automaticFileSave = readAutomaticFileSave();
 
     // Clear existing interval if any
@@ -41,12 +39,12 @@ export const initializeAutoSave = (): void => {
         mainLogger.info("AutoSave", `Auto save initialized with interval: ${automaticFileSave}`);
 
         autoSaveInterval = setInterval(async () => {
-            await performAutoSave();
+            await performAutoSave(onAutoSave);
         }, intervalMs);
     }
 };
 
-const performAutoSave = async (): Promise<void> => {
+const performAutoSave = async (onAutoSave: (() => void)): Promise<void> => {
     const taskId = mainLogger.startTask("AutoSave", "Starting auto save of selected document");
 
     try {
@@ -86,13 +84,14 @@ const performAutoSave = async (): Promise<void> => {
                 return;
             }
 
+            onAutoSave();
             // Perform the save operation on the selected tab
-            await new Promise<void>((resolve, reject) => {
-                saveDocument((filePath: string) => {
-                    mainLogger.info("AutoSave", `Auto saved document: ${filePath}`);
-                    resolve();
-                }, selectedTab, true).catch(reject);
-            });
+            // await new Promise<void>((resolve, reject) => {
+            //     saveDocument((filePath: string) => {
+            //         mainLogger.info("AutoSave", `Auto saved document: ${filePath}`);
+            //         resolve();
+            //     }, selectedTab, true).catch(reject);
+            // });
 
         } catch (error) {
             mainLogger.error("AutoSave", `Failed to auto save selected document with tab ID ${selectedTab.id}`, error as Error);
@@ -105,12 +104,10 @@ const performAutoSave = async (): Promise<void> => {
     }
 };
 
-// Update auto save when preferences change
-export const updateAutoSave = (): void => {
-    initializeAutoSave();
+export const updateAutoSave = (onAutoSave: (() => void)): void => {
+    initializeAutoSave(onAutoSave);
 };
 
-// Cleanup function to clear the interval when app shuts down
 export const cleanupAutoSave = (): void => {
     if (autoSaveInterval) {
         clearInterval(autoSaveInterval);

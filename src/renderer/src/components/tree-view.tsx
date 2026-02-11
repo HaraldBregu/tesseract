@@ -43,6 +43,7 @@ type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
     onDocumentDrag?: (sourceItem: TreeDataItem, targetItem: TreeDataItem) => void
     defaultOpen?: boolean
     indentLevels?: boolean
+    levelCounterOffset?: Record<string, number>;
 }
 
 const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(

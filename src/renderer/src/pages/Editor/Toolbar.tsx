@@ -1,152 +1,116 @@
-import React, { Fragment, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ForwardedRef, forwardRef, MouseEvent, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import HighlightColor from "../../components/highlight-color";
 import FormatTextColor from "../../components/format-text-color";
-import CustomSelect from "@/components/ui/custom-select";
-
-// @ts-ignore
-import { DEFAULT_LINE_SPACING, fontSizes, fontSizesPt, sectionTypes } from "../../utils/optionsEnums";
-
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
-import Bold from "@/components/icons/Bold";
-import Italic from "@/components/icons/Italic";
-import Underline from "@/components/icons/Underline";
-import Restore from "@/components/icons/Restore";
-import HistoryEdu from "@/components/icons/HistoryEdu";
-import Siglum from "@/components/icons/Siglum";
-import CommentAdd from "@/components/icons/CommentAdd";
-import Bookmark from "@/components/icons/Bookmark";
-import LinkAdd from "@/components/icons/LinkAdd";
+import { fontSizes } from "../../utils/optionsEnums";
 import Button from "@/components/ui/button";
-import Citation from "@/components/icons/Citation";
-import Undo from "@/components/icons/Undo";
-import DockToRight from "@/components/icons/DockToRight";
-import AlignLeft from "@/components/icons/AlignLeft";
-import AlignRight from "@/components/icons/AlignRight";
-import AlignCenter from "@/components/icons/AlignCenter";
-import AlignJustify from "@/components/icons/AlignJustify";
-import FormatLineSpacing from "@/components/icons/FormatLineSpacing";
-import Dropdown from "@/components/icons/Dropdown";
 import { cn } from "@/lib/utils";
-import IndentDecrease from "@/components/icons/IndentDecrease";
-import IndentIncrease from "@/components/icons/IndentIncrease";
-import Search from "@/components/icons/Search";
-import Print from "@/components/icons/Print";
-import ListNumber from "@/components/icons/ListNumber";
-import ListUppercase from "@/components/icons/ListUppercase";
-import ListLowercase from "@/components/icons/ListLowercase";
-import ListBullet from "@/components/icons/ListBullet";
-import ListBullet_empty from "@/components/icons/ListBullet_empty";
-import Superscript from "@/components/icons/Superscript";
-import Subscript from "@/components/icons/Subscript";
-import NonPrintingCharact from "@/components/icons/NonPrintingCharact";
-import { Label } from "../../components/ui/label";
 import { useWindowSize } from "@/hooks/use-window";
 import useHasInProgressAnimation from "@/hooks/use-has-in-progress-animation";
 import { useIpcRenderer } from "@/hooks/use-ipc-renderer";
-import ListSquareBullet from "../../components/icons/ListSquareBullet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import ReadingSeperator from "@/components/icons/ReadingSeperator";
-import Symbol from "@/components/icons/Symbol";
-import Object from "@/components/icons/Object";
-import ReadingType from "@/components/icons/ReadingType";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useTheme } from "@/hooks/use-theme";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Select, SelectValue } from "@/components/ui/select";
-import { AppSelectContent, AppSelectItem, AppSelectSeparator, AppSelectTrigger } from "@/components/app/app-select";
-import AppList from "@/components/app/list";
-import ListIcon from "@/components/icons/List";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import AppSeparator from "@/components/app/app-separator";
-import { useDispatch } from "react-redux";
-import { setFontFamily } from "./store/editor/editor.slice";
+import { useSelector } from "react-redux";
+import { useEditor } from "./hooks/use-editor";
+import { ToolbarButtonSiglum } from "./components/toolbar-button-siglum";
+import { ToolbarButtonCitation } from "./components/toolbar-button-citation";
+import { ToolbarButtonSidebar } from "./components/toolbar-button-sidebar";
+import { ToolbarButtonSuperscript } from "./components/toolbar-button-superscript";
+import { selectSelectedNodeType, selectToolbarEnabled, selectVisibleApparatuses } from "./store/editor/editor.selector";
+import { ToolbarButtonSubscript } from "./components/toolbar-button-subscript";
+import { ToolbarButtonBold } from "./components/toolbar-button-bold";
+import { ToolbarButtonItalic } from "./components/toolbar-button-italic";
+import { ToolbarButtonUnderline } from "./components/toolbar-button-underline";
+import { ToolbarButtonNPC } from "./components/toolbar-button-npc";
+import { ToolbarButtonReadingType } from "./components/toolbar-button-reading-type";
+import { ToolbarButtonReadingSeparator } from "./components/toolbar-button-reading-separator";
+import { ToolbarButtonSymbol } from "./components/toolbar-button-symbol";
+import { ToolbarButtonLink } from "./components/toolbar-button-link";
+import { ToolbarButtonAlignment } from "./components/toolbar-button-alignment";
+import { ToolbarButtonSpacing } from "./components/toolbar-button-spacing";
+import { ToolbarButtonList } from "./components/toolbar-button-list";
+import { ToolbarButtonIncreaseIndent } from "./components/toolbar-button-increase-indent";
+import { ToolbarButtonDecreaseIndent } from "./components/toolbar-button-decrease-indent";
+import { ToolbarButtonSearch } from "./components/toolbar-button-search";
 
-export const ToolbarContainer = ({ className, children }: { children: React.ReactNode, className: string }) => {
-  return (
-    <header className={cn("flex h-12 shrink-0 items-center gap-2 border-b-2 border-grey-80 dark:border-grey-40 bg-background dark:bg-grey-10 overflow-hidden max-w-full", className)}>
-      <div className="flex items-center gap-2 px-1 flex-1 overflow-hidden max-w-full">
-        {children}
-      </div>
-    </header>
-  )
+import { ToolbarButtonPrint } from "./components/toolbar-button-print";
+import { ToolbarButtonHistoryEdu } from "./components/toolbar-button-history-edu";
+import { ToolbarButtonComment } from "./components/toolbar-button-comment";
+import { commentCategoriesSelector } from "./store/comment/comments.selector";
+import { ToolbarButtonBookmark } from "./components/toolbar-button-bookmark";
+import { bookmarkCategoriesSelector } from "./store/bookmark/bookmark.selector";
+import { closeAllSelects, setCitationInsertDialogVisible, setFontFamilySelectOpen, setFontSizeSelectOpen, setStyleSelectOpen, togglePrintPreviewVisible, toggleShowNonPrintingCharacters } from "./provider";
+import { ToolbarButtonRedo } from "./components/toolbar-button-redo";
+import ToolbarHeadingSelect from "./components/toolbar-heading-select";
+import { ToolbarButtonUndo } from "./components/toolbar-button-undo";
+import { ToolbarFontFamilySelect } from "./components/toolbar-font-family-select";
+import { ToolbarFontSizeSelect } from "./components/toolbar-font-size-select";
+import { HEADING_CUSTOM_TYPES } from "@/utils/constants";
+import { setToolbarStateBold, setToolbarStateItalic, setToolbarStateSubscript, setToolbarStateSuperscript, setToolbarStateUnderline } from "./provider/actions/toolbar";
+import { ToolbarButtonChat } from "./components/toolbar-button-chat";
+import { openChat } from "./provider/actions/chat";
+
+export interface ToolbarElement {
+  setCurrentEditor: (editorType: EditorType) => void;
+  setCurrentSection: (section: string) => void;
 }
-
 interface ToolbarProps {
-  editorIsFocused: boolean;
-  emphasisState: EmphasisState;
-  onEmphasisStateChange: (emphasisState: EmphasisState) => void;
-  onHeadingLevelChange: (level: number) => void;
+  includeOptionals?: string[];
+  headingEnabled?: boolean;
+  readingTypeAdd: ReadingTypeAdd;
+  readingTypeOm: ReadingTypeOm;
+  readingTypeTr: ReadingTypeTr;
+  readingTypeDel: ReadingTypeDel;
+  onAddReadingSeparator: () => void;
+  // onEmphasisStateChange: (emphasisState: Partial<EmphasisState>) => void;
   onHeadingChange: (style: Style) => void;
   onSetBody: (style?: Style) => void;
   onCustomStyleChange: (style: Style) => void;
   onFontFamilyChange: (fontFamily: string) => void;
   onFontSizeChange: (fontSize: string) => void;
+  onSetSuperscript: (superscript: boolean) => void;
+  onSetSubscript: (subscript: boolean) => void;
   onBoldChange: (bold: boolean) => void;
   onItalicChange: (italic: boolean) => void;
   onUnderlineChange: (underline: boolean) => void;
   onTextColorChange: (textColor: string) => void;
   onHighlightColorChange: (highlightColor: string) => void;
-  onSetBlockquote: (blockquote: boolean) => void;
-  onSetTextAlignment: (alignment: string) => void;
+  onSetTextAlignment: (alignment: Alignment) => void;
   onSetLineSpacing: (spacing: Spacing) => void;
-  onSetListStyle: (style: BulletStyle) => void;
-  onSetSuperscript: (superscript: boolean) => void;
-  onSetSubscript: (subscript: boolean) => void;
-
-  viewToolbar: boolean;
-  includeOptionals?: string[];
-  history?: HistoryState;
-  canUndo: boolean;
-  onUndo: (historyAction?: HistoryAction) => void;
+  onSetListStyle: (style: ListStyle) => void;
+  onUndo: () => void;
   onRedo: () => void;
-  bookmarksCategories: BookmarkCategory[];
-  bookmarkActive: boolean;
-  onClickAddBookmark: (category?: string) => void;
-  onUnsetBookmark: () => void;
-  canAddBookmark: boolean;
-  commentCategories: CommentCategory[];
-  commentActive: boolean;
-  canAddComment: boolean;
-  onClickAddComment: (categoryId?: string) => void;
-  onUnsetComment: () => void;
-  editorMode: 'editing' | 'review';
-  setEditorMode: (mode: 'editing' | 'review') => void;
+  onAddBookmark: (categoryId?: string) => void;
+  onAddComment: (categoryId?: string) => void;
+  onSetTextNoteToApparatusId?: (apparatusId: string) => void;
   onIncreaseIndent: () => void;
   onDecreaseIndent: () => void;
   onShowCustomSpacing: () => void;
   onShowResumeNumbering: () => void;
   continuePreviousNumbering: () => void;
-  headingEnabled?: boolean;
-  toggleNonPrintingCharacters: () => void;
   showCustomizeToolbar: () => void;
-  styles: Style[]
   showAddSymbol: () => void;
   showLinkConfig: () => void;
-  linkActive: boolean;
   removeLink: () => void;
-  siglumList: Siglum[];
   onSelectSiglum: (siglum: Siglum) => void;
   onShowSiglumSetup: () => void;
+  onAddReadingTypeAdd: (readingType: ReadingTypeAdd) => void;
+  onAddReadingTypeOm: (readingType: ReadingTypeOm) => void;
+  onAddReadingTypeTr: (readingType: ReadingTypeTr) => void;
+  onAddReadingTypeDel: (readingType: ReadingTypeDel) => void;
+  onSearchClick: () => void;
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({
-  editorIsFocused,
-  emphasisState,
-  onEmphasisStateChange,
-  // @ts-ignore
+export default forwardRef<ToolbarElement, ToolbarProps>(({
+  readingTypeAdd,
+  readingTypeOm,
+  readingTypeTr,
+  readingTypeDel,
+  onAddReadingSeparator,
   onHeadingChange,
-  onHeadingLevelChange,
   onSetBody,
-  // @ts-ignore
   onCustomStyleChange,
   onFontFamilyChange,
   onFontSizeChange,
@@ -155,56 +119,121 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onUnderlineChange,
   onTextColorChange,
   onHighlightColorChange,
-  onSetBlockquote,
   onSetTextAlignment,
   onSetLineSpacing,
   onSetListStyle,
   onSetSuperscript,
   onSetSubscript,
-
-  viewToolbar,
   includeOptionals = [],
-  history,
-  canUndo,
   onUndo,
   onRedo,
-  onClickAddComment,
-  onUnsetComment,
-  onClickAddBookmark,
-  onUnsetBookmark,
-  bookmarksCategories,
-  bookmarkActive,
-  editorMode,
-  setEditorMode,
-  canAddBookmark,
-  commentCategories,
-  commentActive,
-  canAddComment,
+  onAddBookmark,
+  onAddComment,
+  onSetTextNoteToApparatusId,
   onIncreaseIndent,
   onDecreaseIndent,
   onShowCustomSpacing,
   onShowResumeNumbering,
   continuePreviousNumbering,
   headingEnabled = true,
-  toggleNonPrintingCharacters,
   showCustomizeToolbar,
-  // @ts-ignore
-  styles,
   showAddSymbol,
   showLinkConfig,
-  linkActive,
   removeLink,
-  siglumList,
   onSelectSiglum,
   onShowSiglumSetup,
-}) => {
+  onAddReadingTypeAdd,
+  onAddReadingTypeOm,
+  onAddReadingTypeTr,
+  onAddReadingTypeDel,
+  onSearchClick
+}, ref: ForwardedRef<ToolbarElement>) => {
+  const [currentEditor, setCurrentEditor] = useState<EditorType>("TEXT")
+  const [currentSection, setCurrentSection] = useState<string>("");
+
+  useImperativeHandle(ref, () => {
+    return {
+      setCurrentEditor,
+      setCurrentSection,
+    }
+  }, [])
+
   const { t } = useTranslation();
+  const includeOptionalsMemo = useMemo(() => includeOptionals, [includeOptionals]);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState<{
     top: number
     left?: number
     right?: number
   }>({ top: 0, left: 0 });
+
+  const [state, dispatchEditor] = useEditor();
+
+  const notesEnabled = useMemo(() => state.notesEnabled, [state.notesEnabled]);
+  const bookmarkEnabled = useMemo(() => state.bookmarkEnabled, [state.bookmarkEnabled]);
+  const siglumEnabled = useMemo(() => state.siglumEnabled, [state.siglumEnabled]);
+  const toolbarState = useMemo(() => state.toolbarState, [state.toolbarState]);
+  const siglumList = useMemo(() => state.siglumList, [state.siglumList]);
+  const isNPC = useMemo(() => state.showNonPrintingCharacters, [state.showNonPrintingCharacters]);
+  const currentAlignment = useMemo(() => state.toolbarState.alignment, [state.toolbarState.alignment]);
+  const currentListValue = useMemo(() => state.toolbarState.listStyle, [state.toolbarState.listStyle]);
+
+  const toolbarEnabled = useSelector(selectToolbarEnabled);
+  const apparatuses = useSelector(selectVisibleApparatuses);
+  const apparatusesMemo = useMemo(() => {
+    const isTocSection = currentSection === 'toc';
+    const isIntroductionSection = currentSection === 'introduction';
+    const isBibliographySection = currentSection === 'bibliography';
+    if (isTocSection) {
+      return [];
+    } else if (isIntroductionSection || isBibliographySection) {
+      return apparatuses.filter((apparatus) => apparatus.type === 'PAGE_NOTES' || apparatus.type === 'SECTION_NOTES');
+    } else {
+      return apparatuses;
+    }
+  }, [apparatuses, currentSection]);
+  const selectedNodeType = useSelector(selectSelectedNodeType);
+
+  const styleOptions = useMemo(() => {
+    const headingMap: Record<string, number> = {
+      H1: 1,
+      H2: 2,
+      H3: 3,
+      H4: 4,
+      H5: 5,
+      H6: 6,
+      P: 0,
+    };
+
+    const newStyles = state.styles.filter(style => HEADING_CUSTOM_TYPES.includes(style?.type))
+    const styleOptionsMap: ItemOption[] = newStyles.map((style) => ({
+      label: style.name,
+      value: (headingMap[style.type] ?? style.id).toString(),
+    } satisfies ItemOption));
+
+    return styleOptionsMap;
+  }, [state.styles]);
+
+  const headingLevel = useMemo(() =>
+    state.toolbarState.headingLevel?.toString() || state.toolbarState.styleId?.toString(),
+    [state.toolbarState.headingLevel, state.toolbarState.styleId]);
+
+  const commentEnabled = useMemo(() => state.commentEnabled, [state.commentEnabled]);
+  const canInsertCitation = useMemo(() => state.canInsertCitation, [state.canInsertCitation]);
+  const canInsertSymbol = useMemo(() => state.canInsertSymbol, [state.canInsertSymbol]);
+  const link = useMemo(() => state.toolbarState.link ?? '', [state.toolbarState.link]);
+  const linkEnabled = useMemo(() => state.linkEnabled, [state.linkEnabled]);
+
+  const currentSpacing = useMemo(() => {
+    return state.toolbarState.spacing;
+  }, [state.toolbarState.spacing]);
+
+  const spacingList = useMemo(() => ([
+    { label: t('menu.format.text.spacing.single'), value: '1', onClick: () => handleLineSpacing(1) },
+    { label: t('menu.format.text.spacing.1_15'), value: '1.15', onClick: () => handleLineSpacing(1.15) },
+    { label: t('menu.format.text.spacing.oneAndHalf'), value: '1.5', onClick: () => handleLineSpacing(1.5) },
+    { label: t('menu.format.text.spacing.double'), value: '2', onClick: () => handleLineSpacing(2) },
+  ]), []);
 
   const handleContextMenu = (event: MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -220,22 +249,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
       setPopoverPosition({ top, left, right: undefined })
     }
     setShowContextMenu(true);
-  }
-
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  };
-
-  const retrieveActionDetail = (data: HistoryAction) => {
-    const textContent = data.content
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<p.*?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .trim();
-    return textContent
   }
 
   const toolbarContainer = useRef<HTMLDivElement>(null);
@@ -254,15 +267,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const alignmentGroupRef = useRef<HTMLDivElement>(null);
   const linkingGroupRef = useRef<HTMLDivElement>(null);
   const spacingGroupRef = useRef<HTMLDivElement>(null);
-  const sidebarButtonRef = useRef<HTMLButtonElement>(null);
+  const sidebarButtonRef = useRef<HTMLDivElement>(null);
   const undoRedoGroupRef = useRef<HTMLDivElement>(null);
   const sectionGroupRef = useRef<HTMLDivElement>(null);
   const fontFamilyGroupRef = useRef<HTMLDivElement>(null);
   const fontSizeGroupRef = useRef<HTMLDivElement>(null);
   const fontStylingGroupRef = useRef<HTMLDivElement>(null);
   const findPreviewGroupRef = useRef<HTMLDivElement>(null);
-
-  const { isDark } = useTheme();
 
   const { width: windowWidth } = useWindowSize();
   const hasInProgressAnimation = useHasInProgressAnimation();
@@ -271,16 +282,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   const sidebar = useSidebar();
 
-  // move to a selector
-
-  // const stylesOptions = styles.map(({ name, id, level }) => {
-  //   return {
-  //     label: name,
-  //     value: level?.toString() ?? id,
-  //   }
-  // });
-
-  const dispatch = useDispatch();
+  const fontFamilySelectOpen = state.fontFamilySelectOpen;
+  const fontSizeSelectOpen = state.fontSizeSelectOpen;
+  const fontStyleSelectOpen = state.styleSelectOpen;
 
   // HANDLE IPC EVENTS
   useIpcRenderer((ipc) => {
@@ -295,6 +299,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
 
   }, [window.electron.ipcRenderer]);
+
+  const handleToggleShowNonPrintingCharacters = useCallback(() => {
+    dispatchEditor(toggleShowNonPrintingCharacters());
+  }, [dispatchEditor]);
 
   const hideGroups = useCallback(() => {
     if (!toolbarContainer.current) return;
@@ -335,12 +343,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
     fontStylingWidth, linkingWidth, sectionWidth, sidebarButtonWidth, spacingWidth, undoRedoWidth]);
 
   useEffect(() => {
-    if (viewToolbar) {
+    if (state.toolbarVisible) {
       setTimeout(() => {
         hideGroups();
       }, 300);
     }
-  }, [sidebar.open, windowWidth, hasInProgressAnimation, viewToolbar, alignmentWidth, undoRedoWidth,
+  }, [sidebar.open, windowWidth, hasInProgressAnimation, state.toolbarVisible, alignmentWidth, undoRedoWidth,
     sectionWidth, fontFamilyWidth, fontSizeWidth, fontStylingWidth, spacingWidth, linkingWidth,
     findPreviewWidth, sidebarButtonWidth, hideGroups]);
 
@@ -428,7 +436,104 @@ const Toolbar: React.FC<ToolbarProps> = ({
     setTimeout(() => {
       hideGroups();
     }, 500);
-  }, [toolbarContainer, includeOptionals, hideGroups]);
+  }, [toolbarContainer, includeOptionalsMemo, hideGroups]);
+
+  const handleHeadingLevelChange = useCallback((value: string) => {
+    const numericValue = Number.parseInt(value);
+    const isNumeric = !Number.isNaN(numericValue) && value === numericValue.toString();
+
+    if (isNumeric && numericValue > 0) {
+      const style = state.styles.filter(style => HEADING_CUSTOM_TYPES.includes(style?.type)).find((style) => style?.level?.toString() === value);
+
+      if (style) {
+        onHeadingChange(style);
+      }
+
+    } else if (isNumeric && numericValue === 0) {
+      const style = state.styles.filter(style => HEADING_CUSTOM_TYPES.includes(style?.type)).find((style) => style?.type?.toString() === "P");
+
+      if (style) {
+        onSetBody(style);
+      }
+
+    } else {
+      const style = state.styles.filter(style => HEADING_CUSTOM_TYPES.includes(style?.type)).find((style) => style.id.toString() === value);
+
+      if (style) {
+        onCustomStyleChange(style)
+      }
+    }
+  }, [state.styles, onSetBody, onCustomStyleChange]);
+
+  const isSuperscript = useMemo(() => state.toolbarState.superscript, [state.toolbarState.superscript])
+  const isSubscript = useMemo(() => state.toolbarState.subscript, [state.toolbarState.subscript])
+  const isBold = useMemo(() => state.toolbarState.bold, [state.toolbarState.bold])
+  const isItalic = useMemo(() => state.toolbarState.italic, [state.toolbarState.italic])
+  const isUnderline = useMemo(() => state.toolbarState.underline, [state.toolbarState.underline])
+
+  const handleToggleSuperscript = useCallback(() => {
+    onSetSuperscript(!isSuperscript)
+    dispatchEditor(setToolbarStateSuperscript(!isSuperscript))
+  }, [isSuperscript]);
+
+  const handleToggleSubscript = useCallback(() => {
+    onSetSubscript(!isSubscript)
+    dispatchEditor(setToolbarStateSubscript(!isSubscript))
+  }, [isSubscript]);
+
+  const handleToggleBold = useCallback(() => {
+    onBoldChange(!isBold)
+    dispatchEditor(setToolbarStateBold(!isBold))
+  }, [isBold]);
+
+  const handleToggleItalic = useCallback(() => {
+    onItalicChange(!isItalic)
+    dispatchEditor(setToolbarStateItalic(!isItalic))
+  }, [isItalic]);
+
+  const handleToggleUnderline = useCallback(() => {
+    onUnderlineChange(!isUnderline)
+    dispatchEditor(setToolbarStateUnderline(!isUnderline))
+  }, [isUnderline]);
+
+  const handleTextColor = useCallback((color) => {
+    onTextColorChange(color)
+  }, [onTextColorChange]);
+
+  const handleHighlightColor = useCallback((color) => {
+    onHighlightColorChange(color)
+  }, [onHighlightColorChange]);
+
+  const handleClickCitation = useCallback(() => {
+    dispatchEditor(setCitationInsertDialogVisible(true));
+  }, [dispatchEditor]);
+
+  const handlePrint = useCallback(() => {
+    dispatchEditor(togglePrintPreviewVisible())
+    dispatchEditor(closeAllSelects());
+  }, []);
+
+  const handleAlignmentChange = useCallback((textAlignment: Alignment) => {
+    onSetTextAlignment(textAlignment)
+  }, [onSetTextAlignment]);
+
+  const handleLineSpacing = useCallback((line: number) => {
+    onSetLineSpacing({
+      line,
+      before: 0,
+      after: 0
+    })
+  }, [onSetLineSpacing]);
+
+  const handleListChange = useCallback((style: BulletStyles) => {
+    onSetListStyle(style)
+  }, [onSetListStyle]);
+
+  const toggleSidebar = useCallback(() => {
+    sidebar.toggleSidebar();
+  }, [sidebar]);
+
+  const fontFamily = useMemo(() => state.toolbarState.fontFamily, [state.toolbarState.fontFamily]);
 
   const fontFamilies = useMemo((() => systemFonts.map(font => ({
     value: font,
@@ -437,1054 +542,445 @@ const Toolbar: React.FC<ToolbarProps> = ({
   }))), [systemFonts]);
 
   const handleFontFamilyChange = useCallback((value: string) => {
-    dispatch(setFontFamily({ fontFamily: value }));
     onFontFamilyChange(value);
-  }, [dispatch, onFontFamilyChange]);
+  }, [onFontFamilyChange]);
 
-  const FontFamilySelect = useMemo(() => {
-    return <CustomSelect
-      minWidth="150px"
-      value={emphasisState.fontFamily ?? 'Times New Roman'}
-      onValueChange={handleFontFamilyChange
-      }
-      ariaLabel="Font Family"
-      tooltip={t('toolbar.fontFamily')}
-      tabIndex={5}
-      triggerClassName="min-w-[140px]"
-      placeholder={emphasisState.fontFamily}
-      items={fontFamilies}
-    />
-  }, [emphasisState.fontFamily, handleFontFamilyChange, t, fontFamilies]);
+  const handleFontFamilyOpenChange = useCallback((open: boolean) => {
+    dispatchEditor(setFontFamilySelectOpen(open));
+  }, [dispatchEditor]);
+
+  const handleFontStyleOpenChange = useCallback((open: boolean) => {
+    dispatchEditor(setStyleSelectOpen(open));
+  }, [dispatchEditor]);
+
+  const handleFontSizeOpenChange = useCallback((open: boolean) => {
+    dispatchEditor(setFontSizeSelectOpen(open));
+  }, [dispatchEditor]);
+
+  const fontSize = useMemo(() => state.toolbarState.fontSize?.replace('pt', '') ?? '', [state.toolbarState.fontSize]);
+
+  const handleFontSizeChange = useCallback((value) => {
+    onFontSizeChange(`${value}pt`)
+  }, [onFontSizeChange]);
+
+  const bookmarkCategories = useSelector(bookmarkCategoriesSelector)
+
+  const handleSetBookmark = useCallback(() => {
+    handleSelectBookmarkCategory()
+  }, []);
+
+  const handleSelectBookmarkCategory = useCallback((category?: BookmarkCategory) => {
+    onAddBookmark?.(category?.id)
+  }, [onAddBookmark]);
+
+  const bookmarkCategoriesMemo = useMemo(() => {
+    const noCategory: BookmarkCategory = {
+      id: undefined,
+      name: "Uncategorised"
+    }
+    return (bookmarkCategories && bookmarkCategories?.length > 0) ? [
+      noCategory,
+      ...bookmarkCategories ?? []
+    ] : []
+  }, [bookmarkCategories]);
+
+  const commentCategories = useSelector(commentCategoriesSelector)
+
+  const addComment = useCallback(() => {
+    onAddComment()
+  }, [onAddComment]);
+
+  const addCommentWithCategory = useCallback((category?: CommentCategory) => {
+    onAddComment(category?.id)
+  }, [onAddComment]);
+
+  const commentCategoriesMemo = useMemo(() => {
+    const noCategory: CommentCategory = {
+      id: undefined,
+      name: "Uncategorised"
+    }
+    return (commentCategories && commentCategories?.length > 0) ? [
+      noCategory,
+      ...commentCategories ?? []
+    ] : []
+  }, [commentCategories]);
+
+  const isApparatus = useMemo(() => currentEditor === "APPARATUS", [currentEditor])
+  const isText = useMemo(() => currentEditor === "TEXT", [currentEditor])
+  const isHeadingOrMixedSelection = useMemo(() => !isApparatus && (selectedNodeType === "heading" || selectedNodeType === "mixed"), [isApparatus, selectedNodeType]);
+
+  const handleSetTextNoteToApparatus = useCallback((apparatus: Apparatus) => {
+    onSetTextNoteToApparatusId?.(apparatus.id)
+  }, [onSetTextNoteToApparatusId])
 
   return (
     <TooltipProvider>
-      <ToolbarContainer className={viewToolbar ? '' : 'hidden'}>
-        <div ref={toolbarContainer} onContextMenu={handleContextMenu} className={cn("relative w-full max-w-full flex justify-between space-x-2 overflow-hidden")}>
-          <div
-            style={{
-              position: "absolute",
-              top: `${popoverPosition.top}px`,
-              left: popoverPosition.left !== undefined ? `${popoverPosition.left}px` : undefined,
-              right: popoverPosition.right !== undefined ? `${popoverPosition.right}px` : undefined,
-              width: "1px",
-              height: "1px",
-              pointerEvents: "none",
-            }}
-          >
-            {/* POPOVER FOR EDIT */}
-            <Popover open={showContextMenu} onOpenChange={setShowContextMenu}>
-              <PopoverTrigger asChild>
-                <div className="w-1 h-1" />
-              </PopoverTrigger>
-              <PopoverContent className="w-auto px-2 py-1" onOpenAutoFocus={(e) => e.preventDefault()}>
-                <div className="flex items-center gap-2">
-                  <Button
-                    intent="secondary"
-                    variant="icon"
-                    size="small"
-                    aria-label={t('toolbar.contextMenu')}
-                    className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    onClick={() => {
-                      setShowContextMenu(false)
-                      showCustomizeToolbar();
-                    }}
-                  >
-                    {t('toolbar.contextMenu')}
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="flex items-center space-x-2 flex-nowrap">
-            <Button
-              variant="icon"
-              size="iconSm"
-              aria-label="Show/hide Sidebar"
-              ref={sidebarButtonRef}
-              onClick={() => {
-                sidebar.toggleSidebar();
+      <header className={cn(
+        "flex h-12 shrink-0 items-center gap-2 border-b-2 border-grey-80 dark:border-grey-50 bg-background dark:bg-grey-20 overflow-hidden max-w-full",
+        state.toolbarVisible ? '' : 'hidden'
+      )}>
+        <div className="flex items-center gap-2 px-1 flex-1 overflow-hidden max-w-full">
+          <div ref={toolbarContainer} onContextMenu={handleContextMenu} className={cn("z-50 relative w-full max-w-full flex justify-between space-x-2 overflow-hidden")}>
+            <div
+              style={{
+                position: "absolute",
+                top: `${popoverPosition.top}px`,
+                left: popoverPosition.left !== undefined ? `${popoverPosition.left}px` : undefined,
+                right: popoverPosition.right !== undefined ? `${popoverPosition.right}px` : undefined,
+                width: "1px",
+                height: "1px",
+                pointerEvents: "none",
               }}
-              tabIndex={1}
-              tooltip={t('toolbar.sidebar.toggle')}
-              className={`border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0 transition-transform duration-300`}
             >
-              <DockToRight variant="tonal" intent="secondary" size="small" />
-            </Button>
-            <div
-              ref={undoRedoGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild className="p-0 m-0">
-                  <Button
-                    intent="secondary"
-                    variant="outline"
-                    size="mini"
-                    aria-label="undo"
-                    tabIndex={2}
-                    tooltip={t('toolbar.undo')}
-                    className="border-none shadow-none gap-0 hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0 px-[0] py-[0]"
-                    disabled={canUndo && (!history?.recentActions || history?.recentActions?.length <= 0)}
-                    leftIcon={<Undo inheritColor={true} intent='secondary' variant='tonal' size='small' />}
-                    rightIcon={<Dropdown inheritColor={true} intent='secondary' variant='tonal' size='small' />}
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 !-top-6">
-                  <DropdownMenuLabel>
-                    {t('editor.history')}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {history?.recentActions.map((action: HistoryAction) => (
-                    <DropdownMenuItem key={action.id} onClick={() => {
-                      onUndo(action)
-                    }}>
-                      <div className="flex flex-col">
-                        <span>{action.description}</span>
-                        <span>{retrieveActionDetail(action)}</span>
-                        <span>{formatTime(action.timestamp)}</span>
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* REDO */}
-              <Button
-                intent="secondary"
-                variant="icon"
-                aria-label="redo"
-                tabIndex={3}
-                tooltip={t('toolbar.redo')}
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0 ml-[0!important]"
-                size="iconSm"
-                icon={<Restore intent='secondary' variant='tonal' size='small' />}
-                onClick={onRedo}
-              />
-            </div>
-
-            {/* HEADING SELECT */}
-            <div
-              ref={sectionGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              <Select
-                disabled={!headingEnabled}
-                value={emphasisState.headingLevel?.toString() ?? ''}
-                onValueChange={(value) => {
-                  if (value > '0') {
-                    onHeadingLevelChange(+value)
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      headingLevel: +value
-                    })
-                  } else if (value === '0') {
-                    onSetBody()
-                  }
-                }}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <AppSelectTrigger >
-                      <SelectValue />
-                    </AppSelectTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('toolbar.headingStyle')}</p>
-                  </TooltipContent>
-                </Tooltip>
-                <AppSelectContent>
-                  <AppList
-                    data={sectionTypes}
-                    renderItem={(type, index) => (
-                      <Fragment
-                        key={`section-style-${index}`}>
-                        {!index ? null : <AppSelectSeparator />}
-                        {type && <AppSelectItem
-                          value={type?.value?.toString()}>
-                          {t(type.label)}
-                        </AppSelectItem>}
-                      </Fragment>
-                    )}
-                  />
-                </AppSelectContent>
-              </Select>
-            </div>
-
-            {/* FONT FAMILY SELECT */}
-            <div
-              ref={fontFamilyGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              {FontFamilySelect}
-            </div>
-
-            {/* FONT SIZE SELECT */}
-            <div
-              ref={fontSizeGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              <CustomSelect
-                // disabled={emphasisState.headingLevel > 0}
-                minWidth="50px"
-                value={emphasisState.fontSize?.replace('pt', '') ?? ''}
-                onValueChange={(value) => {
-                  onFontSizeChange(`${value}pt`)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    fontSize: `${value}pt`
-                  })
-                }}
-                tooltip={t('toolbar.fontSize')}
-                ariaLabel="Font size"
-                tabIndex={6}
-                triggerClassName="min-w-[45px]"
-                placeholder={emphasisState.fontSize}
-                items={fontSizes.map(size => ({
-                  value: size.toString(),
-                  label: size
-                }))}
-              />
-            </div>
-            <div
-              ref={fontStylingGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              {/* Superscript CONTROL */}
-              {
-                includeOptionals.includes('superscript') &&
-                <Button
-                  intent="secondary"
-                  variant={emphasisState.superscript ? "tonal" : "icon"}
-                  aria-label="Superscript"
-                  size="iconSm"
-                  tabIndex={7}
-                  tooltip={t('toolbar.superscript')}
-                  icon={<Superscript intent='secondary' variant='tonal' size='small' />}
-                  onClick={() => {
-                    onSetSuperscript(!emphasisState.superscript)
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      superscript: !emphasisState.superscript
-                    })
-                  }}
-                  aria-pressed={emphasisState.superscript}
-                  className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              }
-              {/* Subscript CONTROL */}
-              {
-                includeOptionals.includes('subscript') &&
-                <Button
-                  intent="secondary"
-                  variant={emphasisState.subscript ? "tonal" : "icon"}
-                  size="iconSm"
-                  tabIndex={8}
-                  tooltip={t('toolbar.subscript')}
-                  icon={<Subscript intent='secondary' variant='tonal' size='small' />}
-                  onClick={() => {
-                    onSetSubscript(!emphasisState.subscript)
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      subscript: !emphasisState.subscript
-                    })
-                  }}
-                  aria-pressed={emphasisState.subscript}
-                  aria-label="Subscript"
-                  className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              }
-              {/* BOLD CONTROL */}
-              <Button
-                intent="secondary"
-                variant={emphasisState.bold ? "tonal" : "icon"}
-                size="iconSm"
-                tabIndex={9}
-                tooltip={t('toolbar.bold')}
-                icon={<Bold intent='secondary' variant='tonal' size='small' />}
-                onClick={() => {
-                  onBoldChange(!emphasisState.bold)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    bold: !emphasisState.bold
-                  })
-                }}
-                aria-pressed={emphasisState.bold}
-                aria-label="Bold"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              {/* ITALIC CONTROL */}
-              <Button
-                intent="secondary"
-                variant={emphasisState.italic ? "tonal" : "icon"}
-                size="iconSm"
-                tabIndex={10}
-                tooltip={t('toolbar.italic')}
-                icon={<Italic intent='secondary' variant='tonal' size='small' />}
-                onClick={() => {
-                  onItalicChange(!emphasisState.italic)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    italic: !emphasisState.italic
-                  })
-                }}
-                aria-pressed={emphasisState.italic}
-                aria-label="Italic"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              {/* UNDERLINE CONTROL */}
-              <Button
-                intent="secondary"
-                variant={emphasisState.underline ? "tonal" : "icon"}
-                size="iconSm"
-                tabIndex={11}
-                tooltip={t('toolbar.underline')}
-                icon={<Underline intent='secondary' variant='tonal' size='small' />}
-                onClick={() => {
-                  onUnderlineChange(!emphasisState.underline)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    underline: !emphasisState.underline
-                  })
-                }}
-                aria-pressed={emphasisState.underline}
-                aria-label="Underline"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              {/* TEXT COLOR CONTROL */}
-              <FormatTextColor
-                onSelect={(color) => {
-                  onTextColorChange(color)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    textColor: color
-                  })
-                }}
-                tabIndex={12}
-                tooltip={t('toolbar.fontColor')}
-                ariaLabel="Text Color"
-                textColor={emphasisState.textColor}
-              />
-              {/* HIGHLIGHT COLOR CONTROL */}
-              <HighlightColor
-                onSelect={(color) => {
-                  onHighlightColorChange(color)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    highlight: color
-                  })
-                }}
-                tabIndex={13}
-                tooltip={t('toolbar.highlightColor')}
-                ariaLabel="Highlight Color"
-                highlightColor={emphasisState.highlight}
-              />
-              {/* Non printing character CONTROL */}
-              {
-                includeOptionals.includes('nonprinting') &&
-                <Button
-                  intent="secondary"
-                  variant={emphasisState.showNonPrintingCharacters ? "tonal" : "icon"}
-                  size="iconSm"
-                  tabIndex={14}
-                  tooltip={t('toolbar.nonPrintingCharacters')}
-                  icon={<NonPrintingCharact intent='secondary' variant='tonal' size='small' />}
-                  onClick={toggleNonPrintingCharacters}
-                  aria-pressed={false}
-                  aria-label="Non printing character"
-                  className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              }
-            </div>
-            <div
-              ref={spacingGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              <Button
-                intent="secondary"
-                variant={emphasisState.blockquote ? "tonal" : "icon"}
-                size="iconSm"
-                tabIndex={15}
-                tooltip={t('toolbar.note')}
-                icon={<HistoryEdu intent='secondary' variant='tonal' size='small' />}
-                onClick={() => {
-                  onSetBlockquote(!emphasisState.blockquote)
-                  onEmphasisStateChange({
-                    ...emphasisState,
-                    blockquote: !emphasisState.blockquote
-                  })
-                }}
-                aria-pressed={emphasisState.blockquote}
-                aria-label="Blockquote"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    intent="secondary"
-                    variant="icon"
-                    size="iconSm"
-                    tabIndex={16}
-                    tooltip={t('toolbar.siglum')}
-                    icon={<Siglum
-                      intent='secondary'
-                      variant='tonal'
-                      size='small'
-                    />}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      onShowSiglumSetup()
-                    }}
-                    aria-label={t('toolbar.siglum')}
-                    className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                </DropdownMenuTrigger>
-                {siglumList.length > 0 && <DropdownMenuContent className="w-40">
-                  {siglumList.map((item) => (
-                    <DropdownMenuItem
-                      key={item.id}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onSelectSiglum(item)
-                      }}>
-                      {item.siglum.value}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>}
-              </DropdownMenu>
-              <Button
-                intent="secondary"
-                variant="icon"
-                size="iconSm"
-                tabIndex={17}
-                tooltip={t('toolbar.citation')}
-                icon={<Citation intent='secondary' variant='tonal' size='small' />}
-                onClick={() => {
-                  // TODO: add toggle citation
-                  // activeEditor?.chain().focus().toggleBlockquote().run()
-                }}
-                aria-label={t('toolbar.citation')}
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              {
-                includeOptionals.includes('readingType') &&
-                <Button
-                  intent="secondary"
-                  variant="icon"
-                  size="iconSm"
-                  tabIndex={17}
-                  tooltip={t('toolbar.readingType')}
-                  icon={<ReadingType intent='secondary' variant='tonal' size='small' />}
-                  onClick={() => {
-                    // TODO: add toggle citation
-                    // activeEditor?.chain().focus().toggleBlockquote().run()
-                  }}
-                  aria-label={t('toolbar.readingType')}
-                  className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              }
-              {
-                includeOptionals.includes('readingSeparator') &&
-                <Button
-                  intent="secondary"
-                  variant="icon"
-                  size="iconSm"
-                  tabIndex={17}
-                  tooltip={t('toolbar.readingSeperator')}
-                  icon={<ReadingSeperator intent='secondary' variant='tonal' size='small' />}
-                  onClick={() => {
-                    // TODO: add toggle citation
-                    // activeEditor?.chain().focus().toggleBlockquote().run()
-                  }}
-                  aria-label={t('toolbar.readingSeperator')}
-                  className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              }
-            </div>
-            <div
-              ref={linkingGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              {/* COMMENT ADD */}
-              {(commentCategories.length === 0 || (commentActive && commentCategories.length > 0)) && <Button
-                intent="secondary"
-                variant={commentActive ? "tonal" : "icon"}
-                size="iconSm"
-                tabIndex={18}
-                tooltip={t('toolbar.comment')}
-                icon={<CommentAdd intent='secondary' variant='tonal' size='small' />}
-                onClick={(_) => {
-                  if (commentActive) {
-                    onUnsetComment()
-                  } else {
-                    onClickAddComment()
-                  }
-                }}
-                aria-label="Insert comment"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                disabled={!canAddComment}
-              />}
-              {!commentActive && commentCategories.length > 0 && <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    intent="secondary"
-                    variant={commentActive ? "tonal" : "icon"}
-                    size="iconSm"
-                    tooltip={t('toolbar.comment')}
-                    icon={<CommentAdd intent='secondary' variant='tonal' size='small' />}
-                    disabled={!canAddComment}
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-40">
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onClickAddComment()
-                    }
-                    }>Uncategorised
-                  </DropdownMenuItem>
-                  {commentCategories.map((category) => (
-                    <DropdownMenuItem key={category.id} onClick={() => {
-                      onClickAddComment(category.id)
-                    }
-                    }>
-                      {category.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>}
-              {/* BOOKMARK ADD */}
-              {(bookmarksCategories.length === 0 || (bookmarkActive && bookmarksCategories.length > 0)) && <Button
-                intent="secondary"
-                variant={bookmarkActive ? "tonal" : "icon"}
-                size="iconSm"
-                tabIndex={19}
-                tooltip={t('toolbar.bookmark')}
-                icon={<Bookmark intent='secondary' variant="tonal" size='small' />}
-                onClick={(_) => {
-                  if (bookmarkActive) {
-                    onUnsetBookmark()
-                  } else {
-                    onClickAddBookmark()
-                  }
-                }}
-                disabled={!canAddBookmark}
-                aria-label="Insert bookmark"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />}
-              {!bookmarkActive && bookmarksCategories.length > 0 && <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    intent="secondary"
-                    variant={bookmarkActive ? "tonal" : "icon"}
-                    size="iconSm"
-                    tooltip={t('toolbar.bookmark')}
-                    icon={<Bookmark intent='secondary' variant='tonal' size='small' />}
-                    disabled={!canAddBookmark}
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-40">
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onClickAddBookmark()
-                    }
-                    }>Uncategorised
-                  </DropdownMenuItem>
-                  {bookmarksCategories.map((category) => (
-                    <DropdownMenuItem key={category.id} onClick={() => {
-                      onClickAddBookmark(category.id)
-                    }
-                    }>{category.name}</DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>}
-              {
-                includeOptionals.includes('symbol') &&
-                <Button
-                  intent="secondary"
-                  variant="icon"
-                  size="iconSm"
-                  tabIndex={19}
-                  disabled={!editorIsFocused}
-                  aria-disabled={!editorIsFocused}
-                  tooltip={t('toolbar.symbol')}
-                  icon={<Symbol intent='secondary' variant='tonal' size='small' />}
-                  onClick={showAddSymbol}
-                />
-              }
-              {/* LINK ADD */}
-              {
-                !linkActive && <Button
-                  intent="secondary"
-                  variant={linkActive ? "tonal" : "icon"}
-                  size="iconSm"
-                  tabIndex={20}
-                  tooltip={t('toolbar.link')}
-                  icon={<LinkAdd intent='secondary' variant='tonal' size='small' />}
-                  onClick={showLinkConfig}
-                  aria-label="Insert link"
-                />
-              }
-              {linkActive && <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    intent="secondary"
-                    variant={linkActive ? "tonal" : "icon"}
-                    size="iconSm"
-                    tabIndex={20}
-                    tooltip={t('toolbar.link')}
-                    icon={<LinkAdd intent='secondary' variant='tonal' size='small' />}
-                    aria-label="Insert link"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-40">
-                  <DropdownMenuItem
-                    onClick={showLinkConfig}
-                  >
-                    {t('toolbar.editLink')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={removeLink}>
-                    {t('toolbar.removeLink')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>}
-              {
-                includeOptionals.includes('object') &&
-                <Button
-                  intent="secondary"
-                  variant="icon"
-                  size="iconSm"
-                  tabIndex={21}
-                  tooltip={t('toolbar.object')}
-                  icon={<Object intent='secondary' variant='tonal' size='small' />}
-                  onClick={() => {
-                    // TODO: add object functionality
-                  }}
-                />
-              }
-            </div>
-            <div
-              ref={alignmentGroupRef}
-              className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
-            >
-              <AppSeparator orientation="vertical" className="max-h-[70%]" />
-              {/* Alignment */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button aria-label="Align text" tooltip={t('toolbar.alignment')} tabIndex={21} intent="secondary" variant="outline" size="mini" className="border-none shadow-none gap-0 focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary hover:text-white px-[.25rem] py-[0]"
-                    leftIcon={
-                      emphasisState.alignment === "left" ? <AlignLeft inheritColor={!isDark} intent="secondary" variant="tonal" size="small" /> :
-                        emphasisState.alignment === "center" ? <AlignCenter inheritColor={!isDark} intent="secondary" variant="tonal" size="small" /> :
-                          emphasisState.alignment === "right" ? <AlignRight inheritColor={!isDark} intent="secondary" variant="tonal" size="small" /> :
-                            <AlignJustify inheritColor={!isDark} intent="secondary" variant="tonal" size="small" />
-                    }
-                    rightIcon={
-                      <Dropdown inheritColor={!isDark} intent='secondary' variant='tonal' size='small' />
-                    }
-                  >
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent data-orientation='horizontal' className="flex space-x-2 p-1">
-                  <DropdownMenuItem tabIndex={22} className="p-0" onClick={() => {
-                    onSetTextAlignment("left")
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      alignment: "left"
-                    })
-                  }}>
+              {/* POPOVER FOR EDIT */}
+              <Popover open={showContextMenu} onOpenChange={setShowContextMenu}>
+                <PopoverTrigger asChild>
+                  <div className="w-1 h-1" />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto px-2 py-1" onOpenAutoFocus={(e) => e.preventDefault()}>
+                  <div className="flex items-center gap-2">
                     <Button
                       intent="secondary"
-                      variant={emphasisState.alignment === 'left' ? "filled" : "icon"}
-                      size="iconSm"
-                      aria-label="Align Text Left"
-                      tooltip={t('toolbar.alignLeft')}
-                      icon={<AlignLeft intent='secondary' variant={emphasisState.alignment === 'left' ? "filled" : "icon"} size='small' />}
-                    />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem tabIndex={23} className="p-0" onClick={() => {
-                    onSetTextAlignment("center")
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      alignment: "center"
-                    })
-                  }}>
-                    <Button
-                      intent="secondary"
-                      variant={emphasisState.alignment === 'center' ? "filled" : "icon"}
-                      size="iconSm"
-                      aria-label="Align Text Center"
-                      tooltip={t('toolbar.alignCenter')}
-                      icon={<AlignCenter intent='secondary' variant={emphasisState.alignment === 'center' ? "filled" : "tonal"} size='small' />}
-                    />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem tabIndex={24} className="p-0" onClick={() => {
-                    onSetTextAlignment("right")
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      alignment: "right"
-                    })
-                  }}>
-                    <Button
-                      intent="secondary"
-                      variant={emphasisState.alignment === 'right' ? "filled" : "icon"}
-                      size="iconSm"
-                      aria-label="Align Text Right"
-                      tooltip={t('toolbar.alignRight')}
-                      icon={<AlignRight intent='secondary' variant={emphasisState.alignment === 'right' ? "filled" : "tonal"} size='small' />}
-                    />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem tabIndex={25} className="p-0" onClick={() => {
-                    onSetTextAlignment("justify")
-                    onEmphasisStateChange({
-                      ...emphasisState,
-                      alignment: "justify"
-                    })
-                  }}>
-                    <Button
-                      intent="secondary"
-                      variant={emphasisState.alignment === 'justify' ? "filled" : "icon"}
-                      size="iconSm"
-                      aria-label="Justify Text"
-                      tooltip={t('toolbar.justify')}
-                      icon={<AlignJustify intent='secondary' variant={emphasisState.alignment === 'justify' ? "filled" : "tonal"} size='small' />}
-                    />
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    intent="secondary"
-                    variant="icon"
-                    size="iconSm"
-                    tabIndex={26}
-                    tooltip={t('toolbar.spacing')}
-                    icon={
-                      <FormatLineSpacing intent="secondary" variant="tonal" size="small" />
-                    }
-                    onClick={() => null}
-                    aria-label="Spacing"
-                    className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-40">
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onSetLineSpacing({
-                        line: 1,
-                        before: null,
-                        after: null
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        spacing: {
-                          line: 1,
-                          before: null,
-                          after: null
-                        }
-                      })
-                    }
-                    }>{t('menu.format.text.spacing.single')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onSetLineSpacing({
-                        line: 1.15,
-                        before: null,
-                        after: null
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        spacing: {
-                          line: 1.15,
-                          before: null,
-                          after: null
-                        }
-                      })
-                    }
-                    }>{t('menu.format.text.spacing.1_15')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onSetLineSpacing({
-                        line: 1.5,
-                        before: null,
-                        after: null
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        spacing: {
-                          line: 1.5,
-                          before: null,
-                          after: null
-                        }
-                      })
-                    }
-                    }>{t('menu.format.text.spacing.oneAndHalf')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onSetLineSpacing({
-                        line: 2,
-                        before: null,
-                        after: null
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        spacing: {
-                          line: 2,
-                          before: null,
-                          after: null
-                        }
-                      })
-                    }
-                    }>{t('menu.format.text.spacing.double')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={onShowCustomSpacing}
-                  >
-                    {t('customSpacing.title')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button aria-label="Insert bulleted list / Insert numbered list"
-                    tabIndex={27}
-                    intent="secondary"
-                    variant={emphasisState.bulletStyle.type !== '' ? "tonal" : "icon"}
-                    size="mini"
-                    tooltip={t('toolbar.list')}
-                    className="border-none shadow-none gap-0 focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary hover:text-white px-[.25rem] py-[0]"
-                    leftIcon={
-                      <ListIcon intent="secondary" inheritColor={!isDark} variant={emphasisState.bulletStyle.type !== '' ? "tonal" : "icon"} size="small" />
-                    }
-                    rightIcon={
-                      <Dropdown intent='secondary' inheritColor={!isDark} variant={emphasisState.bulletStyle.type !== '' ? 'tonal' : "icon"} size='small' />
-                    }
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="p-[.5rem]">
-                  <div className="flex items-center py-[.5rem] gap-3">
-                    <DropdownMenuItem tabIndex={28} className="p-0" onClick={() => {
-                      onSetListStyle({
-                        ...emphasisState.bulletStyle,
-                        style: emphasisState.bulletStyle.style === 'decimal' ? '' : 'decimal',
-                        type: emphasisState.bulletStyle.style === 'decimal' ? '' : 'ORDER',
-                        previousType: emphasisState.bulletStyle.type
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        bulletStyle: {
-                          style: emphasisState.bulletStyle.style === 'decimal' ? '' : 'decimal',
-                          type: emphasisState.bulletStyle.style === 'decimal' ? '' : 'ORDER',
-                          previousType: emphasisState.bulletStyle.type
-                        }
-                      })
-                    }}>
-                      <Button
-                        intent="secondary"
-                        variant={emphasisState.bulletStyle.style === 'decimal' ? "filled" : "icon"}
-                        size="iconSm"
-                        tooltip={t('toolbar.listNumber')}
-                        icon={<ListNumber intent='secondary' variant={emphasisState.bulletStyle.style === 'decimal' ? "filled" : "tonal"} size='small' />}
-                      />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem tabIndex={29} className="p-0" onClick={() => {
-                      onSetListStyle({
-                        ...emphasisState.bulletStyle,
-                        style: emphasisState.bulletStyle.style === 'upper-alpha' ? '' : "upper-alpha",
-                        type: emphasisState.bulletStyle.style === 'upper-alpha' ? '' : 'ORDER',
-                        previousType: emphasisState.bulletStyle.type
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        bulletStyle: {
-                          style: emphasisState.bulletStyle.style === 'upper-alpha' ? '' : "upper-alpha",
-                          type: emphasisState.bulletStyle.style === 'upper-alpha' ? '' : 'ORDER',
-                          previousType: emphasisState.bulletStyle.type
-                        }
-                      })
-                    }}>
-                      <Button
-                        intent="secondary"
-                        variant={emphasisState.bulletStyle.style === 'upper-alpha' ? "filled" : "icon"}
-                        size="iconSm"
-                        tooltip={t('toolbar.listUppercase')}
-                        icon={<ListUppercase intent='secondary' variant={emphasisState.bulletStyle.style === 'upper-alpha' ? "filled" : "tonal"} size='small' />}
-                      />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem tabIndex={30} className="p-0" onClick={() => {
-                      onSetListStyle({
-                        ...emphasisState.bulletStyle,
-                        style: emphasisState.bulletStyle.style === 'lower-alpha' ? '' : "lower-alpha",
-                        type: emphasisState.bulletStyle.style === 'lower-alpha' ? '' : 'ORDER',
-                        previousType: emphasisState.bulletStyle.type
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        bulletStyle: {
-                          style: emphasisState.bulletStyle.style === 'lower-alpha' ? '' : "lower-alpha",
-                          previousType: emphasisState.bulletStyle.type,
-                          type: emphasisState.bulletStyle.style === 'lower-alpha' ? '' : 'ORDER'
-                        }
-                      })
-                    }}>
-                      <Button
-                        intent="secondary"
-                        variant={emphasisState.bulletStyle.style === 'lower-alpha' ? "filled" : "icon"}
-                        size="iconSm"
-                        tooltip={t('toolbar.listLowercase')}
-                        icon={<ListLowercase intent='secondary' variant={emphasisState.bulletStyle.style === 'lower-alpha' ? "filled" : "tonal"} size='small' />}
-                      />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem tabIndex={31} className="p-0" onClick={() => {
-                      onSetListStyle({
-                        ...emphasisState.bulletStyle,
-                        style: emphasisState.bulletStyle.style === 'disc' ? '' : "disc",
-                        type: emphasisState.bulletStyle.style === 'disc' ? '' : 'BULLET',
-                        previousType: emphasisState.bulletStyle.type
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        bulletStyle: {
-                          style: emphasisState.bulletStyle.style === 'disc' ? '' : "disc",
-                          previousType: emphasisState.bulletStyle.type,
-                          type: emphasisState.bulletStyle.style === 'disc' ? '' : 'BULLET'
-                        }
-                      })
-                    }}>
-                      <Button
-                        intent="secondary"
-                        variant={emphasisState.bulletStyle.style === 'disc' ? "filled" : "icon"}
-                        size="iconSm"
-                        tooltip={t('toolbar.listBullet')}
-                        icon={<ListBullet intent='secondary' variant={emphasisState.bulletStyle.style === 'disc' ? "filled" : "tonal"} size='small' />}
-                      />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem tabIndex={32} className="p-0" onClick={() => {
-                      onSetListStyle({
-                        ...emphasisState.bulletStyle,
-                        style: emphasisState.bulletStyle.style === 'circle' ? '' : "circle",
-                        type: emphasisState.bulletStyle.style === 'circle' ? '' : 'BULLET',
-                        previousType: emphasisState.bulletStyle.type
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        bulletStyle: {
-                          style: emphasisState.bulletStyle.style === 'circle' ? '' : "circle",
-                          previousType: emphasisState.bulletStyle.type,
-                          type: emphasisState.bulletStyle.style === 'circle' ? '' : 'BULLET'
-                        }
-                      })
-                    }}>
-                      <Button
-                        intent="secondary"
-                        variant={emphasisState.bulletStyle.style === 'circle' ? "filled" : "icon"}
-                        size="iconSm"
-                        tooltip={t('toolbar.listBulletEmpty')}
-                        icon={<ListBullet_empty intent='secondary' variant={emphasisState.bulletStyle.style === 'circle' ? "filled" : "tonal"} size='small' />}
-                      />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem tabIndex={32} className="p-0" onClick={() => {
-                      onSetListStyle({
-                        ...emphasisState.bulletStyle,
-                        style: emphasisState.bulletStyle.style === 'square' ? '' : "square",
-                        type: emphasisState.bulletStyle.style === 'square' ? '' : 'BULLET',
-                        previousType: emphasisState.bulletStyle.type
-                      })
-                      onEmphasisStateChange({
-                        ...emphasisState,
-                        bulletStyle: {
-                          style: emphasisState.bulletStyle.style === 'square' ? '' : "square",
-                          previousType: emphasisState.bulletStyle.type,
-                          type: emphasisState.bulletStyle.style === 'square' ? '' : 'BULLET'
-                        }
-                      })
-                    }}>
-                      <Button
-                        intent="secondary"
-                        variant={emphasisState.bulletStyle.style === 'square' ? "filled" : "icon"}
-                        size="iconSm"
-                        tooltip={t('toolbar.listBulletSquare')}
-                        icon={<ListSquareBullet intent='secondary' variant={emphasisState.bulletStyle.style === 'square' ? "filled" : "tonal"} size='small' />}
-                      />
-                    </DropdownMenuItem>
+                      variant="icon"
+                      size="small"
+                      aria-label={t('toolbar.contextMenu')}
+                      className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      onClick={() => {
+                        setShowContextMenu(false)
+                        showCustomizeToolbar();
+                      }}
+                    >
+                      {t('toolbar.contextMenu')}
+                    </Button>
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    disabled={emphasisState.bulletStyle.style !== 'decimal'}
-                    tabIndex={33} className="p-[.25rem]"
-                    onClick={() => {
-                      onShowResumeNumbering();
-                    }}>
-                    {t('resumeNumbering.title')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={emphasisState.bulletStyle.style !== 'decimal'}
-                    tabIndex={34} className="p-[.25rem]"
-                    onClick={() => {
-                      continuePreviousNumbering();
-                    }}>
-                    {t('editor.bulletList.continuePreviousNumbering')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                intent="secondary"
-                variant="icon"
-                size="iconSm"
-                tabIndex={35}
-                tooltip={t('toolbar.decreaseIndent')}
-                aria-label="Decrease Indent"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                icon={
-                  <IndentDecrease intent="secondary" variant="tonal" size="small" />
-                }
-                onClick={onDecreaseIndent}
-              />
-              <Button
-                intent="secondary"
-                variant="icon"
-                size="iconSm"
-                tabIndex={36}
-                tooltip={t('toolbar.increaseIndent')}
-                aria-label="Increase Indent"
-                className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-                icon={
-                  <IndentIncrease intent="secondary" variant="tonal" size="small" />
-                }
-                onClick={onIncreaseIndent}
-              />
+                </PopoverContent>
+              </Popover>
             </div>
-          </div>
-          <div ref={findPreviewGroupRef} className={`flex items-center space-x-2 px-1 transition-transform duration-300`}>
-            <Button
-              variant="icon"
-              size="iconSm"
-              tabIndex={37}
-              tooltip={t('toolbar.search')}
-              aria-label="Find"
-              className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              icon={<Search intent='secondary' variant='tonal' size='small' />}
-              onClick={() => null}
-            />
-            <Button
-              variant="icon"
-              size="iconSm"
-              tabIndex={38}
-              tooltip={t('toolbar.printPreview')}
-              aria-label="Show/Hide Print Preview"
-              className="border-none shadow-none hover:bg-grey-80 focus-visible:ring-0 focus-visible:ring-offset-0"
-              icon={<Print intent='secondary' variant='tonal' size='small' />}
-              onClick={() => null}
-            />
-            <AppSeparator orientation="vertical" className="max-h-[70%]" />
+            <div className="flex items-center space-x-2 flex-nowrap">
+
+              {/* SIDEBAR TOGGLE */}
+              <ToolbarButtonSidebar
+                title={t('toolbar.sidebar.toggle')}
+                onClick={toggleSidebar}
+                ref={sidebarButtonRef}
+                tabIndex={1}
+              />
+
+              {/* UNDO & REDO */}
+              <div
+                ref={undoRedoGroupRef}
+                className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
+              >
+                <AppSeparator orientation="vertical" className="max-h-[70%]" />
+                <ToolbarButtonUndo
+                  title={t('toolbar.undo')}
+                  onClick={onUndo}
+                  tabIndex={2}
+                  disabled={!toolbarEnabled}
+                />
+                <ToolbarButtonRedo
+                  title={t('toolbar.redo')}
+                  onClick={onRedo}
+                  tabIndex={3}
+                  disabled={!toolbarEnabled}
+                />
+              </div>
+
+              {/* HEADING SELECT */}
+              <ToolbarHeadingSelect
+                ref={sectionGroupRef}
+                value={headingLevel}
+                sectionTypes={styleOptions}
+                disabled={!toolbarEnabled || !headingEnabled || isApparatus}
+                onValueChange={handleHeadingLevelChange}
+                open={fontStyleSelectOpen}
+                onOpenChange={handleFontStyleOpenChange}
+              />
+
+              {/* FONT FAMILY SELECT */}
+              <ToolbarFontFamilySelect
+                disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                value={fontFamily ?? 'Times New Roman'}
+                onValueChange={handleFontFamilyChange}
+                fontFamilies={fontFamilies}
+                onOpenChange={handleFontFamilyOpenChange}
+                open={fontFamilySelectOpen}
+                tooltipLabel={t('toolbar.fontFamily')}
+              />
+
+              {/* FONT SIZE SELECT */}
+              <ToolbarFontSizeSelect
+                disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                value={fontSize}
+                onValueChange={handleFontSizeChange}
+                fontSizes={fontSizes}
+                onOpenChange={handleFontSizeOpenChange}
+                open={fontSizeSelectOpen}
+                tooltipLabel={t('toolbar.fontSize')}
+                ref={fontSizeGroupRef}
+              />
+
+              <div
+                ref={fontStylingGroupRef}
+                className={`flex items-center space-x-2 transition-transform duration-300 h-full`}>
+                <AppSeparator orientation="vertical" className="max-h-[70%]" />
+
+                {includeOptionalsMemo.includes('superscript') &&
+                  <ToolbarButtonSuperscript
+                    title={t('toolbar.superscript')}
+                    disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                    isSuperscript={isSuperscript}
+                    onClick={handleToggleSuperscript}
+                    tabIndex={7}
+                  />}
+
+                {includeOptionalsMemo.includes('subscript') &&
+                  <ToolbarButtonSubscript
+                    title={t('toolbar.subscript')}
+                    disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                    isSubscript={isSubscript}
+                    onClick={handleToggleSubscript}
+                    tabIndex={8}
+                  />}
+                <ToolbarButtonBold
+                  title={t('toolbar.bold')}
+                  disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                  isBold={isBold}
+                  onClick={handleToggleBold}
+                  tabIndex={9}
+                />
+
+                <ToolbarButtonItalic
+                  title={t('toolbar.italic')}
+                  disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                  isItalic={isItalic}
+                  onClick={handleToggleItalic}
+                  tabIndex={10}
+                />
+
+                <ToolbarButtonUnderline
+                  title={t('toolbar.underline')}
+                  disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                  isUnderline={isUnderline}
+                  onClick={handleToggleUnderline}
+                  tabIndex={10}
+                />
+
+                <FormatTextColor
+                  onSelect={handleTextColor}
+                  tabIndex={12}
+                  tooltip={t('toolbar.fontColor')}
+                  ariaLabel="Text Color"
+                  textColor={toolbarState.color}
+                  disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                />
+
+                <HighlightColor
+                  onSelect={handleHighlightColor}
+                  tabIndex={13}
+                  tooltip={t('toolbar.highlightColor')}
+                  ariaLabel="Highlight Color"
+                  highlightColor={toolbarState.highlightColor}
+                  disabled={!toolbarEnabled || isHeadingOrMixedSelection}
+                />
+
+                {includeOptionalsMemo.includes('nonprinting') &&
+                  <ToolbarButtonNPC
+                    title={t('toolbar.nonPrintingCharacters')}
+                    disabled={!toolbarEnabled}
+                    isNPC={isNPC}
+                    onClick={handleToggleShowNonPrintingCharacters}
+                    tabIndex={14}
+                  />}
+              </div>
+
+              <div
+                ref={spacingGroupRef}
+                className={`flex items-center space-x-2 transition-transform duration-300 h-full`}>
+                <AppSeparator orientation="vertical" className="max-h-[70%]" />
+
+                <ToolbarButtonHistoryEdu
+                  title={t('toolbar.note')}
+                  apparatuses={apparatusesMemo}
+                  onSetTextNoteToApparatus={handleSetTextNoteToApparatus}
+                  aria-pressed={false}
+                  aria-label="Note"
+                  disabled={!toolbarEnabled || isApparatus || !notesEnabled || isHeadingOrMixedSelection}
+                />
+
+                <ToolbarButtonSiglum
+                  title={t('toolbar.siglum')}
+                  list={siglumList || []}
+                  disabled={!toolbarEnabled || !siglumEnabled}
+                  aria-pressed={false}
+                  aria-label={t('toolbar.siglum')}
+                  onSetup={onShowSiglumSetup}
+                  onSelect={onSelectSiglum}
+                />
+
+                <ToolbarButtonCitation
+                  title={t('toolbar.citation')}
+                  disabled={!(toolbarEnabled && canInsertCitation)}
+                  aria-pressed={false}
+                  aria-label="Citation"
+                  onClick={handleClickCitation}
+                />
+
+                {includeOptionalsMemo.includes('readingType') &&
+                  <ToolbarButtonReadingType
+                    title={t('toolbar.readingType')}
+                    disabled={!toolbarEnabled || isText || !state.readingTypeEnabled}
+                    readingTypeAdd={readingTypeAdd}
+                    readingTypeOm={readingTypeOm}
+                    readingTypeTr={readingTypeTr}
+                    readingTypeDel={readingTypeDel}
+                    onClickReadingTypeAdd={onAddReadingTypeAdd}
+                    onClickReadingTypeOm={onAddReadingTypeOm}
+                    onClickReadingTypeTr={onAddReadingTypeTr}
+                    onClickReadingTypeDel={onAddReadingTypeDel}
+                  />}
+
+                {includeOptionalsMemo.includes('readingSeparator') &&
+                  <ToolbarButtonReadingSeparator
+                    title={t('toolbar.readingSeparator')}
+                    disabled={!toolbarEnabled || isText || !state.readingSeparatorEnabled}
+                    onClick={onAddReadingSeparator}
+                    tabIndex={18}
+                  />}
+
+              </div>
+
+              <div
+                ref={linkingGroupRef}
+                className={`flex items-center space-x-2 transition-transform duration-300 h-full`}>
+                <AppSeparator orientation="vertical" className="max-h-[70%]" />
+
+                {/* COMMENT */}
+                <ToolbarButtonComment
+                  title={t('toolbar.comment')}
+                  categories={commentCategoriesMemo}
+                  disabled={!toolbarEnabled || !commentEnabled}
+                  onAddComment={addComment}
+                  onSelectCategory={addCommentWithCategory}
+                />
+
+                {/* BOOKMARK */}
+                <ToolbarButtonBookmark
+                  title={t('toolbar.bookmark')}
+                  categories={bookmarkCategoriesMemo}
+                  disabled={!toolbarEnabled || !bookmarkEnabled}
+                  onSetBookmark={handleSetBookmark}
+                  onSelectCategory={handleSelectBookmarkCategory}
+                />
+
+                {includeOptionalsMemo.includes('symbol') &&
+                  <ToolbarButtonSymbol
+                    title={t('toolbar.symbol')}
+                    disabled={!(toolbarEnabled && canInsertSymbol)}
+                    onClick={showAddSymbol}
+                    tabIndex={19}
+                  />}
+
+                {/* LINK ADD */}
+                <ToolbarButtonLink
+                  linkTitle={t('toolbar.link')}
+                  active={link.length > 0}
+                  disabled={!toolbarEnabled || (!linkEnabled && link.length === 0)}
+                  editLinkLabel={t('toolbar.editLink')}
+                  removeLink={removeLink}
+                  removeLinkLabel={t('toolbar.removeLink')}
+                  showAddLink={showLinkConfig}
+                />
+
+                {/* CHAT OPEN */}
+                <ToolbarButtonChat
+                  title={t('Chat')}
+                  disabled={false}
+                  onClick={() => {
+                    dispatchEditor(openChat())
+                  }}
+                />
+
+              </div>
+
+              <div
+                ref={alignmentGroupRef}
+                className={`flex items-center space-x-2 transition-transform duration-300 h-full`}
+              >
+                <AppSeparator orientation="vertical" className="max-h-[70%]" />
+
+                {/* Alignment */}
+                <ToolbarButtonAlignment
+                  title={t('toolbar.alignment')}
+                  titleLeft={t('toolbar.alignLeft')}
+                  titleRight={t('toolbar.alignRight')}
+                  titleCenter={t('toolbar.alignCenter')}
+                  titleJustify={t('toolbar.justify')}
+                  alignment={currentAlignment}
+                  handleAlignmentChange={handleAlignmentChange}
+                  tabIndex={22}
+                  disabled={!toolbarEnabled || isApparatus || isHeadingOrMixedSelection}
+                />
+
+                {/* Spacing */}
+                <ToolbarButtonSpacing
+                  list={spacingList}
+                  title={t('toolbar.spacing')}
+                  onShowCustomSpacing={onShowCustomSpacing}
+                  tabIndex={27}
+                  disabled={!toolbarEnabled || isApparatus || isHeadingOrMixedSelection}
+                  customTitle={t('customSpacing.title')}
+                  currentSpacing={currentSpacing}
+                />
+
+                {/* Bullet List */}
+                <ToolbarButtonList
+                  tabIndex={32}
+                  title={t('toolbar.list')}
+                  onSelectListChange={handleListChange}
+                  disabled={!toolbarEnabled || isApparatus || isHeadingOrMixedSelection}
+                  onShowResumeNumbering={onShowResumeNumbering}
+                  continuePreviousNumbering={continuePreviousNumbering}
+                  currentListValue={currentListValue}
+                  resumeNumberingTitle={t('resumeNumbering.title')}
+                  continuePreviousNumberingTitle={t('editor.bulletList.continuePreviousNumbering')}
+                />
+
+                <ToolbarButtonDecreaseIndent
+                  title={t('toolbar.decreaseIndent')}
+                  disabled={!toolbarEnabled || isApparatus || isHeadingOrMixedSelection}
+                  tabIndex={41}
+                  onClick={onDecreaseIndent}
+                />
+
+                <ToolbarButtonIncreaseIndent
+                  title={t('toolbar.increaseIndent')}
+                  disabled={!toolbarEnabled || isApparatus || isHeadingOrMixedSelection}
+                  tabIndex={42}
+                  onClick={onIncreaseIndent}
+                />
+              </div>
+            </div>
+
+            <div
+              ref={findPreviewGroupRef}
+              className={`flex items-center space-x-2 px-1 transition-transform duration-300`}>
+
+              <ToolbarButtonSearch
+                title={t('toolbar.search')}
+                disabled={!toolbarEnabled}
+                tabIndex={43}
+                onClick={onSearchClick}
+              />
+
+              <ToolbarButtonPrint
+                title={t('toolbar.printPreview')}
+                disabled={!toolbarEnabled}
+                tabIndex={45}
+                onClick={handlePrint}
+              />
+
+              {/* <AppSeparator orientation="vertical" className="max-h-[70%]" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -1500,6 +996,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   rightIcon={
                     <Dropdown inheritColor={!isDark} intent='secondary' variant='tonal' size='small' />
                   }
+                // disabled={!toolbarEnabled}
                 >
                   {t(`editor.mode.${editorMode}.label`)}
                 </Button>
@@ -1542,12 +1039,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   </Label>
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
+            </div>
           </div>
         </div>
-      </ToolbarContainer>
+      </header>
     </TooltipProvider>
   );
-};
-
-export default Toolbar;
+});

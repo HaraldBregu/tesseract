@@ -14,9 +14,14 @@ dist
 dist-ssr
 dist-react
 dist-electron
+certificates
 *.local
+.env
+*.pfx
+*.p12
 
 # Editor directories and files
+.yarn/*
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -26,10 +31,27 @@ dist-electron
 *.njsproj
 *.sln
 *.sw?
+*.stl
+*.tml
 
 # TypeScript cache
 *.tsbuildinfo
 
 package-lock.json
+yarn.lock
 
+#Print preview
 out/
+TinyTex/*
+jre/*
+fonts/*
+latex/*
+
+preview/*
+# buildResources/printPreview/preview/*
+.cursor/*
+
+# Cursor files 
+.cursor/*
+src/renderer/.cursor/*
+.prompts

@@ -37,7 +37,7 @@ export const TEMPLATE_ICONS = {
   other: <CarocciTemplate width="100%" height="100%" />
 }
 
-type RadioGroupContextProps = TemplateSelectionProps & {};
+type RadioGroupContextProps = TemplateSelectionProps;
 
 const RadioGroupContext = createContext<RadioGroupContextProps | null>(null);
 

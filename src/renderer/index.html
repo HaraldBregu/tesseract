@@ -1,10 +1,10 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src 'self' local-resource: data:; connect-src 'self' ws: wss: https://cdn.jsdelivr.net;"
     />
     <link
       rel="icon"
@@ -16,6 +16,8 @@
   </head>
   <body>
     <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

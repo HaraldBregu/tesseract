@@ -58,3 +58,5 @@ export const useIpcRenderer = (setup: IpcSetupCallback, deps: any[] = []) => {
         };
     }, deps);
 };
+
+

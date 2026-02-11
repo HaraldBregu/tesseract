@@ -1,6 +1,13 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
-  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*"],
+  "include": [
+    "electron.vite.config.*",
+    "src/main/**/*",
+    "src/preload/**/*",
+    "package.json",
+    "resources/*.json",
+    "src/env.d.ts",
+  ],
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist",
@@ -12,7 +19,13 @@
     "experimentalDecorators": true,
     "removeComments": false,
     "noImplicitAny": false,
-    "types": ["./src/types", "electron-vite/node", "node"]
+    "types": [
+      "./src/types",
+      "electron-vite/node",
+      "node"
+    ]
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

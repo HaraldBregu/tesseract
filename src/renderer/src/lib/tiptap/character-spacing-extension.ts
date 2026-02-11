@@ -68,12 +68,4 @@ export const CharacterSpacing = Extension.create<CharacterSpacingOptions>({
             },
         }
     },
-
-    addKeyboardShortcuts() {
-        return {
-            'Mod-Alt--': () => this.editor.commands.increaseCharacterSpacing(),
-            'Mod-Alt-_': () => this.editor.commands.decreaseCharacterSpacing(),
-            'Mod-Alt-Space': () => this.editor.commands.unsetCharacterSpacing(),
-        }
-    },
 })

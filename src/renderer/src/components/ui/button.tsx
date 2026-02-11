@@ -1,16 +1,10 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 import { cn } from "@/lib/utils"
 
-const buttonVariants = cva(
+export const buttonVariants = cva(
   "inline-flex items-center justify-center gap-3 w-fit whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
@@ -26,6 +20,7 @@ const buttonVariants = cva(
         border: "border bg-transparent",
         icon: "bg-transparent",
         link: "bg-transparent uppercase",
+        ghost:""
       },
       size: {
         small: "h-[40px] px-[12px] py-[8px] text-sm",
@@ -194,6 +189,17 @@ const buttonVariants = cva(
   }
 )
 
+// Helper function to clone React elements and add disabled prop
+const cloneElementWithDisabled = (element: React.ReactNode, disabled: boolean): React.ReactNode => {
+  if (React.isValidElement<{ disabled?: boolean }>(element)) {
+    return React.cloneElement(element, {
+      ...(typeof element.props === 'object' && element.props !== null ? element.props : {}),
+      disabled,
+    });
+  }
+  return element;
+};
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
   VariantProps<typeof buttonVariants> {
@@ -201,13 +207,10 @@ export interface ButtonProps
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   icon?: React.ReactNode;
-  tooltip?: string;
-  tooltipSide?: "top" | "right" | "bottom" | "left";
-  tooltipAlign?: "start" | "center" | "end";
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, intent, variant, size, asChild = false, leftIcon, rightIcon, icon, tooltip, tooltipSide = "top", tooltipAlign = "end", children, ...props }, ref) => {
+  ({ className, intent, variant, size, asChild = false, leftIcon, rightIcon, icon, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
 
     let buttonSize = size;
@@ -220,22 +223,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         <Comp
           className={cn(buttonVariants({ intent, variant, size: buttonSize, className }))}
           ref={ref}
+          disabled={disabled}
           {...props}
         >
-          {icon}
+          {cloneElementWithDisabled(icon, disabled || false)}
         </Comp>
       );
-
-      if (tooltip) {
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
-              <TooltipContent side={tooltipSide} align={tooltipAlign}>{tooltip}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      }
 
       return buttonElement;
     }
@@ -244,24 +237,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ intent, variant, size: buttonSize, className }))}
         ref={ref}
+        disabled={disabled}
         {...props}
       >
-        {leftIcon && <span className="inline-flex">{leftIcon}</span>}
+        {leftIcon && <span className="inline-flex">{cloneElementWithDisabled(leftIcon, disabled || false)}</span>}
         {children}
-        {rightIcon && <span className="inline-flex">{rightIcon}</span>}
+        {rightIcon && <span className="inline-flex">{cloneElementWithDisabled(rightIcon, disabled || false)}</span>}
       </Comp>
     );
-
-    if (tooltip) {
-      return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
-            <TooltipContent side={tooltipSide} align={tooltipAlign}>{tooltip}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    }
 
     return buttonElement;
   }

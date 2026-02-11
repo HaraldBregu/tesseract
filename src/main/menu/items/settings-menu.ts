@@ -1,33 +1,18 @@
 import { MenuItem, MenuItemConstructorOptions } from "electron";
-import { MenuItemId } from "../../shared/types";
+import { MenuItemId } from "../../types";
+import i18n from 'i18next';
+import { getKeyboardShortcut } from '../../shared/keyboard-shortcuts-utils';
 
 export const buildSettingsMenu = (
     onClick: (menuItem: MenuItem) => void
 ): MenuItemConstructorOptions => {
     return {
-        label: 'Settings',
+        label: i18n.t('menu.settings'),
         submenu: [
-            // {
-            //     id: 'sign-in',
-            //     label: 'Sign In',
-            //     click: (item) => onClick(item)
-            // },
-            // {
-            //     id: 'notifications',
-            //     label: 'Notifications',
-            //     enabled: false,
-            //     click: (item) => onClick(item)
-            // },
-            // {
-            //     id: 'shared-files',
-            //     label: 'Shared Files',
-            //     enabled: false,
-            //     click: (item) => onClick(item)
-            // },
             {
                 id: MenuItemId.PREFERENCES,
-                label: 'Preferences',
-                accelerator: 'CmdOrCtrl+Shift+O',
+                label: i18n.t('menu.preferences'),
+                accelerator: getKeyboardShortcut(MenuItemId.PREFERENCES),
                 click: (menuItem: MenuItem): void => onClick(menuItem),
             },
         ]

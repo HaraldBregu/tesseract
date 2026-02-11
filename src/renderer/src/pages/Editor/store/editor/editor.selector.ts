@@ -8,25 +8,48 @@ export const selectEditorData = createSelector(
   (editor) => editor.data
 );
 
-export const selectToolbarEmphasisState = createSelector(
-  editorState,
-  (editor) => editor.toolbarEmphasisState
-);
-
-export const selectLinkActive = createSelector(
-  selectToolbarEmphasisState,
-  (toolbarEmphasisState) => toolbarEmphasisState.link !== 'http://'
-);
-
 export const selectApparatuses = createSelector(
   editorState,
   (editor) => editor.apparatuses
 );
 
-export const selectVisibleApparatuses = createSelector(
-  editorState,
-  (editor) => editor.apparatuses.filter(apparatus => apparatus.visible)
+export const selectCriticalApparatuses = createSelector(
+  selectApparatuses,
+  (apparatuses) => apparatuses.filter((apparatus) => apparatus.type === 'CRITICAL')
 );
+
+export const selectApparatusesVisibilities = createSelector(
+  selectApparatuses,
+  (apparatuses) => apparatuses.map(apparatus => {
+    return {
+      id: apparatus.id,
+      visible: apparatus.visible
+    }
+  })
+);
+
+export const selectVisibleApparatuses = createSelector(
+  selectApparatuses,
+  (apparatuses) => apparatuses.filter(apparatus => apparatus.visible)
+);
+
+export const hasVisibleApparatusesSelector = createSelector(
+  selectVisibleApparatuses,
+  (visibleApparatuses) => visibleApparatuses.length > 0
+);
+
+export const selectExpandedApparatuses = createSelector(
+  selectApparatuses,
+  (apparatuses) => apparatuses.filter(apparatus => apparatus.expanded)
+);
+
+export const visibleApparatusesOptionsSelector = createSelector(
+  editorState,
+  (state) => state.apparatuses.map((category) => ({
+    label: category.title + " (" + category.type + ")",
+    value: category.id,
+  } as BubbleToolbarItemOption))
+)
 
 export const selectApparatusesTypes = createSelector(
   editorState,
@@ -58,16 +81,6 @@ export const selectChangeIndent = createSelector(
   (editor) => editor?.changeIndent || null
 );
 
-export const selectTocSettings = createSelector(
-  editorState,
-  (editor) => editor.tocSettings
-);
-
-export const showTocChecked = createSelector(
-  selectTocSettings,
-  (tocSettings) => tocSettings?.show || false
-);
-
 export const selectHistory = createSelector(
   editorState,
   (editor) => editor?.history
@@ -78,34 +91,29 @@ export const selectCanUndo = createSelector(
   (editor) => editor?.canUndo || false
 );
 
-export const selectCanAddBookmark = createSelector(
+export const selectTocStructureCriticalText = createSelector(
   editorState,
-  (editor) => editor?.canAddBookmark || false
+  (editor) => editor?.tocStructureCriticalText || []
 );
 
-export const selectCanAddComment = createSelector(
+export const selectTocStructureIntroduction = createSelector(
   editorState,
-  (editor) => editor?.canAddComment || false
+  (editor) => editor?.tocStructureIntroduction || []
 );
 
-export const selectBookmarkActive = createSelector(
+export const selectTocStructureBibliography = createSelector(
   editorState,
-  (editor) => editor?.bookmarkActive || false
-);
-
-export const selectCommentActive = createSelector(
-  editorState,
-  (editor) => editor?.commentActive || false
-);
-
-export const selectTocStructure = createSelector(
-  editorState,
-  (editor) => editor?.tocStructure || []
+  (editor) => editor?.tocStructureBibliography || []
 );
 
 export const selectHeadingEnabled = createSelector(
   editorState,
   (editor) => editor?.headingEnabled || false
+);
+
+export const selectToolbarEnabled = createSelector(
+  editorState,
+  (editor) => editor?.toolbarEnabled || false
 );
 
 // APPARATUSES SELECTORS
@@ -125,9 +133,9 @@ export const selectEnabledRemainingApparatusesTypes = createSelector(
     if (remainingApparatuses <= 0) return []
 
     const apparatusTypes = [
-      'CRITICAL', 
-      'PAGE_NOTES', 
-      'SECTION_NOTES', 
+      'CRITICAL',
+      'PAGE_NOTES',
+      'SECTION_NOTES',
       'INNER_MARGIN',
       'OUTER_MARGIN'
     ] as const satisfies ApparatusType[]
@@ -135,10 +143,19 @@ export const selectEnabledRemainingApparatusesTypes = createSelector(
     const types = apparatusTypes.filter(type => {
       const innerMargin = editor.apparatuses.some(apparatus => apparatus.type === 'INNER_MARGIN')
       const outerMargin = editor.apparatuses.some(apparatus => apparatus.type === 'OUTER_MARGIN')
+      const pageNotes = editor.apparatuses.some(apparatus => apparatus.type === 'PAGE_NOTES')
+      const sectionNotes = editor.apparatuses.some(apparatus => apparatus.type === 'SECTION_NOTES')
+
       if (type === 'INNER_MARGIN' && innerMargin) {
         return false
       }
       if (type === 'OUTER_MARGIN' && outerMargin) {
+        return false
+      }
+      if (type === 'PAGE_NOTES' && pageNotes) {
+        return false
+      }
+      if (type === 'SECTION_NOTES' && sectionNotes) {
         return false
       }
 
@@ -158,17 +175,24 @@ export const selectDisabledRemainingApparatusesTypes = createSelector(
     const types = apparatusTypes.filter(type => {
       const innerMargin = editor.apparatuses.some(apparatus => apparatus.type === 'INNER_MARGIN')
       const outerMargin = editor.apparatuses.some(apparatus => apparatus.type === 'OUTER_MARGIN')
+      const pageNotes = editor.apparatuses.some(apparatus => apparatus.type === 'PAGE_NOTES')
+      const sectionNotes = editor.apparatuses.some(apparatus => apparatus.type === 'SECTION_NOTES')
+
       if (type === 'INNER_MARGIN' && innerMargin) {
         return true
       } else if (type === 'OUTER_MARGIN' && outerMargin) {
         return true
+      } else if (type === 'PAGE_NOTES' && pageNotes) {
+        return true
+      } else if (type === 'SECTION_NOTES' && sectionNotes) {
+        return true
       } else if (remainingApparatuses <= 0) {
-        return editor.apparatuses.filter(apparatus => apparatus.type !== 'INNER_MARGIN' && apparatus.type !== 'OUTER_MARGIN')
+        return editor.apparatuses.filter(apparatus => apparatus.type !== 'INNER_MARGIN' && apparatus.type !== 'OUTER_MARGIN' && apparatus.type !== 'PAGE_NOTES' && apparatus.type !== 'SECTION_NOTES')
       }
       return false
     })
 
-    return types
+    return types as ApparatusType[]
   }
 );
 
@@ -181,7 +205,12 @@ export const selectMaxRemainingInnerMargins = createSelector(
 );
 
 export const selectDocumentTemplate = createSelector(
-    [editorState],
-    (editor) => editor.documentTemplate
+  [editorState],
+  (editor) => editor.documentTemplate
 );
 
+
+export const selectSelectedNodeType = createSelector(
+  editorState,
+  (editor) => editor.selectedNodeType
+);

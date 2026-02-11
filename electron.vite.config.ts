@@ -3,16 +3,27 @@ import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import reactScan from '@react-scan/vite-plugin-react-scan';
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, "src/main/index.ts"),
+          'search-worker': resolve(__dirname, "src/main/workers/search-worker.ts"), // ✅ Add worker entry
+        },
+        output: {
+          entryFileNames: "[name].js", // ✅ Ensure .js files are generated
+        },
+      },
+    },
   },
   preload: {
     plugins: [externalizeDepsPlugin()]
   },
   renderer: {
+    publicDir: resolve(__dirname, './src/renderer/public'),
     resolve: {
       alias: {
         //'@renderer': resolve('src/renderer/src')
@@ -25,19 +36,17 @@ export default defineConfig({
         "@resources": resolve(__dirname, "buildResources"),
       }
     },
-    plugins: [react(),
-    tsconfigPaths(),
-    svgr({
-      svgrOptions: {
-        icon: true,
-        svgProps: {
-          fill: "currentColor",
-        },
-      }
-    }),
-    reactScan({
-      enable: true,
-    }),
+    plugins: [
+      react(),
+      tsconfigPaths(),
+      svgr({
+        svgrOptions: {
+          icon: true,
+          svgProps: {
+            fill: "currentColor",
+          },
+        }
+      }),
     ]
   }
 })

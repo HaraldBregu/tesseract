@@ -1,68 +1,73 @@
 import { MenuItem, MenuItemConstructorOptions } from "electron";
-import { MenuItemId } from "../../shared/types";
+import { MenuItemId } from "../../types";
 import i18next from "i18next";
+import { getKeyboardShortcut } from '../../shared/keyboard-shortcuts-utils';
+import { getBaseAuthToken } from '../../store';
 
 export const buildCriterionMacMenu = (
     onClick: (menuItem: MenuItem) => void
 ): MenuItemConstructorOptions => {
+    const baseAuthToken = getBaseAuthToken();
+    const authenticated = baseAuthToken !== null && baseAuthToken !== undefined;
+
+    const submenu: MenuItemConstructorOptions[] = [
+        {
+            id: MenuItemId.ABOUT,
+            label: i18next.t("menu.help.about"),
+            accelerator: getKeyboardShortcut(MenuItemId.ABOUT),
+            click: (menuItem: MenuItem): void => onClick(menuItem),
+        },
+        {
+            type: 'separator'
+        },
+        {
+            id: MenuItemId.PREFERENCES,
+            label: i18next.t('menu.preferences') + '\u2026',
+            accelerator: getKeyboardShortcut(MenuItemId.PREFERENCES),
+            click: (menuItem: MenuItem): void => onClick(menuItem),
+        },
+    ];
+
+    // Add Shared Files menu item for authenticated users on macOS
+    if (authenticated) {
+        submenu.push({
+            type: 'separator'
+        });
+        submenu.push({
+            id: MenuItemId.SHARED_FILES,
+            label: i18next.t("menu.file.sharedFiles"),
+            enabled: true,
+            click: (menuItem: MenuItem): void => onClick(menuItem),
+        });
+    }
+
+    submenu.push(
+        {
+            type: 'separator'
+        },
+        {
+            role: 'hide',
+            label: i18next.t('criterion.hide'),
+            accelerator: 'CmdOrCtrl+H',
+        },
+        {
+            role: 'hideOthers',
+            label: i18next.t('criterion.hideOthers'),
+            accelerator: 'CmdOrCtrl+Alt+H',
+        },
+        {
+            role: 'unhide',
+            label: i18next.t('criterion.showAll')
+        },
+        {
+            role: 'quit',
+            accelerator: 'CmdOrCtrl+Q',
+            label: i18next.t('criterion.quit')
+        }
+    );
+
     return {
-        label: 'Criterion',
-        submenu: [
-            {
-                id: MenuItemId.ABOUT,
-                label: i18next.t("menu.help.about"),
-                click: (menuItem: MenuItem): void => onClick(menuItem),
-            },
-            {
-                id: MenuItemId.CHECK_UPDATES,
-                label: 'Check for Updates',
-                click: (item) => onClick(item)
-            },
-            { type: 'separator' },
-            {
-                id: MenuItemId.PREFERENCES,
-                label: 'Preferences',
-                accelerator: 'CmdOrCtrl+Shift+O',
-                click: (menuItem: MenuItem): void => onClick(menuItem),
-            },
-            { type: 'separator' },
-            // {
-            //     id: 'sign-in',
-            //     label: 'Sign In',
-            //     click: (item) => onClick(item)
-            // },
-            // {
-            //     id: 'notifications',
-            //     label: 'Notifications',
-            //     enabled: false,
-            //     click: (item) => onClick(item)
-            // },
-            // {
-            //     id: 'shared-files',
-            //     label: 'Shared Files',
-            //     enabled: false,
-            //     click: (item) => onClick(item)
-            // },
-            {
-                id: MenuItemId.CRITERION_FEEDBACK,
-                label: 'Provide Criterion Feedback',
-                click: (item) => onClick(item)
-            },
-            { type: 'separator' },
-            {
-                role: 'hide',
-                label: 'Hide Criterion'
-            },
-            { role: 'hideOthers' },
-            {
-                role: 'unhide',
-                label: 'Show All'
-            },
-            { type: 'separator' },
-            {
-                role: 'quit',
-                label: 'Quit Criterion'
-            }
-        ]
+        label: i18next.t('criterion.label'),
+        submenu
     };
 };
