@@ -19,39 +19,3 @@ certificates
 .env
 *.pfx
 *.p12
-
-# Editor directories and files
-.yarn/*
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-*.stl
-*.tml
-
-# TypeScript cache
-*.tsbuildinfo
-
-package-lock.json
-yarn.lock
-
-#Print preview
-out/
-TinyTex/*
-jre/*
-fonts/*
-latex/*
-
-preview/*
-# buildResources/printPreview/preview/*
-.cursor/*
-
-# Cursor files 
-.cursor/*
-src/renderer/.cursor/*
-.prompts
