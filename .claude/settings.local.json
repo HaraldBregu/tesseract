@@ -16,8 +16,12 @@
       "Bash(npm run typecheck:web:*)",
       "mcp__ide__getDiagnostics",
       "Bash(npm run typecheck:*)",
+<<<<<<< HEAD
       "Bash(git add:*)",
       "Bash(git commit:*)"
+=======
+      "Bash(git add:*)"
+>>>>>>> 08170126c52827c9a32ee736c4cbb9fe11543c3f
     ],
     "deny": [],
     "ask": []
