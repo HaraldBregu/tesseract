@@ -8,7 +8,7 @@ const HomePage: React.FC = () => {
           Welcome to Tesseract
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-          A modern, advanced text editor
+          A modern, advanced desktop application
         </p>
         <div className="space-y-4">
           <div className="inline-block bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">

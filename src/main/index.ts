@@ -10,6 +10,7 @@ function createWindow(): void {
     minWidth: 800,
     minHeight: 600,
     show: false,
+    icon: path.join(__dirname, '../../resources/icons/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.mjs'),
       sandbox: false,
