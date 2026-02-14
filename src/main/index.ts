@@ -47,8 +47,11 @@ let tray: Tray | null = null;
 
 function createTray(): void {
   const icon = nativeImage.createFromPath(
-    path.join(__dirname, '../../resources/icons/icon.png')
+    is.dev
+    ? path.join(__dirname, '../../resources/icons/icon.png')
+    : path.join(process.resourcesPath, 'resources/icons/icon.png')
   );
+
   tray = new Tray(icon.resize({ width: 16, height: 16 }));
 
   const contextMenu = Menu.buildFromTemplate([
