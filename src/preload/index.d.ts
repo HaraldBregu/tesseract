@@ -6,6 +6,7 @@ declare global {
     api: {
       playSound: () => void
       onLanguageChange: (callback: (lng: string) => void) => () => void
+      onThemeChange: (callback: (theme: string) => void) => () => void
     }
   }
 }

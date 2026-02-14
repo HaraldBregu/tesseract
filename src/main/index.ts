@@ -15,6 +15,11 @@ const menuManager = new Menu({
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('change-language', lng)
     })
+  },
+  onThemeChange: (theme) => {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send('change-theme', theme)
+    })
   }
 })
 

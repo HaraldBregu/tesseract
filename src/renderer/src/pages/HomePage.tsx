@@ -11,6 +11,13 @@ const HomePage: React.FC = () => {
     return cleanup;
   }, [i18n]);
 
+  useEffect(() => {
+    const cleanup = window.api.onThemeChange((theme: string) => {
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+    });
+    return cleanup;
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
       <div className="text-center px-6">

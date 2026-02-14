@@ -3,10 +3,12 @@ import { loadTranslations } from './i18n'
 
 interface MenuManagerCallbacks {
   onLanguageChange: (lng: string) => void
+  onThemeChange: (theme: string) => void
 }
 
 export class Menu {
   private currentLanguage = 'en'
+  private currentTheme = 'light'
   private callbacks: MenuManagerCallbacks
 
   constructor(callbacks: MenuManagerCallbacks) {
@@ -31,6 +33,12 @@ export class Menu {
       this.currentLanguage = lng
       this.buildMenu()
       this.callbacks.onLanguageChange(lng)
+    }
+
+    const switchTheme = (theme: string): void => {
+      this.currentTheme = theme
+      this.buildMenu()
+      this.callbacks.onThemeChange(theme)
     }
 
     const template: Electron.MenuItemConstructorOptions[] = [
@@ -112,6 +120,23 @@ export class Menu {
                 type: 'radio' as const,
                 checked: this.currentLanguage === 'it',
                 click: (): void => switchLanguage('it')
+              }
+            ]
+          },
+          {
+            label: m.theme,
+            submenu: [
+              {
+                label: m.light,
+                type: 'radio' as const,
+                checked: this.currentTheme === 'light',
+                click: (): void => switchTheme('light')
+              },
+              {
+                label: m.dark,
+                type: 'radio' as const,
+                checked: this.currentTheme === 'dark',
+                click: (): void => switchTheme('dark')
               }
             ]
           }

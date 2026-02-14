@@ -34,6 +34,9 @@
     "hideOthers": "Nascondi altri",
     "unhide": "Mostra tutti",
     "front": "Porta tutto in primo piano",
-    "showTesseract": "Mostra Tesseract"
+    "showTesseract": "Mostra Tesseract",
+    "theme": "Tema",
+    "light": "Chiaro",
+    "dark": "Scuro"
   }
 }

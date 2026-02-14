@@ -13,6 +13,15 @@ const api = {
         return () => {
             ipcRenderer.removeListener('change-language', handler)
         }
+    },
+    onThemeChange: (callback: (theme: string) => void): (() => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, theme: string): void => {
+            callback(theme)
+        }
+        ipcRenderer.on('change-theme', handler)
+        return () => {
+            ipcRenderer.removeListener('change-theme', handler)
+        }
     }
 }
 
