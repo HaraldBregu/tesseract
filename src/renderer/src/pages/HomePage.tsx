@@ -19,6 +19,14 @@ const HomePage: React.FC = () => {
               Focus on what matters with a streamlined interface
             </p>
           </div>
+          <div className="mt-6">
+            <button
+              onClick={() => window.api.playSound()}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+            >
+              Click Me
+            </button>
+          </div>
         </div>
       </div>
     </div>

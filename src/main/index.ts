@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
 import path from 'node:path';
+import { exec } from 'node:child_process';
 import { is } from "@electron-toolkit/utils";
 
 function createWindow(): void {
@@ -42,8 +43,57 @@ function createWindow(): void {
   })
 }
 
+let tray: Tray | null = null;
+
+function createTray(): void {
+  const icon = nativeImage.createFromPath(
+    path.join(__dirname, '../../resources/icons/icon.png')
+  );
+  tray = new Tray(icon.resize({ width: 16, height: 16 }));
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show Tesseract',
+      click: () => {
+        const windows = BrowserWindow.getAllWindows();
+        if (windows.length > 0) {
+          windows[0].show();
+          windows[0].focus();
+        } else {
+          createWindow();
+        }
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setToolTip('Tesseract');
+  tray.setContextMenu(contextMenu);
+}
+
+// Handle play-sound IPC
+ipcMain.on('play-sound', () => {
+  const soundPath = is.dev
+    ? path.join(__dirname, '../../resources/sounds/click1.wav')
+    : path.join(process.resourcesPath, 'resources/sounds/click1.wav');
+  if (process.platform === 'darwin') {
+    exec(`afplay "${soundPath}"`);
+  } else if (process.platform === 'win32') {
+    exec(`powershell -c "(New-Object Media.SoundPlayer '${soundPath}').PlaySync()"`);
+  } else {
+    exec(`aplay "${soundPath}"`);
+  }
+});
+
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
+  createTray();
   createWindow()
 
   app.on('activate', function () {
