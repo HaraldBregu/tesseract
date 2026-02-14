@@ -1,7 +1,6 @@
 import { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
-import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
@@ -37,15 +36,7 @@ export default defineConfig({
     },
     plugins: [
       react(),
-      tsconfigPaths(),
-      svgr({
-        svgrOptions: {
-          icon: true,
-          svgProps: {
-            fill: "currentColor",
-          },
-        }
-      }),
+      tsconfigPaths()
     ]
   }
 })
