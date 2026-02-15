@@ -4,7 +4,9 @@ import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
 import eslintPluginReactRefresh from 'eslint-plugin-react-refresh'
 
 export default tseslint.config(
-  { ignores: ['**/node_modules', '**/dist', '**/out', '**/src/renderer', '**/scripts/*.cjs'] },
+  {
+    ignores: ['**/node_modules', '**/dist', '**/out', '**/src/renderer', '**/scripts/*.cjs']
+  },
   tseslint.configs.recommended,
   eslintPluginReact.configs.flat.recommended,
   eslintPluginReact.configs.flat['jsx-runtime'],

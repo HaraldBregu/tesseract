@@ -12,7 +12,7 @@ export default defineConfig({
           index: resolve(__dirname, "src/main/index.ts"),
         },
         output: {
-          entryFileNames: "[name].js", // ✅ Ensure .js files are generated
+          entryFileNames: "[name].js",
         },
       },
     },
@@ -24,7 +24,6 @@ export default defineConfig({
     publicDir: resolve(__dirname, './src/renderer/public'),
     resolve: {
       alias: {
-        //'@renderer': resolve('src/renderer/src')
         '@': resolve(__dirname, './src/renderer/src'),
         '@utils': resolve(__dirname, './src/renderer/src/utils'),
         '@pages': resolve(__dirname, './src/renderer/src/pages'),
